@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>pybullet_fingers</name>
+  <version>0.0.1</version>
+  <description>
+      pyBullet simulation for the Finger, TriFinger and related robots.
+  </description>
+
+  <maintainer email="felix.widmaier@tue.mpg.de">Felix Widmaier</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>mpi_cmake_modules</build_depend>
+
+  <export>
+  </export>
+</package>
