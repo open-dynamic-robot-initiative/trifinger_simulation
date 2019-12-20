@@ -9,22 +9,22 @@ To run the demos in the pybullet_fingers package, please follow these steps-
 
 0. Setup the repositories as follows- (as described by Felix)
 
-   * Delete treep_amd_clmc from your workspace 
+   * Delete treep_amd_clmc from your workspace
 
-   * Add treep_robotics at the top level of our workspace: 
-
-     ```
-     git clone [git@git-amd.tuebingen.mpg.de:robotics/treep_robotics](mailto:git@git-amd.tuebingen.mpg.de:robotics/treep_robotics) 
-     ```
-
-   * Update the origins of your local repositories: 
+   * Add treep_robotics at the top level of our workspace:
 
      ```
-     treep --fix-origins 
+     git clone [git@git-amd.tuebingen.mpg.de:robotics/treep_robotics](mailto:git@git-amd.tuebingen.mpg.de:robotics/treep_robotics)
      ```
 
-   *     cd .../treep_robotics; git pull 
-         treep --clone BLMC_EI 
+   * Update the origins of your local repositories:
+
+     ```
+     treep --fix-origins
+     ```
+
+   *     cd .../treep_robotics; git pull
+         treep --clone BLMC_EI
 
 
 1. Use the latest version of the container (named blmc_ei.def) from the wiki
@@ -111,7 +111,7 @@ From: ./blmc_ei.sif
      position of the target only.
      * demo_move_along_a_circle.py : To move the finger uniformly along a circle.
 
-5. The gym-wrapper is a work in progress and exists now for structural testing. A few slight modifications have to be added as compared to the environment in  python/pybullet_fingers/sim_finger. 
+5. The gym-wrapper is a work in progress and exists now for structural testing. A few slight modifications have to be added as compared to the environment in  python/pybullet_fingers/sim_finger.
 
 6. Now the gym interface doesn't have to be installed explicitly by running pip install. It is installed via catmake as a sub-package of pybullet_fingers. It gets installed by default. To test it run python3 inside the container, then:
 

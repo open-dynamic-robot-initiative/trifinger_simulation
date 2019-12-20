@@ -12,10 +12,9 @@ from pybullet_fingers import sim_finger
 if __name__ == "__main__":
 
     finger = sim_finger.Finger()
-    finger.disable_default_motors()
 
     for _ in range(3):
-        desired_positon = finger.set_target_in_arena_randomly()
+        desired_positon = finger.sample_random_position_in_arena()
         finger.display_object_at_target(desired_positon)
 
         time.sleep(0.001)
