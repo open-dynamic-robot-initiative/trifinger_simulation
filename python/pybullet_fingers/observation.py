@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-class obstruct:
+class Observation:
     """
     Defines the observation structure to be followed by the observations derived from sim_finger.
     """

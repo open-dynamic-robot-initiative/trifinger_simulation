@@ -20,7 +20,6 @@ from pybullet_fingers import sim_finger
 
 if __name__ == "__main__":
     simulated_finger = sim_finger.Finger()
-    simulated_finger.disable_default_motors()
     t = 0.
     while True:
         previous_desired_position = [
