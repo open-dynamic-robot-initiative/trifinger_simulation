@@ -9,99 +9,86 @@ To run the demos in the pybullet_fingers package, please follow these steps-
 
 0. Setup the repositories as follows- (as described by Felix)
 
-   * Delete treep_amd_clmc from your workspace
-
-   * Add treep_robotics at the top level of our workspace:
+   * Clone treep_robotics and treep_machines_in_motion in the directory in which your workspace is
 
      ```
-     git clone [git@git-amd.tuebingen.mpg.de:robotics/treep_robotics](mailto:git@git-amd.tuebingen.mpg.de:robotics/treep_robotics)
+  git clone git@git-amd.tuebingen.mpg.de:robotics/treep_robotics.git
+     git clone git@github.com:machines-in-motion/treep_machines_in_motion.git
      ```
-
-   * Update the origins of your local repositories:
-
-     ```
-     treep --fix-origins
-     ```
-
-   *     cd .../treep_robotics; git pull
-         treep --clone BLMC_EI
+   
+* treep --clone BLMC_EI (or BLMC_EI_SIM)
 
 
 1. Use the latest version of the container (named blmc_ei.def) from the wiki
-   page (find below for reference)
+   page "Build and Run with Singularity" (find below for reference)
 
   ~~~~markdown
-  Bootstrap: docker
-  From: osrf/ros:kinetic-desktop
+Bootstrap: docker
+From: osrf/ros:kinetic-desktop
+ 
+# To save time when rebuilding the image, you can pull the ROS image once and
+# then use the following instead:
+#Bootstrap: localimage
+#From: ./ros_kinetic-desktop.sif
+ 
+%post
+    apt-get update
+    apt-get dist-upgrade -y
+ 
+    apt-get install -y clang clang-format
+ 
+    # missing dependencies
+    apt-get install -y \
+        wget \
+        freeglut3-dev \
+        ros-kinetic-realtime-tools \
+        python3-pip \
+        python3-progressbar \
+        python3-empy \
+        python3-numpy \
+        python3-yaml \
+        libcereal-dev \
+        libopencv-dev  # FIXME fix code so that ROS-version of OpenCV is used
+ 
+    apt-get install -y \
+        libxmu-dev \
+        libncurses5-dev \
+        libedit-dev
+ 
+    # Need Python 3 version of several packages to build with Python 3
+    pip3 --no-cache-dir install catkin-pkg rospkg catkin_tools
+ 
+    # for building documentation
+    apt-get install doxygen
+    pip3 --no-cache-dir install doxypypy
 
-  # To save time when rebuilding the image, you can pull the ROS image once and
-  # then use the following instead:
-  #Bootstrap: localimage
-  #From: ./ros_kinetic-desktop.sif
-
-  %post
-      apt-get update
-      apt-get dist-upgrade -y
-
-      apt-get install -y clang clang-format
-
-      # missing dependencies
-      apt-get install -y \
-          wget \
-          freeglut3-dev \
-          ros-kinetic-realtime-tools \
-          python3-pip \
-          python3-progressbar \
-          python3-empy \
-          python3-numpy \
-          python3-yaml \
-          libcereal-dev \
-          libopencv-dev  # FIXME fix code so that ROS-version of OpenCV is used
-
-      # Need Python 3 version of several packages to build with Python 3
-      pip3 --no-cache-dir install catkin-pkg rospkg catkin_tools
-
-      # for building documentation
-      pip3 --no-cache-dir install doxypypy
-
-      # clean up
-      apt-get clean
-
-      # create a setup file
-      echo ". /opt/ros/kinetic/setup.bash
-  alias catmake='catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3'
-  alias catbuild='catkin build -DPYTHON_EXECUTABLE=/usr/bin/python3'
-  " > /setup.bash
-
-
-  %labels
-      Version 0.4.0
-
-  %help
-      Container for building the BLMC_EI project.
-      Run it with `singularity shell` at the root of your workspace, set up the
-      environment by executing `source /setup.sh` and build with `catbuild` (which
-      is an alias for `catkin build` that sets the Python executable to use Python
-      3) or `catmake` (same but using `catkin_make`).
+    # for simulation
+    pip3 install pybullet gym ipython
+    apt-get install -y python3-matplotlib
+ 
+    # clean up
+    apt-get clean
+ 
+    # create a setup file
+    echo ". /opt/ros/kinetic/setup.bash
+alias catmake='catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3'
+alias catbuild='catkin build -DPYTHON_EXECUTABLE=/usr/bin/python3'
+" > /setup.bash
+ 
+ 
+%labels
+    Version 0.4.1
+ 
+%help
+    Container for building the BLMC_EI project.
+    Run it with `singularity shell` at the root of your workspace, set up the
+    environment by executing `source /setup.sh` and build with `catbuild` (which
+    is an alias for `catkin build` that sets the Python executable to use Python
+    3) or `catmake` (same but using `catkin_make`).
   ~~~~
 
-  2. Bootstrap the above container with the one below (call this say,
-     blmc_ei_sim.def).
-
-~~~~markdown
-Bootstrap: localimage
-From: ./blmc_ei.sif
-
-%post
-    #Install PyBullet
-    pip3 install pybullet
-
-    #Install Gym
-    pip3 install gym
-~~~~
-
-  3. Follow the steps to build the container and start the shell, do catmake and
-     source the devel/setup.bash file, and then run 'rosrun pybullet_fingers <demo_file>'.
+2. Follow the steps to build the container and start the shell, do catbuild and
+   source the devel/setup.bash file. This ensures that even if you make any changes to your gym environment, you do not need to install it again using pip install. And, actually, note that in case you are using multiple workspaces, do not perform a pip install. 
 
   4. Following demos are available as of now:
      * demo_switch.py : To demonstrate that the same commands can be used with
@@ -110,8 +97,9 @@ From: ./blmc_ei.sif
      target point in the arena using torque control by directly specifying the
      position of the target only.
      * demo_move_along_a_circle.py : To move the finger uniformly along a circle.
-
-5. The gym-wrapper is a work in progress and exists now for structural testing. A few slight modifications have to be added as compared to the environment in  python/pybullet_fingers/sim_finger.
+* demo_move_up_and_down : to show movements of all the three fingers going up and down
+     
+5. The gym-wrapper is a work in progress and exists now for structural testing. A few slight modifications have to be added as compared to the environment in  python/pybullet_fingers/sim_finger. This will be updated shortly for a reaching task. 
 
 6. Now the gym interface doesn't have to be installed explicitly by running pip install. It is installed via catmake as a sub-package of pybullet_fingers. It gets installed by default. To test it run python3 inside the container, then:
 
