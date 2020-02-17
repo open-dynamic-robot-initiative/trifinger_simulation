@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
+
 class Observation:
     """
-    Defines the observation structure to be followed by the observations derived from sim_finger.
+    The observation structure
     """
     def __init__(self):
         position = []

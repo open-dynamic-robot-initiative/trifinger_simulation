@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
+
 """
 To demonstrate reaching a randomly set target point in the arena using torque
 control by directly specifying the position of the target only.
 """
-import math
 import time
 import numpy as np
 
@@ -14,8 +14,6 @@ from pybullet_fingers import sim_finger
 if __name__ == "__main__":
 
     finger = sim_finger.Finger()
-
-
     last_time = None
     torque = np.array([0., 0.3, 0.3])
 

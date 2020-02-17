@@ -1,206 +1,175 @@
 #!/usr/bin/env python3
 # -------------------------------------------------------------------------------------------------
-# The documentation in this code is heavily derived from the official documentation of PyBullet at
-# https://docs.google.com/document/d/10sXEhzFRSnvFcl3XxNGhnD4N2SedqwdAvK3dsihxVUA/edit# among other scattered sources.
+# The documentation in this code is heavily derived from the official
+# documentation of PyBullet at
+# https://docs.google.com/document/d/10sXEhzFRSnvFcl3XxNGhnD4N2SedqwdAvK3dsihxVUA/edit#
+# among other scattered sources.
 # -------------------------------------------------------------------------------------------------
-import os
-import time
-import math
-import random
+import copy
 import numpy as np
 
 import pybullet
 import pybullet_data
-
-import rospkg
+import pinocchio
 
 from pybullet_fingers.observation import Observation
+from pybullet_fingers.base_finger import BaseFinger
 
-class Finger:
+
+class TheAction:
     """
-    A simulation environment for the single finger robot.
-    This environment is based on PyBullet, the official Python wrapper around the
-    Bullet-C API.
-    :param time_step: It is the time between two simulation steps. Defaults to
-    1./240. Don't set this to be larger than 1./60.
-    :type time_step: float
-    :param visual_debugging: Set this to 'True' for a GUI interface to
-    the simulation.
-    :type visual_debugging: bool
-    :param finger_tip: Define the link index of the end-effector. Set this looking
-    at the output of print_link_information.
-    :type finger_tip: int
-    :param revolute_joint_ids: Define the range of movable joints to which control
-    commands will be sent. Set this looking at the output of print_joint_information.
-    :type revolute_joint_ids: class 'range'
-    :param finger_link_ids: Define the range of links that corresponds to the
-    upper, middle, and lower links of the finger. Set this looking at the output
-    of print_link_information.
-    :type finger_link_ids: class 'range'
-    :param action_repetitions: The number of times the simulation will be stepped
-    for a single control command.
-    :type action_repetitions: int
-    :param max_motor_torque: The maximum allowed torque that can be applied to
-    any of the joint motors.
-    :type max_motor_torque: float
-    :param buffer_size: The size of the buffer for which actions are stored. 1
-    by design.
-    :type buffer_size: int
+    Create the action data structure used by the SimFinger class.
+    """
+    def __init__(self, t, p):
+        self.torque = t
+        self.position = p
+
+
+class SimFinger(BaseFinger):
+    """
+    A simulation environment for the single and the tri-finger robots.
+    This environment is based on PyBullet, the official Python wrapper around
+    the Bullet-C API.
+
+    Args:
+
+        time_step (float): It is the time between two simulation steps.
+            Defaults to 1./240. Don't set this to be larger than 1./60.
+            The gains etc are set according to a time_step of 0.004 s.
+        enable_visualization (bool): See BaseFinger.
+        finger_type: See BaseFinger.
+        action_bounds: See BaseFinger.
+        sampling_strategy:  See BaseFinger.
+
+    Attributes:
+
+        position_gains (array): The kp gains for the pd control of the
+            finger(s). Note, this depends on the simulation step size
+            and has been set for a simulation rate of 250 Hz.
+        velocity_gains (array):The kd gains for the pd control of the
+            finger(s). Note, this depends on the simulation step size
+            and has been set for a simulation rate of 250 Hz.
+        safety_kd (array): The kd gains used for damping the joint motor
+            velocities during the safety torque check on the joint motors.
+        max_motor_torque (float): The maximum allowable torque that can
+            be applied to each motor.
+        action_index (int): An index used to enforce the structure of a
+            time-series of length 1 for the action in which the application
+            of the action precedes (in time) the observation corresponding
+            to it. Incremented each time an action is applied.
+        observation_index (int): The corresponding index for the observation
+            to ensure the same structure as the action time-series for the
+            observation time-series (of length 1).
+
     """
 
     def __init__(self,
-                 time_step=0.001,
-                 visual_debugging=True,
-                 finger_type="single"):
+                 time_step,
+                 enable_visualization,
+                 finger_type,
+                 action_bounds,
+                 sampling_strategy="separated"):
         """
         Constructor, initializes the physical world we will work in.
         """
-        self.visual_debugging = visual_debugging
+        # Always enable the simulation for the simulated robot :)
+        self.enable_simulation = True
+
+        super().__init__(finger_type,
+                         action_bounds,
+                         enable_visualization,
+                         sampling_strategy)
+
         self.time_step = time_step
-        self.finger_type = finger_type
-        self.position_gain = 20
-        self.velocity_gain = 7
-        self.safety_kd = 1.4
-        self.max_motor_torque = 0.36
+        self.position_gains = np.array([10.0, 10.0, 10.0]
+                                       * self.number_of_fingers)
+        self.velocity_gains = np.array([0.1, 0.3, 0.001]
+                                       * self.number_of_fingers)
+        self.safety_kd = np.array([0.08, 0.08, 0.04] * self.number_of_fingers)
+        self.max_motor_torque = .36
 
         self.action_index = -1
         self.observation_index = 0
 
-
-        self.set_finger_type_dependency()
-        self.connect_to_simulation()
         self.make_physical_world()
         self.disable_velocity_control()
 
-    def set_finger_type_dependency(self):
-        '''
-        Sets the paths for the URDFs to use depending upon the finger type
-        '''
-        self.robot_properties_path = os.path.join(rospkg.RosPack().get_path("robot_properties_manipulator"))
-
-        if "single" in self.finger_type:
-            self.finger_urdf_path = os.path.join(self.robot_properties_path,
-                                                 "urdf", "finger.urdf")
-            self.stage_meshfile_path = os.path.join(self.robot_properties_path,
-                                                    "meshes", "stl", "Stage_simplified.stl")
-            self.stage_meshscale = [1, 1, 1]
-
-
-        elif "tri" in self.finger_type:
-            self.finger_urdf_path = os.path.join(self.robot_properties_path,
-                                                 "urdf", "trifinger.urdf")
-            self.stage_meshfile_path = os.path.join(self.robot_properties_path,
-                                                    "meshes", "stl", "BL-M_Table_ASM_big.stl")
-            self.stage_meshscale = [0.001, 0.001, 0.001]
-
-
-
-    def connect_to_simulation(self):
+    def Action(self, torque=None, position=None):
         """
-        Connect to the GUI physics server for visual debugging via a GUI
-        interface, or enbable DIRECT connection.
+        Fill in the fields of the action structure
 
-        .. note::
-           Both GUI and DIRECT physics servers (the server) execute the
-           simulation and rendering in the same process as PyBullet(the client).
-           To connect to a physics server in a different process on the same
-           machine, or on a remote machine, use SHARED_MEMORY, UDP, or
-           TCP networking.
+        Args:
+            torque (array): The torques to apply to the motors
+            position (array): The absolute angular position to which
+                the motors have to be rotated.
 
-           In GUI connection mode, use ctrl or alt with mouse scroll to adjust
-           the view of the camera.
+        Returns:
+            the_action (TheAction): the action to be applied to the motors
         """
+        if torque is None:
+            torque = np.array([0.] * 3 * self.number_of_fingers)
+        if position is None:
+            position = np.array([np.nan] * 3 * self.number_of_fingers)
 
-        if self.visual_debugging:
-            pybullet.connect(pybullet.GUI)
-        else:
-            pybullet.connect(pybullet.DIRECT)
+        the_action = TheAction(torque, position)
+
+        return the_action
+
+    def set_real_time_sim(self, switch=0):
+        """
+        Choose to simulate in real-time or use a desired simulation rate
+        Defaults to non-real time
+
+        Args:
+            switch (int, 0/1): 1 to set the simulation in real-time.
+        """
+        pybullet.setRealTimeSimulation(switch)
+
+    def get_end_effector_position(self):
+        """
+        Get position(s) of the end-effector(s)
+
+        Returns:
+            Flat list of current end-effector positions, i.e. [x1, y1, z1, x2,
+            y2, ...]
+        """
+        # TODO this should better return a list of lists/arrays instead of a
+        # flat list
+        end_effector_positions = []
+        for finger_tip in self.finger_tip_ids:
+            end_effector_positions += pybullet.getLinkState(self.finger_id,
+                                                            finger_tip)[0]
+
+        return end_effector_positions
+
+    def get_joint_positions_and_velocities(self):
+        """
+        Get the positions and velocities of the joints
+
+        Returns:
+            joint_positions (list of floats): Angular positions of all joints.
+            joint_velocities (list of floats): Angular velocities of all joints
+        """
+        joints_data = pybullet.getJointStates(self.finger_id,
+                                              self.revolute_joint_ids)
+        positions = [joint[0] for joint in joints_data]
+        velocities = [joint[1] for joint in joints_data]
+
+        return positions, velocities
 
     def make_physical_world(self):
         """
-        Set parameters of the world such as gravity, time for which a
-        simulation step should run etc, and load the finger and the
-        interaction objects.
+        Set the physical parameters of the world in which the simulation
+        will run, and import the models to be simulated
         """
         pybullet.setAdditionalSearchPath(pybullet_data.getDataPath())
         pybullet.setGravity(0, 0, -9.81)
         pybullet.setTimeStep(self.time_step)
 
-        plane_id = pybullet.loadURDF("plane.urdf", [0, 0, 0])
+        pybullet.loadURDF("plane_transparent.urdf", [0, 0, 0])
         self.import_finger_model()
         self.set_dynamics_properties()
-        self.import_non_convex_shapes()
-        self.import_interaction_objects()
-
-    def import_finger_model(self):
-        """
-        Load a physics model of the finger from its urdf.
-
-        ..note::
-          use bitwise | instead of logical or as mentioned in the official
-          documentation for the urdf flags.
-
-        :return: Unique id of the body specified in the URDF (non-negative if
-        the URDF can be loaded).
-        :rtype: int
-        """
-
-        finger_base_position = [0, 0, 0.05]
-        finger_base_orientation = pybullet.getQuaternionFromEuler([0, 0, 0])
-
-        self.finger_id = pybullet.loadURDF(
-            fileName=self.finger_urdf_path,
-            basePosition=finger_base_position,
-            baseOrientation=finger_base_orientation,
-            useFixedBase=1,
-            flags=pybullet.URDF_USE_INERTIA_FROM_FILE | pybullet.URDF_USE_SELF_COLLISION)
-
-        self.get_indices()
-        self.last_joint_position = [0] * len(self.revolute_joint_ids)
-
-
-    def get_indices(self):
-        '''
-        Since the indices of the revolute joints and the tips are different in different URDFs,
-        this function sets the indices, using the current URDF, for:
-         - finger links
-         - revolute joints
-         - tip joints
-        '''
-        joint_indices = []
-        tip_indices = []
-        joint_names = ["finger_upper_link", "finger_middle_link", "finger_lower_link"]
-        tip_names = ["finger_tip"]
-
-        for id in range(pybullet.getNumJoints(self.finger_id)):
-            link_name = pybullet.getJointInfo(self.finger_id, id)[12].decode('UTF-8') # index 12 has the link name
-            if any(name in link_name for name in joint_names):
-                joint_indices.append(id)
-            if any(name in link_name for name in tip_names):
-                tip_indices.append(id)
-
-        # TODO the revolute_joint_ids and the finger_link_ids are pointing to the same indices.
-        self.revolute_joint_ids = joint_indices
-        self.finger_link_ids = joint_indices
-        self.finger_tip_ids = tip_indices
-
-
-    def import_non_convex_shapes(self):
-        """
-        Imports the non-convex arena (stage).
-        """
-        stage_id = pybullet.createCollisionShape(
-            shapeType=pybullet.GEOM_MESH,
-            fileName=self.stage_meshfile_path,
-            meshScale=self.stage_meshscale,
-            flags=pybullet.GEOM_FORCE_CONCAVE_TRIMESH)
-        stage_position = [0, 0, 0.05]
-        stage_orientation = pybullet.getQuaternionFromEuler([0, 0, 0])
-        stage = pybullet.createMultiBody(
-            baseCollisionShapeIndex=stage_id,
-            baseVisualShapeIndex=-1,
-            basePosition=stage_position,
-            baseOrientation=stage_orientation)
+        # self.import_non_convex_shapes()
 
     def set_dynamics_properties(self):
         """
@@ -211,7 +180,7 @@ class Finger:
             pybullet.changeDynamics(
                 bodyUniqueId=self.finger_id,
                 linkIndex=link_id,
-                maxJointVelocity=1e9,
+                maxJointVelocity=1e3,
                 restitution=0.8,
                 jointDamping=0.0,
                 lateralFriction=0.1,
@@ -224,53 +193,20 @@ class Finger:
 
     def print_link_information(self):
         """
-        Get the link indices along with their names as defined in the urdf.
-
-        ..note::
-          Source: https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=12728.
-
-          (Single finger output for reference)
-          0 finger_base_link
-          1 finger_upper_holder_link
-          2 finger_upper_link
-          3 finger_middle_link
-          4 finger_lower_link
-          5 finger_tip_link
+        Print the link indices along with their names as defined in the URDF.
         """
-
-        link_name_to_index = {
-            pybullet.getBodyInfo(
-                self.finger_id)[0].decode('UTF-8'): -1, }
-
-        for id in range(pybullet.getNumJoints(self.finger_id)):
-            link_name = pybullet.getJointInfo(self.finger_id, id)[12].decode('UTF-8')
-            link_name_to_index[link_name] = id
-            print(link_name_to_index[link_name], link_name)
+        for link_name, link_index in self.link_name_to_index.items():
+            print(link_index, link_name)
 
     def print_joint_information(self):
         """
-        Get the joint indices along with their names as defined in the urdf.
-
-        ..note::
-          Source: https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=12728.
-
-          (Single finger output for reference)
-          0 base_to_finger
-          1 finger_base_to_holder
-          2 finger_base_to_upper_joint
-          3 finger_upper_to_middle_joint
-          4 finger_middle_to_lower_joint
-          5 finger_lower_to_tip_joint
+        Print the joint indices along with their names as defined in the URDF.
         """
 
-        link_name_to_index = {
-            pybullet.getBodyInfo(
-                self.finger_id)[0].decode('UTF-8'): -1, }
-
-        for id in range(pybullet.getNumJoints(self.finger_id)):
-            joint_name = pybullet.getJointInfo(self.finger_id, id)[1].decode('UTF-8')
-            link_name_to_index[joint_name] = id
-            print(link_name_to_index[joint_name], joint_name)
+        for joint_index in range(pybullet.getNumJoints(self.finger_id)):
+            joint_name = pybullet.getJointInfo(
+                self.finger_id, joint_index)[1].decode('UTF-8')
+            print(joint_index, joint_name)
 
     def disable_velocity_control(self):
         """
@@ -279,208 +215,220 @@ class Finger:
         the urdf.
         """
 
-        pybullet.setJointMotorControlArray(bodyUniqueId=self.finger_id,
-                                           jointIndices=self.revolute_joint_ids,
-                                           controlMode=pybullet.VELOCITY_CONTROL,
-                                           targetVelocities=[0] * len(self.revolute_joint_ids),
-                                           forces=[0] * len(self.revolute_joint_ids))
+        pybullet.setJointMotorControlArray(
+            bodyUniqueId=self.finger_id,
+            jointIndices=self.revolute_joint_ids,
+            controlMode=pybullet.VELOCITY_CONTROL,
+            targetVelocities=[0] * len(self.revolute_joint_ids),
+            forces=[0] * len(self.revolute_joint_ids))
 
-    def sample_random_position_in_arena(self):
+    def pinocchio_inverse_kinematics(self, fid, xdes, q0):
         """
-        Set a new position in the arena for the interaction object, which
-        the finger has to reach.
-
-        :return: The random position of the target set in the arena.
-        :rtype: list of 3 floats
+        Method not in use right now, but is here with the intention
+        of using pinocchio for inverse kinematics instead of using
+        the in-house IK solver of pybullet.
         """
+        dt = 1.e-3
+        pinocchio.computeJointJacobians(self.pinocchio_robot_model,
+                                        self.pinocchio_robot_data, q0)
+        pinocchio.framesKinematics(self.pinocchio_robot_model,
+                                   self.pinocchio_robot_data, q0)
+        pinocchio.framesForwardKinematics(self.pinocchio_robot_model,
+                                          self.pinocchio_robot_data, q0)
+        Ji = pinocchio.getFrameJacobian(self.pinocchio_robot_model,
+                                        self.pinocchio_robot_data,
+                                        fid,
+                                        pinocchio.ReferenceFrame.
+                                        LOCAL_WORLD_ALIGNED)[:3, :]
+        xcurrent = self.pinocchio_robot_data.oMf[fid].translation
+        try:
+            Jinv = np.linalg.inv(Ji)
+        except Exception:
+            Jinv = np.linalg.pinv(Ji)
+        dq = Jinv.dot(xdes-xcurrent)
+        qnext = pinocchio.integrate(self.pinocchio_robot_model, q0, dt*dq)
+        return qnext
 
-        angle_x = random.uniform(-2 * math.pi, 2 * math.pi)
-        angle_y = random.uniform(-2 * math.pi, 2 * math.pi)
-        radial_distance = random.uniform(0, 0.22)
-
-        object_position = [radial_distance * math.cos(angle_x),
-                           radial_distance * math.sin(angle_y),
-                           0.08]
-        return object_position
-
-    def display_object_at_target(self, object_position):
-        """
-        Remove the older block and display a new one at the new position.
-
-        :param object_position: Position in the xyz coordinate
-        system at which the object is to be displayed.
-        :type object_position: vec3/list of 3 floats
-        """
-
-        pybullet.removeBody(self.block)
-        self.block = pybullet.createMultiBody(
-            baseCollisionShapeIndex=self.block_id,
-            basePosition=object_position,
-            baseMass=self.block_mass)
-
-    def import_interaction_objects(self):
-        """
-        Import any object that the finger interacts/has to interact with.
-        """
-        block_position = [0.15, 0., 0.08]
-        block_size = [0.03, 0.03, 0.03]
-        self.block_mass = 0.25
-
-        self.block_id = pybullet.createCollisionShape(
-            shapeType=pybullet.GEOM_BOX, halfExtents=block_size)
-        self.block = pybullet.createMultiBody(
-            baseCollisionShapeIndex=self.block_id,
-            basePosition=block_position,
-            baseMass=self.block_mass)
-
-    def inverse_kinematics(self, desired_tip_position):
+    def pybullet_inverse_kinematics(self, desired_tip_positions):
         """
         Compute the joint angular positions needed to get to reach the block.
 
-        :param desired_tip_position: (vec3/list of 3 floats) Target position in the
-        xyz coordinate system of the end-effector.
-        :type desired_tip_position: vec3/list of 3 floats
-        :return: The required positions of the joints to reach the target position.
-        :rtype: list of lists of 3 floats
+        WARNING: pybullet's inverse kinematics seem to be very inaccurate! (or
+        we are somehow using it wrongly...)
+
+        Args:
+            desired_tip_position (list of floats): xyz target position for
+                each finger tip.
+
+        Returns:
+            joint_pos (list of floats): The angular positions to be applid at
+                the joints to reach the desired_tip_position
         """
+        at_target_threshold = 0.0001
 
-        at_target_threshold = 0.001
-        joint_pos = []
-        for idx, finger_tip_id in enumerate(self.finger_tip_ids):
-            joint_pos += list(
-                pybullet.calculateInverseKinematics(
-                    bodyUniqueId=self.finger_id,
-                    endEffectorLinkIndex=finger_tip_id,
-                    targetPosition=desired_tip_position[idx],
-                    residualThreshold=at_target_threshold))[3*idx : 3*idx + 3]
+        # joint_pos = list(
+        #    pybullet.calculateInverseKinematics2(
+        #        bodyUniqueId=self.finger_id,
+        #        endEffectorLinkIndices=self.finger_tip_ids,
+        #        targetPositions=desired_tip_positions,
+        #        residualThreshold=at_target_threshold))
 
-        # if the desired position is outside the bounds (i.e. not reachable),
-        # the value for the related joints is set to NaN.
-        # If this happens, we set the value to the last "valid" value to avoid error.
-        if np.isnan(joint_pos).any():
-            joint_pos = self.last_joint_position
-        else:
-            self.last_joint_position = joint_pos
+        # For some reason calculateInverseKinematics2 above is not working
+        # properly (only gives proper results for the joints of the first
+        # finger).  As a workaround for now, call calculateInverseKinematics
+        # for a single end-effector for each finger and always pick only the
+        # joint positions for that finger.
+
+        joint_pos = [None] * len(self.revolute_joint_ids)
+        for i, (tip_index, desired_tip_position) in enumerate(
+                zip(self.finger_tip_ids, desired_tip_positions)):
+
+            q = list(pybullet.calculateInverseKinematics(
+                bodyUniqueId=self.finger_id,
+                endEffectorLinkIndex=tip_index,
+                targetPosition=desired_tip_position,
+                residualThreshold=at_target_threshold,
+                maxNumIterations=100000,
+            ))
+            range_start = i * 3
+            range_end = range_start + 3
+            joint_pos[range_start:range_end] = q[range_start:range_end]
 
         return joint_pos
 
     def append_desired_action(self, action):
         """
-        Pass an action on which safety checks will be performed and then the
-        action will be sent to the simulated finger.
+        Pass an action on which safety checks
+        will be performed and then the action will be applied to the motors.
 
-        .. note::
-        For now, only torques as actions are valid.
+        Args:
+            action (TheAction): Joint positions or torques or both
 
-        :param action: The structure consisting of the torques to be applied.
-        :type action: class 'robot_interfaces.py_finger_types.Action'
-        :return time_index: The current time index in the buffer of length 1. 1.
-        :rtype time_index: int
+        Returns:
+            self.action_index (int): The current time-index at which the action
+                was applied.
         """
+        command = copy.copy(action.torque)
         if not np.isnan(action.position).all():
-            raise Exception('position control is not implemented yet')
+            command += np.array(self.compute_pd_control_torques(
+                action.position))
 
         if self.action_index >= self.observation_index:
-            raise Exception(
-                'currently you have to call get_observation after each append_desired_action.')
+            raise Exception('You have to call get_observation after each'
+                            'append_desired_action.')
 
-        command = list(action.torque)
-        self._set_motor_torques(command)
+        self._set_motor_torques(command.tolist())
 
         self.action_index = self.action_index + 1
         return self.action_index
 
     def get_observation(self, time_index):
         """
-        Get the observation (position/velocity/torque) of the joints
-        corresponding to the current time index.
+        Get the observation at the time of
+        applying the action, so the observation actually corresponds
+        to the state of the environment due to the application of the
+        previous action.
 
-        :param time_index: The current time index in the buffer of length 1. 1.
-        :type time_index: int
-        :return observation: The Observation structure consisting of the position,
-        velocity, and torques of the joints.
-        :rtype observation: class 'robot_interfaces.py_finger_types.Observation'
+        Args:
+            time_index (int): the time index at which the observation is
+                needed. This can only be the current time-index (so same as the
+                action_index)
+
+        Returns:
+            observation (Observation): the joint positions, velocities, and
+            torques of the joints.
+
+        Raises:
+            Exception if the observation at any other time index than the one
+            at which the action is applied, is queried for.
         """
         if not time_index == self.action_index:
-            raise Exception('currently you can only get the latest observation')
+            raise Exception('currently you can only get the latest'
+                            'observation')
 
         assert(self.observation_index == self.action_index)
 
         observation = Observation()
-        current_joint_states = pybullet.getJointStates(self.finger_id, self.revolute_joint_ids)
+        current_joint_states = pybullet.getJointStates(self.finger_id,
+                                                       self.revolute_joint_ids)
 
-        observation.position = [joint[0] for joint in current_joint_states]
-        observation.velocity = [joint[1] for joint in current_joint_states]
-        observation.torque = [joint[3] for joint in current_joint_states]
+        observation.position = np.array([joint[0] for joint in
+                                        current_joint_states])
+        observation.velocity = np.array([joint[1] for joint in
+                                         current_joint_states])
+        observation.torque = np.array([joint[3] for joint in
+                                       current_joint_states])
 
         self._step_simulation()
         self.observation_index = self.observation_index + 1
 
         return observation
 
-    def _apply_action(self, target_position, control_mode):
+    def _apply_action(self, joint_positions, control_mode):
         """
-        Specify the target position for the finger tip and the method of control
-        (torque or position) to obtain the joint positions for reaching there
-        and then applying the torque or the position control commands.
+        Use a well-tuned pd-controller to apply motor torques for
+        the desired joint positions, or use pybullet's position
+        controller which relaxes the maximum motor torque limit
 
-        :param target_position: a valid target position to which you want to send
-        the finger-tip.
-        :type target_position: list of 3 floats
-        :param control_mode: specify if you want to control the finger using
-        torque control or position control
-        :type control_mode: string, valid strings = {"position", "torque"}
+        Args:
+            joint_positions (list of floats): The desired joint positions
+                to achieve
+            control_mode (string- "position"/"pybullet_position"): Specify
+            preference for environment-specific tuned pd-controller,
+                or pybullet's off-the-shelf adaptive pd controller.
+
+        Raises:
+            A ValueError() if the control_mode is specifies as anything else
+            from "position" or "pybullet_position"
         """
 
-        target_position = [target_position] if len(np.array(target_position).shape) != 2 else target_position
-
-        joint_positions = self.inverse_kinematics(target_position)
-
-        if control_mode == "torque":
+        if control_mode == "position":
             torque_commands = self.compute_pd_control_torques(joint_positions)
             self._set_motor_torques(torque_commands)
-        elif control_mode == "position":
+        elif control_mode == "pybullet_position":
             self._pybullet_position_control(joint_positions)
         else:
-            print('Invalid control_mode, enter either "position" or "torque".')
+            raise ValueError('Invalid control_mode, enter either "position"'
+                             'or "pybullet_position".')
 
     def compute_pd_control_torques(self, joint_positions):
         """
-        Specify the joint positions that the motors have to reach, and compute
-        the torques to be applied to reach these positions using PD control.
+        Compute torque command to reach given target position using a PD
+        controller.
 
-        :param joint_positions: The desired joint positions.
-        :type joint_positions: list of 3 floats
-        :return The torques to be sent to the joints of the finger in order to
-        reach the specified joint_positions.
-        :rtype: list of 3 floats
+        Args:
+            joint_positions (list of floats):  Flat list of desired
+                joint positions.
+
+        Returns:
+            List of torques to be sent to the joints of the finger in order to
+            reach the specified joint_positions.
         """
+        current_joint_states = pybullet.getJointStates(self.finger_id,
+                                                       self.revolute_joint_ids)
+        current_position = np.array([joint[0] for joint in
+                                     current_joint_states])
+        current_velocity = np.array([joint[1] for joint in
+                                     current_joint_states])
 
-        current_joint_states = pybullet.getJointStates(self.finger_id, self.revolute_joint_ids)
-        current_position = [joint[0] for joint in current_joint_states]
-        current_velocity = [joint[1] for joint in current_joint_states]
+        position_error = joint_positions - current_position
 
-        position_error = list(np.subtract(joint_positions, current_position))
+        position_feedback = self.position_gains * position_error
+        velocity_feedback = self.velocity_gains * current_velocity
 
-        kp = [self.position_gain]*len(self.revolute_joint_ids)
-        kd = [self.velocity_gain]*len(self.revolute_joint_ids)
+        joint_torques = position_feedback - velocity_feedback
 
-        position_feedback = list(np.multiply(kp, position_error))
-        velocity_feedback = list(np.multiply(kd, current_velocity))
-
-        joint_torques = list(np.subtract(position_feedback, velocity_feedback))
-
-        return joint_torques
+        return joint_torques.tolist()
 
     def _set_motor_torques(self, torque_commands):
         """
         Send torque commands to the motors directly.
 
-        :param torque_commands: The forces to be sent to the movable joints of
-        the motor.
-        :type torque_commands: list of 3 floats
-        """
+        Args:
+            torque_commands (list of floats): The torques to be applied
+                to the motors.
 
+        """
         torque_commands = self._safety_torque_check(torque_commands)
 
         pybullet.setJointMotorControlArray(
@@ -491,10 +439,12 @@ class Finger:
 
     def _pybullet_position_control(self, position_commands):
         """
-        Perform position control on the finger (CONTROL_MODE_POSITION_VELOCITY_PD)
+        Perform position control on the finger
+            (CONTROL_MODE_POSITION_VELOCITY_PD)
 
-        :param joint_positions: The desired target position of the joints.
-        :type joint_positions: list of floats
+        Args:
+            joint_positions (list of floats): The desired target position
+                of the joints.
         """
 
         pybullet.setJointMotorControlArray(
@@ -502,16 +452,37 @@ class Finger:
             jointIndices=self.revolute_joint_ids,
             controlMode=pybullet.POSITION_CONTROL,
             targetPositions=position_commands,
-            targetVelocities=[0] * len(self.revolute_joint_ids))
-
-        current_joint_states = pybullet.getJointStates(self.finger_id, self.revolute_joint_ids)
-        # printing the joint torques for debugging
-        # print("Joint Torques:", [joint[3] for joint in current_joint_states])
+            targetVelocities=[0] * len(self.revolute_joint_ids),
+            forces=[2.5] * len(self.revolute_joint_ids),
+            positionGains=list(self.position_gains),
+            velocityGains=list(self.velocity_gains))
 
     def _safety_torque_check(self, desired_torques):
-        applied_torques = np.clip(np.asarray(desired_torques), -self.max_motor_torque, self.max_motor_torque)
-        applied_torques = np.multiply(applied_torques, self.safety_kd)
-        applied_torques = list(np.clip(np.asarray(desired_torques), -self.max_motor_torque, self.max_motor_torque))
+        """
+        Perform a check on the torques being sent to be applied to
+        the motors so that they do not exceed the safety torque limit
+
+        Args:
+            desired_torques (list of floats): The torques desired to be
+                applied to the motors
+
+        Returns:
+            applied_torques (list of floats): The torques that can be actually
+                applied to the motors (and will be applied)
+        """
+        applied_torques = np.clip(np.asarray(desired_torques),
+                                  -self.max_motor_torque,
+                                  +self.max_motor_torque)
+
+        current_joint_states = pybullet.getJointStates(self.finger_id,
+                                                       self.revolute_joint_ids)
+        current_velocity = np.array([joint[1] for joint in
+                                     current_joint_states])
+        applied_torques -= self.safety_kd * current_velocity
+
+        applied_torques = list(np.clip(np.asarray(applied_torques),
+                                       -self.max_motor_torque,
+                                       +self.max_motor_torque))
 
         return applied_torques
 
@@ -520,3 +491,42 @@ class Finger:
         Step the simulation to go to the next world state.
         """
         pybullet.stepSimulation()
+
+    def set_action(self, joint_positions, control_mode):
+        """
+        Specify the desired joint positions and specify "position"
+            as the control mode to set the position field of the
+            action with these
+
+        Args:
+            joint_positions (list of floats): The desired joint positions
+            control_mode (string- "position): The field of the action
+                structure to be set
+
+        Raises:
+            NotImplementedError() if anything else from "position"
+                is specified as the control_mode
+        """
+        if control_mode == "position":
+            self.action = self.Action(position=joint_positions)
+        else:
+            raise NotImplementedError()
+
+    def step_robot(self):
+        """
+        Send action and wait for observation
+        """
+        t = self.append_desired_action(self.action)
+        self.observation = self.get_observation(t)
+
+    def reset_finger(self):
+        """
+        Reset the finger(s) to some random position (sampled in the joint
+        space) and step the robot with this random position
+        """
+        pos = self.sample_random_joint_positions_for_reaching()
+        for i, joint_id in enumerate(self.revolute_joint_ids):
+            pybullet.resetJointState(self.finger_id, joint_id, pos[i])
+
+        self.action = self.Action(position=pos)
+        self.step_robot()
