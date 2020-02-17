@@ -1,25 +1,35 @@
 #!/usr/bin/env python3
+
 """
 To demonstrate reaching a randomly set target point in the arena using torque
 control by directly specifying the position of the target only.
 """
-import math
 import time
-import numpy as np
 
 from pybullet_fingers import sim_finger
 
-if __name__ == "__main__":
 
-    finger = sim_finger.Finger()
+def main():
+    time_step = 0.004
 
-    for _ in range(3):
-        desired_positon = finger.sample_random_position_in_arena()
-        finger.display_object_at_target(desired_positon)
+    finger = sim_finger.Finger(time_step, True, "tri", "triangle")
 
-        time.sleep(0.001)
-        for _ in range(1500):
-            finger._apply_action(desired_positon, "torque")
+    finger.display_goal()
+    while True:
+        desired_position = finger.sample_random_position_in_arena()
+        tip_positions = finger.get_tip_positions_around_position(
+            desired_position)
+        finger.reset_goal_markers(tip_positions)
+
+        joint_positions = finger.pybullet_inverse_kinematics(tip_positions)
+
+        time.sleep(time_step)
+        for _ in range(500):
+            finger._apply_action(joint_positions, "position")
             finger._step_simulation()
-            time.sleep(0.001)
-    finger.reset()
+            time.sleep(time_step)
+    finger.reset_finger()
+
+
+if __name__ == "__main__":
+    main()

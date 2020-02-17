@@ -1,3 +1,5 @@
+#NOT IN USE RN, HAVEN't ENSURED COMPATIBILITY
+
 from __future__ import print_function
 
 import argparse
@@ -396,7 +398,7 @@ def some_demo():
         if t % 100 == 0:
             torque = -torque
         torques[t] = torque
-        
+
 
     positions, _, _, _ = robot.simulate(dt=dt,
                                         n_steps=n_steps,
@@ -407,7 +409,7 @@ def some_demo():
     start_time = time.time()
     robot.play(positions.transpose(), 0.1)
     elapsed_time = time.time() - start_time
-    
+
     print('elapsed time:', elapsed_time)
 
 if __name__ == '__main__':
