@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import pickle
+import time
 
 import gym
 from gym import spaces
@@ -18,10 +19,12 @@ class EpisodeData:
         self.tip_goal = tip_goal
         self.joint_positions = []
         self.tip_positions = []
+        self.timestamps = []
 
-    def append(self, joint_pos, tip_pos):
+    def append(self, joint_pos, tip_pos, timestamp):
         self.joint_positions.append(joint_pos)
         self.tip_positions.append(tip_pos)
+        self.timestamps.append(timestamp)
 
 
 class DataLogger:
@@ -39,8 +42,8 @@ class DataLogger:
 
         self._curr = EpisodeData(joint_goal, tip_goal)
 
-    def append(self, joint_pos, tip_pos):
-        self._curr.append(joint_pos, tip_pos)
+    def append(self, joint_pos, tip_pos, timestamp):
+        self._curr.append(joint_pos, tip_pos, timestamp)
 
     def store(self, filename):
         with open(filename, "wb") as file_handle:
@@ -279,7 +282,8 @@ class FingerReach(gym.Env):
         observation_dict['goal_position'] = flat_goals
 
         if log_observation:
-            self.logger.append(joint_positions, end_effector_position)
+            self.logger.append(joint_positions, end_effector_position,
+                               time.time())
 
         observation = [v
                        for key in self.observations_keys
