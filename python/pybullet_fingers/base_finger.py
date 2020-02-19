@@ -108,7 +108,7 @@ class BaseFinger:
                                                     "meshes",
                                                     "stl",
                                                     "BL-M_Table_ASM_big.stl")
-            self.stage_meshscale = [0.001, 0.001, 0.001]
+            self.stage_meshscale = [1, 1, 1]
             self.number_of_fingers = 3
         else:
             raise ValueError("Finger type has to be one of 'single' or 'tri'")
@@ -256,6 +256,43 @@ class BaseFinger:
             basePosition=stage_position,
             baseOrientation=stage_orientation)
 
+    def import_interaction_objects(self,
+                                   size=0.065,
+                                   position=[0.15, 0., 0.09],
+                                   orientation=[0, 0, 0, 1]):
+        """
+        Import any object that the finger interacts/has to interact with.
+        """
+        block_position = position
+        block_size = [size / 2., size / 2., size / 2.]
+        block_orientation = orientation
+        self.block_mass = 0.08
+
+        self.block_id = pybullet.createCollisionShape(
+            shapeType=pybullet.GEOM_BOX, halfExtents=block_size)
+        self.block = pybullet.createMultiBody(
+            baseCollisionShapeIndex=self.block_id,
+            basePosition=block_position,
+            baseOrientation=block_orientation,
+            baseMass=self.block_mass)
+
+    def set_block_state(self, position, orientation):
+        """Resets the block state to the provided position and orientation
+        """
+        pybullet.resetBasePositionAndOrientation(
+            self.block, position, orientation)
+
+    def get_block_state(self):
+        """Returns the current position and orientation of the block (in the simulator)
+        """
+        state = pybullet.getBasePositionAndOrientation(self.block)
+        return np.array([state[0] + state[1]]).reshape(-1, 1)
+
+    def remove_block(self):
+        """Removes the block from the environment
+        """
+        pybullet.removeBody(self.block)
+
     def sample_random_joint_positions(self):
         """
         Sample a random joint configuration for each finger.
@@ -305,10 +342,10 @@ class BaseFinger:
         elif self.sampling_strategy == "separated":
             def sample_point_in_angle_limits():
                 while True:
-                    joint_pos = np.random.uniform(low=[-np.pi/2,
+                    joint_pos = np.random.uniform(low=[-np.pi / 2,
                                                        np.deg2rad(-77.5),
                                                        np.deg2rad(-172)],
-                                                  high=[np.pi/2,
+                                                  high=[np.pi / 2,
                                                         np.deg2rad(257.5),
                                                         np.deg2rad(-2)])
                     tip_pos = self.forward_kinematics(
@@ -318,7 +355,7 @@ class BaseFinger:
                         ]))[0]
                     dist_to_center = np.linalg.norm(tip_pos[:2])
                     angle = np.arccos(tip_pos[0] / dist_to_center)
-                    if ((np.pi / 6 < angle < 5/6 * np.pi)
+                    if ((np.pi / 6 < angle < 5 / 6 * np.pi)
                             and (tip_pos[1] > 0)
                             and (0.02 < dist_to_center < 0.2)
                             and np.all((self.action_bounds["low"])[0:3]
