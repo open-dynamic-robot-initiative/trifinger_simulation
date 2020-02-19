@@ -20,6 +20,7 @@ class TheAction:
     """
     Create the action data structure used by the SimFinger class.
     """
+
     def __init__(self, t, p):
         self.torque = t
         self.position = p
@@ -169,7 +170,7 @@ class SimFinger(BaseFinger):
         pybullet.loadURDF("plane_transparent.urdf", [0, 0, 0])
         self.import_finger_model()
         self.set_dynamics_properties()
-        # self.import_non_convex_shapes()
+        self.import_non_convex_shapes()
 
     def set_dynamics_properties(self):
         """
@@ -245,8 +246,8 @@ class SimFinger(BaseFinger):
             Jinv = np.linalg.inv(Ji)
         except Exception:
             Jinv = np.linalg.pinv(Ji)
-        dq = Jinv.dot(xdes-xcurrent)
-        qnext = pinocchio.integrate(self.pinocchio_robot_model, q0, dt*dq)
+        dq = Jinv.dot(xdes - xcurrent)
+        qnext = pinocchio.integrate(self.pinocchio_robot_model, q0, dt * dq)
         return qnext
 
     def pybullet_inverse_kinematics(self, desired_tip_positions):
@@ -353,7 +354,7 @@ class SimFinger(BaseFinger):
                                                        self.revolute_joint_ids)
 
         observation.position = np.array([joint[0] for joint in
-                                        current_joint_states])
+                                         current_joint_states])
         observation.velocity = np.array([joint[1] for joint in
                                          current_joint_states])
         observation.torque = np.array([joint[3] for joint in
