@@ -513,12 +513,14 @@ class SimFinger(BaseFinger):
         else:
             raise NotImplementedError()
 
-    def step_robot(self):
+    def step_robot(self, wait_for_observation):
         """
         Send action and wait for observation
         """
         t = self.append_desired_action(self.action)
-        self.observation = self.get_observation(t)
+        observation = self.get_observation(t)
+        if wait_for_observation:
+            self.observation = observation
 
     def reset_finger(self):
         """
@@ -530,4 +532,6 @@ class SimFinger(BaseFinger):
             pybullet.resetJointState(self.finger_id, joint_id, pos[i])
 
         self.action = self.Action(position=pos)
-        self.step_robot()
+        self.step_robot(True)
+
+        return pos

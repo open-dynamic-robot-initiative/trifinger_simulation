@@ -2,6 +2,7 @@ import math
 import numpy as np
 import pickle
 import time
+import datetime
 
 import gym
 from gym import spaces
@@ -50,6 +51,20 @@ class DataLogger:
             pickle.dump(self.episodes, file_handle)
 
 
+def sleep_until(until, accuracy=0.01):
+    """
+    Sleep until the given time.
+
+    Args:
+        until (datetime.datetime): Time until the function should sleep.
+        accuracy (float): Accuracy with which it will check if the "until" time
+            is reached.
+
+    """
+    while until > datetime.datetime.now():
+        time.sleep(accuracy)
+
+
 class FingerReach(gym.Env):
     """
     A gym environment to enable training on either the single or
@@ -84,11 +99,16 @@ class FingerReach(gym.Env):
             ([default] 0)
     """
 
-    def __init__(self, control_rate_s, enable_visualization, finger_type,
+    def __init__(self,
+                 control_rate_s,
+                 enable_visualization,
+                 finger_type,
                  smoothing_params,
-                 velocity_cost_factor=0, sampling_strategy="separated",
+                 velocity_cost_factor=0,
+                 sampling_strategy="separated",
                  use_real_robot=False,
                  finger_config_suffix="0",
+                 synchronize=False,
                  ):
         """
         Constructor sets up the observation and action spaces, the finger robot
@@ -130,6 +150,15 @@ class FingerReach(gym.Env):
         self.smoothed_action = None
         self.episode_count = 0
 
+        action_bounds = {
+            "low": np.array([-math.radians(70),
+                             -math.radians(70),
+                             -math.radians(160)] * num_fingers),
+            "high": np.array([math.radians(70),
+                              0,
+                              -math.radians(30)] * num_fingers),
+        }
+
         lower_bounds = {}
         upper_bounds = {}
         lower_bounds['end_effector_position'] = [-0.5, -0.5, 0.] * num_fingers
@@ -146,15 +175,8 @@ class FingerReach(gym.Env):
         upper_bounds['end_effector_to_goal'] = [0.5] * 3 * num_fingers
         lower_bounds['goal_position'] = [-0.5, -0.5, 0.] * num_fingers
         upper_bounds['goal_position'] = [0.5, 0.5, 0.5] * num_fingers
-
-        action_bounds = {
-            "low": np.array([-math.radians(70),
-                             -math.radians(70),
-                             -math.radians(160)] * num_fingers),
-            "high": np.array([math.radians(70),
-                              0,
-                              math.radians(-2)] * num_fingers),
-        }
+        lower_bounds['action_joint_positions'] = action_bounds["low"]
+        upper_bounds['action_joint_positions'] = action_bounds["high"]
 
         if use_real_robot:
             self.finger = RealFinger(
@@ -166,10 +188,10 @@ class FingerReach(gym.Env):
 
         else:
             self.finger = SimFinger(time_step=simulation_rate_s,
-                                 enable_visualization=enable_visualization,
-                                 finger_type=finger_type,
-                                 action_bounds=action_bounds,
-                                 sampling_strategy=sampling_strategy)
+                                    enable_visualization=enable_visualization,
+                                    finger_type=finger_type,
+                                    action_bounds=action_bounds,
+                                    sampling_strategy=sampling_strategy)
 
         gym.Env.__init__(self)
         self.metadata = {'render.modes': ['human']}
@@ -180,12 +202,15 @@ class FingerReach(gym.Env):
             'joint_positions',
             'joint_velocities',
             'goal_position',
+            'action_joint_positions'
         ]
 
         self.key_to_index = {}
         for i in range(len(self.observations_keys)):
+            slice_start = 3 * num_fingers * i
             self.key_to_index[self.observations_keys[i]] = slice(
-                3 * i, 3 * i + 3 * num_fingers)
+                slice_start,
+                slice_start + 3 * num_fingers)
 
         observation_lower_bounds = [value
                                     for key in self.observations_keys
@@ -214,6 +239,14 @@ class FingerReach(gym.Env):
         self.finger.display_goal()
 
         self.seed()
+
+        if synchronize:
+            now = datetime.datetime.now()
+            self.next_start_time = datetime.datetime(
+                now.year, now.month, now.day, now.hour, now.minute + 1)
+        else:
+            self.next_start_time = None
+
         self.reset()
 
     def _compute_distance(self, a, b):
@@ -252,7 +285,7 @@ class FingerReach(gym.Env):
 
         return reward * self.steps_per_control, done
 
-    def _get_observation(self, log_observation=False):
+    def _get_observation(self, action, log_observation=False):
         """
         Get the current observation from the env for the agent
 
@@ -280,6 +313,7 @@ class FingerReach(gym.Env):
         observation_dict['joint_velocities'] = joint_velocities
         observation_dict['end_effector_to_goal'] = end_effector_to_goal
         observation_dict['goal_position'] = flat_goals
+        observation_dict['action_joint_positions'] = action
 
         if log_observation:
             self.logger.append(joint_positions, end_effector_position,
@@ -319,22 +353,34 @@ class FingerReach(gym.Env):
             the current step
 
         """
+        # Unscale the action to the ranges of the action space of the
+        # environment, explicitly (as the prediction from the network
+        # lies in the range [-1;1])
         unscaled_action = self._unscale(action, self._action_space)
 
+        # smooth the action by taking a weighted average with the previous
+        # action, where the weight, ie, the smoothing_alpha is gradually
+        # increased at every episode reset (see the reset method for details)
         if self.smoothed_action is None:
             # start with current position
-            self.smoothed_action = self.finger.observation.position
+            # self.smoothed_action = self.finger.observation.position
+            self.smoothed_action = unscaled_action
 
         self.smoothed_action = (self.smoothing_alpha * self.smoothed_action +
                                 (1 - self.smoothing_alpha) * unscaled_action)
 
+        # this is the control loop to send the actions for a few timesteps
+        # which depends on the actual control rate
+        observation = None
         for _ in range(self.steps_per_control):
             self.finger.set_action(self.smoothed_action, "position")
-            self.finger.step_robot()
-        observation = self._get_observation(True)
+            self.finger.step_robot(observation is None)
+            # get observation from first iteration (when action is applied the
+            # first time)
+            if observation is None:
+                observation = self._get_observation(self.smoothed_action, True)
         reward, done = self._compute_reward(observation, self.goal)
         info = {'is_success': np.float32(done)}
-
         scaled_observation = self._scale(observation, self._observation_space)
         return scaled_observation, reward, done, info
 
@@ -345,11 +391,24 @@ class FingerReach(gym.Env):
         Returns:
             the scaled to [-1;1] observation from the env after the reset
         """
+        # synchronize episode starts with wall time
+        # (freeze the robot at the current position before starting the sleep)
+        if self.next_start_time:
+            try:
+                self.finger.set_action(self.finger.observation.position,
+                                       "position")
+                self.finger.step_robot(True)
+            except Exception:
+                pass
+
+            sleep_until(self.next_start_time)
+            self.next_start_time += datetime.timedelta(seconds=4)
+
         self.update_smoothing()
         self.episode_count += 1
         self.smoothed_action = None
 
-        self.finger.reset_finger()
+        action = self.finger.reset_finger()
 
         target_joint_config = np.asarray(
             self.finger.sample_random_joint_positions_for_reaching())
@@ -358,7 +417,9 @@ class FingerReach(gym.Env):
         self.logger.new_episode(target_joint_config, self.goal)
 
         self.finger.reset_goal_markers(self.goal)
-        return self._scale(self._get_observation(), self._observation_space)
+
+        return self._scale(self._get_observation(action=action),
+                           self._observation_space)
 
     def render(self, mode='human'):
         """

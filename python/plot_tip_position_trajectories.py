@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Script for plotting tip position data from a log file."""
 import argparse
-import sys
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
@@ -96,14 +95,13 @@ def main():
 
             ax[a].add_patch(circ)
 
-            #ax[a].set_title(title)
-
             ax[a].set_xlabel("x")
             ax[a].set_ylabel(ylabel + "  ", rotation="horizontal")
 
             ax[a].axis('equal')
 
-            # Move left y-axis and bottim x-axis to centre, passing through (0,0)
+            # Move left y-axis and bottim x-axis to centre, passing
+            #  through (0,0)
             ax[a].spines['left'].set_position('zero')
             ax[a].spines['bottom'].set_position('zero')
 
