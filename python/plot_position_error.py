@@ -8,11 +8,9 @@ Also prints the mean error over all episodes.  This is only useful when using a
 log file from testing a final policy.
 """
 import argparse
-import sys
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 
 
 def main():

@@ -120,17 +120,19 @@ class RealFinger(BaseFinger):
         else:
             raise NotImplementedError()
 
-    def step_robot(self):
+    def step_robot(self, wait_for_observation):
         """
         Send action and wait for observation
         """
         t = self.robot.frontend.append_desired_action(self.action)
-        self.observation = self.robot.frontend.get_observation(t)
 
-        if self.enable_visualization:
-            for i, joint_id in enumerate(self.revolute_joint_ids):
-                pybullet.resetJointState(self.finger_id, joint_id,
-                                         self.observation.position[i])
+        if wait_for_observation:
+            self.observation = self.robot.frontend.get_observation(t)
+
+            if self.enable_visualization:
+                for i, joint_id in enumerate(self.revolute_joint_ids):
+                    pybullet.resetJointState(self.finger_id, joint_id,
+                                             self.observation.position[i])
 
     def reset_finger(self):
         """
@@ -141,7 +143,9 @@ class RealFinger(BaseFinger):
         pos = self.sample_random_joint_positions_for_reaching()
         self.action = self.robot.Action(position=pos)
         for i in range(1000):
-            self.step_robot()
+            self.step_robot(True)
+
+        return pos
 
     # dummy functions for compatible API
     # (refer to the SimFinger class for details)

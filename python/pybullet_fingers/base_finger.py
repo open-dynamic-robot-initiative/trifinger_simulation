@@ -144,12 +144,12 @@ class BaseFinger:
 
     def display_goal(self):
         """
-        Visualize the goal for reaching for each finger, using a block
+        Visualize the goal for reaching for each finger
         """
         if not self.enable_visualization:
             return
 
-        block_size = [0.01, 0.01, 0.01]
+        block_size = [0.015] * 3
 
         color_cycle = [[1, 0, 0, 1],
                        [0, 1, 0, 1],
@@ -159,11 +159,14 @@ class BaseFinger:
         self.goal_ids = [None] * self.number_of_fingers
         self.goal_orientations = [None] * self.number_of_fingers
 
+        # Can use both a block, or a sphere: uncomment accordingly
         for i in range(self.number_of_fingers):
             color = color_cycle[i % len(color_cycle)]
             goal_shape_ids[i] = pybullet.createVisualShape(
-                shapeType=pybullet.GEOM_BOX,
-                halfExtents=block_size,
+                # shapeType=pybullet.GEOM_BOX,
+                # halfExtents=block_size,
+                shapeType=pybullet.GEOM_SPHERE,
+                radius=block_size[0],
                 rgbaColor=color)
             self.goal_ids[i] = pybullet.createMultiBody(
                 baseVisualShapeIndex=goal_shape_ids[i],
@@ -277,19 +280,22 @@ class BaseFinger:
             baseMass=self.block_mass)
 
     def set_block_state(self, position, orientation):
-        """Resets the block state to the provided position and orientation
+        """
+        Resets the block state to the provided position and orientation
         """
         pybullet.resetBasePositionAndOrientation(
             self.block, position, orientation)
 
     def get_block_state(self):
-        """Returns the current position and orientation of the block (in the simulator)
+        """
+        Returns the current position and orientation of the block (in the simulator)
         """
         state = pybullet.getBasePositionAndOrientation(self.block)
         return np.array([state[0] + state[1]]).reshape(-1, 1)
 
     def remove_block(self):
-        """Removes the block from the environment
+        """
+        Removes the block from the environment
         """
         pybullet.removeBody(self.block)
 
