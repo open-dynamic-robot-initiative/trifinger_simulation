@@ -89,9 +89,8 @@ class BaseFinger:
         """
         try:
             import rospkg
-            self.robot_properties_path = (
-                        rospkg.RosPack().get_path(
-                                            "robot_properties_manipulator"))
+            self.robot_properties_path = rospkg.RosPack().get_path(
+                "robot_properties_fingers")
         except Exception:
             print("Importing the robot description files from local copy "
                   "of the robot_properties_manipulator package.")
