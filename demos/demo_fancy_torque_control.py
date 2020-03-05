@@ -12,7 +12,7 @@ from pybullet_fingers import sim_finger
 def main():
     time_step = 0.004
 
-    finger = sim_finger.Finger(time_step, True, "tri", "triangle")
+    finger = sim_finger.SimFinger(time_step, True, "tri", "triangle")
 
     finger.display_goal()
     while True:

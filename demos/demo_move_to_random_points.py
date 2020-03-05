@@ -24,7 +24,7 @@ def main():
                           math.radians(100),
                           math.radians(-2)] * num_fingers),
     }
-    finger = sim_finger.Finger(time_step, True, finger_type, action_bounds)
+    finger = sim_finger.SimFinger(time_step, True, finger_type, action_bounds)
     finger.reset_finger()
 
     finger.display_goal()
