@@ -5,7 +5,6 @@ import numpy as np
 
 import pinocchio
 import pybullet
-import rospkg
 
 
 class BaseFinger:
@@ -88,12 +87,22 @@ class BaseFinger:
         """
         Sets the paths for the URDFs to use depending upon the finger type
         """
-        self.robot_properties_path = os.path.join(
-            rospkg.RosPack().get_path("robot_properties_manipulator"))
+        try:
+            import rospkg
+            self.robot_properties_path = (
+                        rospkg.RosPack().get_path(
+                                            "robot_properties_manipulator"))
+        except Exception:
+            print("Importing the robot description files from local copy "
+                  "of the robot_properties_manipulator package.")
+            self.robot_properties_path = os.path.join(
+                                         os.path.dirname(__file__),
+                                         "robot_properties_manipulator")
 
         if "single" in self.finger_type:
             self.finger_urdf_path = os.path.join(self.robot_properties_path,
-                                                 "urdf", "finger.urdf")
+                                                 "urdf",
+                                                 "finger.urdf")
             self.stage_meshfile_path = os.path.join(self.robot_properties_path,
                                                     "meshes",
                                                     "stl",
@@ -103,7 +112,8 @@ class BaseFinger:
 
         elif "tri" in self.finger_type:
             self.finger_urdf_path = os.path.join(self.robot_properties_path,
-                                                 "urdf", "trifinger.urdf")
+                                                 "urdf",
+                                                 "trifinger.urdf")
             self.stage_meshfile_path = os.path.join(self.robot_properties_path,
                                                     "meshes",
                                                     "stl",
@@ -288,7 +298,7 @@ class BaseFinger:
 
     def get_block_state(self):
         """
-        Returns the current position and orientation of the block (in the simulator)
+        Returns the current position and orientation of the block.
         """
         state = pybullet.getBasePositionAndOrientation(self.block)
         return np.array([state[0] + state[1]]).reshape(-1, 1)

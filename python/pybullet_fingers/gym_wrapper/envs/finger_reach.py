@@ -7,7 +7,6 @@ import datetime
 import gym
 from gym import spaces
 from pybullet_fingers.sim_finger import SimFinger
-from pybullet_fingers.real_finger import RealFinger
 
 
 class EpisodeData:
@@ -179,6 +178,7 @@ class FingerReach(gym.Env):
         upper_bounds['action_joint_positions'] = action_bounds["high"]
 
         if use_real_robot:
+            from pybullet_fingers.real_finger import RealFinger
             self.finger = RealFinger(
                 enable_visualization=enable_visualization,
                 finger_type=finger_type,
