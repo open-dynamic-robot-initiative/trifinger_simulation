@@ -93,10 +93,10 @@ class BaseFinger:
                 "robot_properties_fingers")
         except Exception:
             print("Importing the robot description files from local copy "
-                  "of the robot_properties_manipulator package.")
+                  "of the robot_properties_fingers package.")
             self.robot_properties_path = os.path.join(
                                          os.path.dirname(__file__),
-                                         "robot_properties_manipulator")
+                                         "robot_properties_fingers")
 
         if "single" in self.finger_type:
             self.finger_urdf_path = os.path.join(self.robot_properties_path,
