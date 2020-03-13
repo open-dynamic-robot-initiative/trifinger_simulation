@@ -357,12 +357,12 @@ class Robot(RobotWrapper):
     def load_urdf(self):
         try:
             model_path = rospkg.RosPack().get_path(
-                "robot_properties_manipulator")
+                "robot_properties_fingers")
         except rospkg.ResourceNotFound:
             print('Warning: The URDF is not being loaded from a ROS package.')
             current_path = str(os.path.dirname(os.path.abspath(__file__)))
             model_path = str(os.path.abspath(os.path.join(current_path,
-                                                          '../../robot_properties_manipulator')))
+                                                          '../../robot_properties_fingers')))
         urdf_path = join(model_path, "urdf", "finger.urdf")
         meshes_path = dirname(model_path)
         print(urdf_path, meshes_path)

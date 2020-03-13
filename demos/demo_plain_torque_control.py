@@ -13,7 +13,7 @@ from pybullet_fingers import sim_finger
 
 if __name__ == "__main__":
 
-    finger = sim_finger.Finger()
+    finger = sim_finger.SimFinger()
     last_time = None
     torque = np.array([0., 0.3, 0.3])
 
