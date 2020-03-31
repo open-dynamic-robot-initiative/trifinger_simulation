@@ -284,57 +284,6 @@ class BaseFinger:
 
         return obj
 
-    def create_stage(self, high_border=True):
-        """Create the stage (table and boundary).
-
-        Args:
-            high_border:  Only used for the TriFinger.  If set to False, the
-                old, low boundary will be loaded instead of the high one.
-        """
-        try:
-            import rospkg
-            self.robot_properties_path = rospkg.RosPack().get_path(
-                "robot_properties_fingers")
-        except Exception:
-            print("Importing the robot description files from local copy "
-                  "of the robot_properties_fingers package.")
-            self.robot_properties_path = os.path.join(
-                                         os.path.dirname(__file__),
-                                         "robot_properties_fingers")
-
-        def mesh_path(filename):
-            return os.path.join(self.robot_properties_path,
-                                "meshes",
-                                "stl",
-                                filename)
-
-        if "single" in self.finger_type:
-            self.import_object(mesh_path("Stage_simplified.stl"),
-                               position=[0, 0, 0.01],
-                               is_concave=True)
-
-        elif "tri" in self.finger_type:
-            table_colour = (0.31, 0.27, 0.25, 1.0)
-            high_border_colour = (0.95, 0.95, 0.95, 1.0)
-            if high_border:
-                self.import_object(mesh_path("trifinger_table_without_border.stl"),
-                                   position=[0, 0, 0.01],
-                                   is_concave=False,
-                                   color_rgba=table_colour)
-                self.import_object(mesh_path("high_table_boundary.stl"),
-                                   position=[0, 0, 0.01],
-                                   is_concave=True,
-                                   color_rgba=high_border_colour)
-            else:
-                self.import_object(mesh_path("BL-M_Table_ASM_big.stl"),
-                                   position=[0, 0, 0.01],
-                                   is_concave=True,
-                                   color_rgba=table_colour)
-        else:
-            raise ValueError("Invalid finger type '%s'" % self.finger_type)
-
-
-
     def import_interaction_objects(self,
                                    size=0.065,
                                    position=[0.15, 0., 0.09],
