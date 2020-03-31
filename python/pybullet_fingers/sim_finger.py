@@ -170,7 +170,7 @@ class SimFinger(BaseFinger):
         pybullet.loadURDF("plane_transparent.urdf", [0, 0, 0])
         self.import_finger_model()
         self.set_dynamics_properties()
-        self.import_non_convex_shapes()
+        self.create_stage()
 
     def set_dynamics_properties(self):
         """

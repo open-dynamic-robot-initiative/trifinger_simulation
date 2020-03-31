@@ -102,22 +102,12 @@ class BaseFinger:
             self.finger_urdf_path = os.path.join(self.robot_properties_path,
                                                  "urdf",
                                                  "finger.urdf")
-            self.stage_meshfile_path = os.path.join(self.robot_properties_path,
-                                                    "meshes",
-                                                    "stl",
-                                                    "Stage_simplified.stl")
-            self.stage_meshscale = [1, 1, 1]
             self.number_of_fingers = 1
 
         elif "tri" in self.finger_type:
             self.finger_urdf_path = os.path.join(self.robot_properties_path,
                                                  "urdf",
                                                  "trifinger.urdf")
-            self.stage_meshfile_path = os.path.join(self.robot_properties_path,
-                                                    "meshes",
-                                                    "stl",
-                                                    "BL-M_Table_ASM_big.stl")
-            self.stage_meshscale = [1, 1, 1]
             self.number_of_fingers = 3
         else:
             raise ValueError("Finger type has to be one of 'single' or 'tri'")
@@ -251,22 +241,99 @@ class BaseFinger:
         # TODO do we even need this variable?
         self.finger_link_ids = self.revolute_joint_ids
 
-    def import_non_convex_shapes(self):
+    def import_object(self,
+                      mesh_file_path,
+                      position,
+                      orientation=[0, 0, 0, 1],
+                      is_concave=False,
+                      color_rgba=None):
+        """Create a collision object based on a mesh file.
+
+        Args:
+            mesh_file_path:  Path to the mesh file.
+            position:  Position (x, y, z) of the object.
+            orientation:  Quaternion defining the orientation of the object.
+            is_concave:  If set to true, the object is loaded as concav shape.
+                Only use this for static objects.
+            color_rgba:  Optional colour of the object given as a list of RGBA
+                values in the interval [0, 1].  If not specified, pyBullet
+                assigns a random colour.
+
+        Returns:
+            The created object.
         """
-        Imports the non-convex arena (stage).
-        """
-        stage_id = pybullet.createCollisionShape(
+        if is_concave:
+            flags = pybullet.GEOM_FORCE_CONCAVE_TRIMESH
+        else:
+            flags = 0
+
+        object_id = pybullet.createCollisionShape(
             shapeType=pybullet.GEOM_MESH,
-            fileName=self.stage_meshfile_path,
-            meshScale=self.stage_meshscale,
-            flags=pybullet.GEOM_FORCE_CONCAVE_TRIMESH)
-        stage_position = [0, 0, 0.01]
-        stage_orientation = pybullet.getQuaternionFromEuler([0, 0, 0])
-        pybullet.createMultiBody(
-            baseCollisionShapeIndex=stage_id,
+            fileName=mesh_file_path,
+            flags=flags)
+
+        obj = pybullet.createMultiBody(
+            baseCollisionShapeIndex=object_id,
             baseVisualShapeIndex=-1,
-            basePosition=stage_position,
-            baseOrientation=stage_orientation)
+            basePosition=position,
+            baseOrientation=orientation)
+
+        # set colour
+        if color_rgba is not None:
+            pybullet.changeVisualShape(obj, -1, rgbaColor=color_rgba)
+
+        return obj
+
+    def create_stage(self, high_border=True):
+        """Create the stage (table and boundary).
+
+        Args:
+            high_border:  Only used for the TriFinger.  If set to False, the
+                old, low boundary will be loaded instead of the high one.
+        """
+        try:
+            import rospkg
+            self.robot_properties_path = rospkg.RosPack().get_path(
+                "robot_properties_fingers")
+        except Exception:
+            print("Importing the robot description files from local copy "
+                  "of the robot_properties_fingers package.")
+            self.robot_properties_path = os.path.join(
+                                         os.path.dirname(__file__),
+                                         "robot_properties_fingers")
+
+        def mesh_path(filename):
+            return os.path.join(self.robot_properties_path,
+                                "meshes",
+                                "stl",
+                                filename)
+
+        if "single" in self.finger_type:
+            self.import_object(mesh_path("Stage_simplified.stl"),
+                               position=[0, 0, 0.01],
+                               is_concave=True)
+
+        elif "tri" in self.finger_type:
+            table_colour = (0.31, 0.27, 0.25, 1.0)
+            high_border_colour = (0.95, 0.95, 0.95, 1.0)
+            if high_border:
+                self.import_object(mesh_path("trifinger_table_without_border.stl"),
+                                   position=[0, 0, 0.01],
+                                   is_concave=False,
+                                   color_rgba=table_colour)
+                self.import_object(mesh_path("high_table_boundary.stl"),
+                                   position=[0, 0, 0.01],
+                                   is_concave=True,
+                                   color_rgba=high_border_colour)
+            else:
+                self.import_object(mesh_path("BL-M_Table_ASM_big.stl"),
+                                   position=[0, 0, 0.01],
+                                   is_concave=True,
+                                   color_rgba=table_colour)
+        else:
+            raise ValueError("Invalid finger type '%s'" % self.finger_type)
+
+
 
     def import_interaction_objects(self,
                                    size=0.065,
