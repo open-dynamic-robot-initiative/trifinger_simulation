@@ -6,8 +6,8 @@ d = generate_distutils_setup(
                   'pybullet_fingers.gym_wrapper',
                   'pybullet_fingers.gym_wrapper.envs'],
         package_dir={'': 'python'},
-        package_data={'': ['robot_properties_manipulator/meshes/stl/*',
-                           'robot_properties_manipulator/urdf/*']},
+        package_data={'': ['robot_properties_fingers/meshes/stl/*',
+                           'robot_properties_fingers/urdf/*']},
 )
 
 setup(**d)

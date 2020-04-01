@@ -442,7 +442,7 @@ class SimFinger(BaseFinger):
 
         Returns:
             observation (Observation): the joint positions, velocities, and
-            torques of the joints.
+                torques of the joints.
 
         Raises:
             Exception if the observation at any other time index than the one
@@ -473,7 +473,7 @@ class SimFinger(BaseFinger):
             joint_positions (list of floats): The desired joint positions
                 to achieve
             control_mode (string- "position"/"pybullet_position"): Specify
-            preference for environment-specific tuned pd-controller,
+                preference for environment-specific tuned pd-controller,
                 or pybullet's off-the-shelf adaptive pd controller.
 
         Raises:
@@ -621,7 +621,7 @@ class SimFinger(BaseFinger):
 
         Raises:
             NotImplementedError() if anything else from "position"
-                is specified as the control_mode
+            is specified as the control_mode
         """
         if control_mode == "position":
             self.action = self.Action(position=joint_positions)

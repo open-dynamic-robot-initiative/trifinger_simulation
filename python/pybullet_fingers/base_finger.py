@@ -194,7 +194,7 @@ class BaseFinger:
 
         Args:
             goal_positions (list of lists):  List of tuples with
-            x,y,z positions of all goals.
+                x,y,z positions of all goals.
         """
         if not self.enable_visualization:
             return
@@ -298,36 +298,64 @@ class BaseFinger:
 
         return obj
 
-    def import_interaction_objects(self,
-                                   size=0.065,
-                                   position=[0.15, 0., 0.09],
-                                   orientation=[0, 0, 0, 1]):
+    def import_interaction_objects(self):
         """
-        Import any object that the finger interacts/has to interact with.
+        Import a block object that the finger interacts/has to interact
+        with.
         """
-        block_position = position
-        block_size = [size / 2., size / 2., size / 2.]
-        block_orientation = orientation
+        position = [0.15, 0., 0.0425]
+        half_size = 0.0325
+        orientation = [0, 0, 0, 1]
         self.block_mass = 0.08
 
         self.block_id = pybullet.createCollisionShape(
-            shapeType=pybullet.GEOM_BOX, halfExtents=block_size)
+            shapeType=pybullet.GEOM_BOX, halfExtents=[half_size] * 3)
         self.block = pybullet.createMultiBody(
             baseCollisionShapeIndex=self.block_id,
-            basePosition=block_position,
-            baseOrientation=block_orientation,
+            basePosition=position,
+            baseOrientation=orientation,
             baseMass=self.block_mass)
+
+    def set_visual_goal_object_position(self):
+        """
+        Render a visual object for the goal position.
+        """
+        half_size = 0.0325
+        position = [0.19, 0.08, 0.0425]
+        self.goal_cube_shape = pybullet.createVisualShape(
+            shapeType=pybullet.GEOM_BOX, halfExtents=[half_size] * 3)
+        self.goal_cube = pybullet.createMultiBody(
+                         baseVisualShapeIndex=self.goal_cube_shape,
+                         basePosition=position)
+
+    def set_goal_object_position(self, position):
+        """
+        Set the position of the visual object
+
+        Args:
+            position: the position to which the goal
+                is to be reset
+        """
+        pybullet.resetBasePositionAndOrientation(
+            self.goal_cube, position, [0, 0, 0, 1])
 
     def set_block_state(self, position, orientation):
         """
-        Resets the block state to the provided position and orientation
+        Resets the block state to the provided position and
+        orientation
+
+        Args:
+            position: the position to which the block is to be
+                set
+            orientation: desired to be set
         """
         pybullet.resetBasePositionAndOrientation(
             self.block, position, orientation)
 
     def get_block_state(self):
         """
-        Returns the current position and orientation of the block.
+        Returns:
+            Current position and orientation of the block.
         """
         state = pybullet.getBasePositionAndOrientation(self.block)
         return np.array([state[0] + state[1]]).reshape(-1, 1)
@@ -443,18 +471,32 @@ class BaseFinger:
         ]
 
     def sample_random_position_in_arena(
-            self, angle_limits=(-2 * math.pi, 2 * math.pi),
-            min_radius=0):
+            self,
+            height_limits=(0.05, 0.15),
+            angle_limits=(-2 * math.pi, 2 * math.pi),
+            radius_limits=(0.0, 0.15),
+            ):
         """
         Set a new position in the arena for the interaction object, which
         the finger has to reach.
+
+        Args:
+            height_limits: the height range to sample from, or
+                a fixed height
+            angle_limits: the range of angles to sample from
+            radius_limits: distance range from the centre of the
+                arena at which a sampled point can lie
 
         Returns:
             The random position of the target set in the arena.
         """
         angle = random.uniform(*angle_limits)
-        radial_distance = random.uniform(min_radius, 0.15)
-        height_z = random.uniform(0.1, 0.2)
+        radial_distance = random.uniform(*radius_limits)
+
+        if(isinstance(height_limits, (int, float))):
+            height_z = height_limits
+        else:
+            height_z = random.uniform(*height_limits)
 
         object_position = [radial_distance * math.cos(angle),
                            radial_distance * math.sin(angle),
