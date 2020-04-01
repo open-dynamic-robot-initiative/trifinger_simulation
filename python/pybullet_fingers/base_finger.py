@@ -55,6 +55,10 @@ class BaseFinger:
         self.connect_to_simulation()
         self.pinocchio_finger_init()
 
+    def __del__(self):
+        """Clean up."""
+        self.disconnect_from_simulation()
+
     def connect_to_simulation(self):
         """
         Connect to the Pybullet client via either GUI (visual rendering
@@ -70,6 +74,16 @@ class BaseFinger:
             pybullet.connect(pybullet.GUI)
         else:
             pybullet.connect(pybullet.DIRECT)
+
+    def disconnect_from_simulation(self):
+        """Disconnect from the simulation.
+
+        Disconnects from the simulation and sets simulation to disabled to
+        avoid any further function calls to it.
+        """
+        if self.enable_simulation:
+            pybullet.disconnect()
+            self.enable_simulation = False
 
     def pinocchio_finger_init(self):
         """

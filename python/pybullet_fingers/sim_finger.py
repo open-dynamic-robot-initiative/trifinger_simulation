@@ -22,9 +22,19 @@ class TheAction:
     Create the action data structure used by the SimFinger class.
     """
 
-    def __init__(self, t, p):
+    def __init__(self, t, p, kp=None, kd=None):
         self.torque = t
         self.position = p
+
+        if kp is None:
+            self.position_kp = np.full_like(p, np.nan, dtype=float)
+        else:
+            self.position_kp = kp
+
+        if kd is None:
+            self.position_kd = np.full_like(p, np.nan, dtype=float)
+        else:
+            self.position_kd = kd
 
 
 class SimFinger(BaseFinger):
@@ -338,6 +348,43 @@ class SimFinger(BaseFinger):
 
         return joint_pos
 
+    def _set_desired_action(self, desired_action):
+        """Set the given action after performing safety checks.
+
+        Args:
+            desired_action (TheAction): Joint positions or torques or both
+
+        Returns:
+            applied_action:  The action that is actually applied after
+                performing the safety checks.
+        """
+        applied_action = copy.copy(desired_action)
+
+        def set_gains(gains, defaults):
+            """Replace NaN entries in gains with values from defaults."""
+            mask = np.isnan(gains)
+            output = copy.copy(gains)
+            output[mask] = defaults[mask]
+            return output
+
+        applied_action.position_kp = set_gains(desired_action.position_kp,
+                                               self.position_gains)
+        applied_action.position_kd = set_gains(desired_action.position_kd,
+                                               self.velocity_gains)
+
+        torque_command = np.asarray(copy.copy(desired_action.torque))
+        if not np.isnan(desired_action.position).all():
+            torque_command += np.array(self.compute_pd_control_torques(
+                desired_action.position,
+                applied_action.position_kp,
+                applied_action.position_kd,
+            ))
+
+        applied_action.torque = self._set_motor_torques(
+            torque_command.tolist())
+
+        return applied_action
+
     def append_desired_action(self, action):
         """
         Pass an action on which safety checks
@@ -350,19 +397,34 @@ class SimFinger(BaseFinger):
             self.action_index (int): The current time-index at which the action
                 was applied.
         """
-        command = copy.copy(action.torque)
-        if not np.isnan(action.position).all():
-            command += np.array(self.compute_pd_control_torques(
-                action.position))
-
         if self.action_index >= self.observation_index:
             raise Exception('You have to call get_observation after each'
                             'append_desired_action.')
 
-        self._set_motor_torques(command.tolist())
+        self._set_desired_action(action)
 
         self.action_index = self.action_index + 1
         return self.action_index
+
+    def _get_latest_observation(self):
+        """Get observation of the current state.
+
+        Returns:
+            observation (Observation): the joint positions, velocities, and
+                torques of the joints.
+        """
+        observation = Observation()
+        current_joint_states = pybullet.getJointStates(self.finger_id,
+                                                       self.revolute_joint_ids)
+
+        observation.position = np.array([joint[0] for joint in
+                                         current_joint_states])
+        observation.velocity = np.array([joint[1] for joint in
+                                         current_joint_states])
+        observation.torque = np.array([joint[3] for joint in
+                                       current_joint_states])
+
+        return observation
 
     def get_observation(self, time_index):
         """
@@ -370,6 +432,8 @@ class SimFinger(BaseFinger):
         applying the action, so the observation actually corresponds
         to the state of the environment due to the application of the
         previous action.
+
+        This method steps the simulation!
 
         Args:
             time_index (int): the time index at which the observation is
@@ -388,21 +452,14 @@ class SimFinger(BaseFinger):
             raise Exception('currently you can only get the latest'
                             'observation')
 
-        assert(self.observation_index == self.action_index)
+        assert self.observation_index == self.action_index, \
+            "observation_index {} != action_index {}".format(
+                self.observation_index, self.action_index)
 
-        observation = Observation()
-        current_joint_states = pybullet.getJointStates(self.finger_id,
-                                                       self.revolute_joint_ids)
-
-        observation.position = np.array([joint[0] for joint in
-                                         current_joint_states])
-        observation.velocity = np.array([joint[1] for joint in
-                                         current_joint_states])
-        observation.torque = np.array([joint[3] for joint in
-                                       current_joint_states])
+        observation = self._get_latest_observation()
+        self.observation_index = self.observation_index + 1
 
         self._step_simulation()
-        self.observation_index = self.observation_index + 1
 
         return observation
 
@@ -433,19 +490,25 @@ class SimFinger(BaseFinger):
             raise ValueError('Invalid control_mode, enter either "position"'
                              'or "pybullet_position".')
 
-    def compute_pd_control_torques(self, joint_positions):
+    def compute_pd_control_torques(self, joint_positions, kp=None, kd=None):
         """
         Compute torque command to reach given target position using a PD
         controller.
 
         Args:
-            joint_positions (list of floats):  Flat list of desired
-                joint positions.
+            joint_positions (array-like, shape=(n,)):  Desired joint positions.
+            kp (array-like, shape=(n,)): P-gains, one for each joint.
+            kd (array-like, shape=(n,)): D-gains, one for each joint.
 
         Returns:
             List of torques to be sent to the joints of the finger in order to
             reach the specified joint_positions.
         """
+        if kp is None:
+            kp = self.position_gains
+        if kd is None:
+            kd = self.velocity_gains
+
         current_joint_states = pybullet.getJointStates(self.finger_id,
                                                        self.revolute_joint_ids)
         current_position = np.array([joint[0] for joint in
@@ -455,29 +518,40 @@ class SimFinger(BaseFinger):
 
         position_error = joint_positions - current_position
 
-        position_feedback = self.position_gains * position_error
-        velocity_feedback = self.velocity_gains * current_velocity
+        position_feedback = np.asarray(kp) * position_error
+        velocity_feedback = np.asarray(kd) * current_velocity
 
         joint_torques = position_feedback - velocity_feedback
 
+        # set nan entries to zero (nans occur on joints for which the target
+        # position was set to nan)
+        joint_torques[np.isnan(joint_torques)] = 0.0
+
         return joint_torques.tolist()
 
-    def _set_motor_torques(self, torque_commands):
+    def _set_motor_torques(self, desired_torque_commands):
         """
-        Send torque commands to the motors directly.
+        Send torque commands to the motors.
 
         Args:
-            torque_commands (list of floats): The torques to be applied
-                to the motors.
+            desired_torque_commands (list of floats): The desired torques to be
+                applied to the motors.  The torques that are actually applied
+                may differ as some safety checks are applied.  See return
+                value.
+
+        Returns:
+            List of torques that is actually set after applying safety checks.
 
         """
-        torque_commands = self._safety_torque_check(torque_commands)
+        torque_commands = self._safety_torque_check(desired_torque_commands)
 
         pybullet.setJointMotorControlArray(
             bodyUniqueId=self.finger_id,
             jointIndices=self.revolute_joint_ids,
             controlMode=pybullet.TORQUE_CONTROL,
             forces=torque_commands)
+
+        return torque_commands
 
     def _pybullet_position_control(self, position_commands):
         """
@@ -563,16 +637,22 @@ class SimFinger(BaseFinger):
         if wait_for_observation:
             self.observation = observation
 
-    def reset_finger(self):
+    def reset_finger(self, joint_positions=None):
         """
         Reset the finger(s) to some random position (sampled in the joint
         space) and step the robot with this random position
-        """
-        pos = self.sample_random_joint_positions_for_reaching()
-        for i, joint_id in enumerate(self.revolute_joint_ids):
-            pybullet.resetJointState(self.finger_id, joint_id, pos[i])
 
-        self.action = self.Action(position=pos)
+        Args:
+            joint_positions (array-like):  Angular position for each joint.  If
+                None, a random position is sampled.
+        """
+        if joint_positions is None:
+            joint_positions = self.sample_random_joint_positions_for_reaching()
+        for i, joint_id in enumerate(self.revolute_joint_ids):
+            pybullet.resetJointState(self.finger_id, joint_id,
+                                     joint_positions[i])
+
+        self.action = self.Action(position=joint_positions)
         self.step_robot(True)
 
-        return pos
+        return joint_positions

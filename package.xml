@@ -11,7 +11,11 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>robot_interfaces</depend>
+  <depend>eigen</depend>
+
   <build_depend>mpi_cmake_modules</build_depend>
+  <build_depend>pybind11_catkin</build_depend>
 
   <exec_depend>robot_properties_fingers</exec_depend>
 
