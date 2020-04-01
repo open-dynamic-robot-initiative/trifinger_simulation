@@ -36,11 +36,13 @@ class BaseFinger:
                   distance.
     """
 
-    def __init__(self,
-                 finger_type,
-                 action_bounds,
-                 enable_visualization,
-                 sampling_strategy):
+    def __init__(
+        self,
+        finger_type,
+        action_bounds,
+        enable_visualization,
+        sampling_strategy,
+    ):
         """
         Constructor sets up the requirements for either of the single or
         the trifinger robots.
@@ -90,7 +92,8 @@ class BaseFinger:
         Initialize the robot model and data in pinocchio from the urdf
         """
         self.pinocchio_robot_model = pinocchio.buildModelFromUrdf(
-            self.finger_urdf_path)
+            self.finger_urdf_path
+        )
         self.pinocchio_robot_data = self.pinocchio_robot_model.createData()
         self.pinocchio_tip_link_ids = [
             self.pinocchio_robot_model.getFrameId(link_name)
@@ -103,25 +106,29 @@ class BaseFinger:
         """
         try:
             import rospkg
+
             self.robot_properties_path = rospkg.RosPack().get_path(
-                "robot_properties_fingers")
+                "robot_properties_fingers"
+            )
         except Exception:
-            print("Importing the robot description files from local copy "
-                  "of the robot_properties_fingers package.")
+            print(
+                "Importing the robot description files from local copy "
+                "of the robot_properties_fingers package."
+            )
             self.robot_properties_path = os.path.join(
-                                         os.path.dirname(__file__),
-                                         "robot_properties_fingers")
+                os.path.dirname(__file__), "robot_properties_fingers"
+            )
 
         if "single" in self.finger_type:
-            self.finger_urdf_path = os.path.join(self.robot_properties_path,
-                                                 "urdf",
-                                                 "finger.urdf")
+            self.finger_urdf_path = os.path.join(
+                self.robot_properties_path, "urdf", "finger.urdf"
+            )
             self.number_of_fingers = 1
 
         elif "tri" in self.finger_type:
-            self.finger_urdf_path = os.path.join(self.robot_properties_path,
-                                                 "urdf",
-                                                 "trifinger.urdf")
+            self.finger_urdf_path = os.path.join(
+                self.robot_properties_path, "urdf", "trifinger.urdf"
+            )
             self.number_of_fingers = 3
         else:
             raise ValueError("Finger type has to be one of 'single' or 'tri'")
@@ -164,9 +171,7 @@ class BaseFinger:
 
         block_size = [0.015] * 3
 
-        color_cycle = [[1, 0, 0, 1],
-                       [0, 1, 0, 1],
-                       [0, 0, 1, 1]]
+        color_cycle = [[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1]]
 
         goal_shape_ids = [None] * self.number_of_fingers
         self.goal_ids = [None] * self.number_of_fingers
@@ -180,13 +185,17 @@ class BaseFinger:
                 # halfExtents=block_size,
                 shapeType=pybullet.GEOM_SPHERE,
                 radius=block_size[0],
-                rgbaColor=color)
+                rgbaColor=color,
+            )
             self.goal_ids[i] = pybullet.createMultiBody(
                 baseVisualShapeIndex=goal_shape_ids[i],
                 basePosition=[0.18, 0.18, 0.08],
-                baseOrientation=[0, 0, 0, 1])
-            _, self.goal_orientations[i] = \
-                pybullet.getBasePositionAndOrientation(self.goal_ids[i])
+                baseOrientation=[0, 0, 0, 1],
+            )
+            (
+                _,
+                self.goal_orientations[i],
+            ) = pybullet.getBasePositionAndOrientation(self.goal_ids[i])
 
     def reset_goal_markers(self, goal_positions):
         """
@@ -199,12 +208,12 @@ class BaseFinger:
         if not self.enable_visualization:
             return
 
-        for goal_id, orientation, position in zip(self.goal_ids,
-                                                  self.goal_orientations,
-                                                  goal_positions):
-            pybullet.resetBasePositionAndOrientation(goal_id,
-                                                     position,
-                                                     orientation)
+        for goal_id, orientation, position in zip(
+            self.goal_ids, self.goal_orientations, goal_positions
+        ):
+            pybullet.resetBasePositionAndOrientation(
+                goal_id, position, orientation
+            )
 
     def import_finger_model(self):
         """
@@ -213,7 +222,7 @@ class BaseFinger:
         if not self.enable_simulation:
             return
 
-        finger_base_position = [0, 0, 0.]
+        finger_base_position = [0, 0, 0.0]
         finger_base_orientation = pybullet.getQuaternionFromEuler([0, 0, 0])
 
         self.finger_id = pybullet.loadURDF(
@@ -221,16 +230,21 @@ class BaseFinger:
             basePosition=finger_base_position,
             baseOrientation=finger_base_orientation,
             useFixedBase=1,
-            flags=(pybullet.URDF_USE_INERTIA_FROM_FILE |
-                   pybullet.URDF_USE_SELF_COLLISION))
+            flags=(
+                pybullet.URDF_USE_INERTIA_FROM_FILE
+                | pybullet.URDF_USE_SELF_COLLISION
+            ),
+        )
 
         # create a map link_name -> link_index
         # Source: https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=12728.
         self.link_name_to_index = {
-            pybullet.getBodyInfo(self.finger_id)[0].decode('UTF-8'): -1, }
+            pybullet.getBodyInfo(self.finger_id)[0].decode("UTF-8"): -1,
+        }
         for joint_idx in range(pybullet.getNumJoints(self.finger_id)):
-            link_name = pybullet.getJointInfo(
-                self.finger_id, joint_idx)[12].decode('UTF-8')
+            link_name = pybullet.getJointInfo(self.finger_id, joint_idx)[
+                12
+            ].decode("UTF-8")
             self.link_name_to_index[link_name] = joint_idx
 
         self.init_indices()
@@ -246,21 +260,25 @@ class BaseFinger:
          - tip joints
         """
         # TODO naming: these are indices, not ids
-        self.revolute_joint_ids = [self.link_name_to_index[name]
-                                   for name in self.joint_names]
-        self.finger_tip_ids = [self.link_name_to_index[name]
-                               for name in self.tip_link_names]
+        self.revolute_joint_ids = [
+            self.link_name_to_index[name] for name in self.joint_names
+        ]
+        self.finger_tip_ids = [
+            self.link_name_to_index[name] for name in self.tip_link_names
+        ]
 
         # joint and link indices are the same in pybullet
         # TODO do we even need this variable?
         self.finger_link_ids = self.revolute_joint_ids
 
-    def import_object(self,
-                      mesh_file_path,
-                      position,
-                      orientation=[0, 0, 0, 1],
-                      is_concave=False,
-                      color_rgba=None):
+    def import_object(
+        self,
+        mesh_file_path,
+        position,
+        orientation=[0, 0, 0, 1],
+        is_concave=False,
+        color_rgba=None,
+    ):
         """Create a collision object based on a mesh file.
 
         Args:
@@ -282,15 +300,15 @@ class BaseFinger:
             flags = 0
 
         object_id = pybullet.createCollisionShape(
-            shapeType=pybullet.GEOM_MESH,
-            fileName=mesh_file_path,
-            flags=flags)
+            shapeType=pybullet.GEOM_MESH, fileName=mesh_file_path, flags=flags
+        )
 
         obj = pybullet.createMultiBody(
             baseCollisionShapeIndex=object_id,
             baseVisualShapeIndex=-1,
             basePosition=position,
-            baseOrientation=orientation)
+            baseOrientation=orientation,
+        )
 
         # set colour
         if color_rgba is not None:
@@ -303,18 +321,20 @@ class BaseFinger:
         Import a block object that the finger interacts/has to interact
         with.
         """
-        position = [0.15, 0., 0.0425]
+        position = [0.15, 0.0, 0.0425]
         half_size = 0.0325
         orientation = [0, 0, 0, 1]
         self.block_mass = 0.08
 
         self.block_id = pybullet.createCollisionShape(
-            shapeType=pybullet.GEOM_BOX, halfExtents=[half_size] * 3)
+            shapeType=pybullet.GEOM_BOX, halfExtents=[half_size] * 3
+        )
         self.block = pybullet.createMultiBody(
             baseCollisionShapeIndex=self.block_id,
             basePosition=position,
             baseOrientation=orientation,
-            baseMass=self.block_mass)
+            baseMass=self.block_mass,
+        )
 
     def set_visual_goal_object_position(self):
         """
@@ -323,10 +343,11 @@ class BaseFinger:
         half_size = 0.0325
         position = [0.19, 0.08, 0.0425]
         self.goal_cube_shape = pybullet.createVisualShape(
-            shapeType=pybullet.GEOM_BOX, halfExtents=[half_size] * 3)
+            shapeType=pybullet.GEOM_BOX, halfExtents=[half_size] * 3
+        )
         self.goal_cube = pybullet.createMultiBody(
-                         baseVisualShapeIndex=self.goal_cube_shape,
-                         basePosition=position)
+            baseVisualShapeIndex=self.goal_cube_shape, basePosition=position
+        )
 
     def set_goal_object_position(self, position):
         """
@@ -337,7 +358,8 @@ class BaseFinger:
                 is to be reset
         """
         pybullet.resetBasePositionAndOrientation(
-            self.goal_cube, position, [0, 0, 0, 1])
+            self.goal_cube, position, [0, 0, 0, 1]
+        )
 
     def set_block_state(self, position, orientation):
         """
@@ -350,7 +372,8 @@ class BaseFinger:
             orientation: desired to be set
         """
         pybullet.resetBasePositionAndOrientation(
-            self.block, position, orientation)
+            self.block, position, orientation
+        )
 
     def get_block_state(self):
         """
@@ -399,11 +422,14 @@ class BaseFinger:
 
         elif self.sampling_strategy == "triangle":
             if self.number_of_fingers == 1:
-                raise RuntimeError("Sampling strategy 'triangle' cannot"
-                                   " be used with a single finger.")
+                raise RuntimeError(
+                    "Sampling strategy 'triangle' cannot"
+                    " be used with a single finger."
+                )
             random_position = self.sample_random_position_in_arena()
             tip_positions = self.get_tip_positions_around_position(
-                random_position)
+                random_position
+            )
             joint_positions = self.inverse_kinematics(tip_positions)
             # The inverse kinematics is _very_ inaccurate, but as we anyway
             # are sampling random positions, we don't care so much for some
@@ -413,40 +439,46 @@ class BaseFinger:
             return joint_positions
 
         elif self.sampling_strategy == "separated":
+
             def sample_point_in_angle_limits():
                 while True:
-                    joint_pos = np.random.uniform(low=[-np.pi / 2,
-                                                       np.deg2rad(-77.5),
-                                                       np.deg2rad(-172)],
-                                                  high=[np.pi / 2,
-                                                        np.deg2rad(257.5),
-                                                        np.deg2rad(-2)])
+                    joint_pos = np.random.uniform(
+                        low=[-np.pi / 2, np.deg2rad(-77.5), np.deg2rad(-172)],
+                        high=[np.pi / 2, np.deg2rad(257.5), np.deg2rad(-2)],
+                    )
                     tip_pos = self.forward_kinematics(
-                        np.concatenate([
-                            joint_pos for i in range(
-                                self.number_of_fingers)
-                        ]))[0]
+                        np.concatenate(
+                            [joint_pos for i in range(self.number_of_fingers)]
+                        )
+                    )[0]
                     dist_to_center = np.linalg.norm(tip_pos[:2])
                     angle = np.arccos(tip_pos[0] / dist_to_center)
-                    if ((np.pi / 6 < angle < 5 / 6 * np.pi)
-                            and (tip_pos[1] > 0)
-                            and (0.02 < dist_to_center < 0.2)
-                            and np.all((self.action_bounds["low"])[0:3]
-                                       < joint_pos)
-                            and np.all((self.action_bounds["high"])[0:3]
-                                       > joint_pos)):
+                    if (
+                        (np.pi / 6 < angle < 5 / 6 * np.pi)
+                        and (tip_pos[1] > 0)
+                        and (0.02 < dist_to_center < 0.2)
+                        and np.all(
+                            (self.action_bounds["low"])[0:3] < joint_pos
+                        )
+                        and np.all(
+                            (self.action_bounds["high"])[0:3] > joint_pos
+                        )
+                    ):
                         return joint_pos
 
-            joint_positions = np.concatenate([
-                sample_point_in_angle_limits()
-                for i in range(self.number_of_fingers)
-            ])
+            joint_positions = np.concatenate(
+                [
+                    sample_point_in_angle_limits()
+                    for i in range(self.number_of_fingers)
+                ]
+            )
 
             return joint_positions
 
         else:
-            raise ValueError("Invalid sampling strategy '{}'".format(
-                self.sampling_strategy))
+            raise ValueError(
+                "Invalid sampling strategy '{}'".format(self.sampling_strategy)
+            )
 
     def forward_kinematics(self, joint_positions):
         """
@@ -459,23 +491,25 @@ class BaseFinger:
             List of end-effector positions. Each position is given as an
             np.array with x,y,z positions.
         """
-        pinocchio.framesForwardKinematics(self.pinocchio_robot_model,
-                                          self.pinocchio_robot_data,
-                                          joint_positions)
+        pinocchio.framesForwardKinematics(
+            self.pinocchio_robot_model,
+            self.pinocchio_robot_data,
+            joint_positions,
+        )
 
         return [
-            np.asarray(
-                self.pinocchio_robot_data.oMf[link_id].translation
-            ).reshape(-1).tolist()
+            np.asarray(self.pinocchio_robot_data.oMf[link_id].translation)
+            .reshape(-1)
+            .tolist()
             for link_id in self.pinocchio_tip_link_ids
         ]
 
     def sample_random_position_in_arena(
-            self,
-            height_limits=(0.05, 0.15),
-            angle_limits=(-2 * math.pi, 2 * math.pi),
-            radius_limits=(0.0, 0.15),
-            ):
+        self,
+        height_limits=(0.05, 0.15),
+        angle_limits=(-2 * math.pi, 2 * math.pi),
+        radius_limits=(0.0, 0.15),
+    ):
         """
         Set a new position in the arena for the interaction object, which
         the finger has to reach.
@@ -493,14 +527,16 @@ class BaseFinger:
         angle = random.uniform(*angle_limits)
         radial_distance = random.uniform(*radius_limits)
 
-        if(isinstance(height_limits, (int, float))):
+        if isinstance(height_limits, (int, float)):
             height_z = height_limits
         else:
             height_z = random.uniform(*height_limits)
 
-        object_position = [radial_distance * math.cos(angle),
-                           radial_distance * math.sin(angle),
-                           height_z]
+        object_position = [
+            radial_distance * math.cos(angle),
+            radial_distance * math.sin(angle),
+            height_z,
+        ]
 
         return object_position
 
@@ -524,9 +560,13 @@ class BaseFinger:
             return [position]
         elif self.number_of_fingers == 3:
             angle = np.deg2rad(-120)
-            rot_120 = np.array([[np.cos(angle), -np.sin(angle), 0],
-                                [np.sin(angle), np.cos(angle), 0],
-                                [0, 0, 1]])
+            rot_120 = np.array(
+                [
+                    [np.cos(angle), -np.sin(angle), 0],
+                    [np.sin(angle), np.cos(angle), 0],
+                    [0, 0, 1],
+                ]
+            )
             displacement = np.array([0.05, 0, 0])
             tip1 = position + displacement
             displacement = rot_120 @ displacement

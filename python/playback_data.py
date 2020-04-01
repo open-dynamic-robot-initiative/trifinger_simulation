@@ -37,8 +37,9 @@ def main_single():
 
     def reset_finger(joint_position):
         for i, joint_id in enumerate(finger.revolute_joint_ids):
-            pybullet.resetJointState(finger.finger_id, joint_id,
-                                     joint_position[i])
+            pybullet.resetJointState(
+                finger.finger_id, joint_id, joint_position[i]
+            )
 
     with open(args.data_file, "rb") as file_handle:
         episodes = pickle.load(file_handle)
@@ -57,15 +58,17 @@ def main_single():
             start_time_data = timestamps[0]
 
         timediff_data = timestamps[0] - start_time_data - 1
-        sleep_until(start_time_playback +
-                    datetime.timedelta(seconds=timediff_data))
+        sleep_until(
+            start_time_playback + datetime.timedelta(seconds=timediff_data)
+        )
         finger.reset_goal_markers([tip_goal])
         reset_finger(trajectory[0])
 
         for position, timestamp in zip(trajectory, timestamps):
             timediff_data = timestamp - start_time_data
-            sleep_until(start_time_playback +
-                        datetime.timedelta(seconds=timediff_data))
+            sleep_until(
+                start_time_playback + datetime.timedelta(seconds=timediff_data)
+            )
 
             reset_finger(position)
 
@@ -85,8 +88,9 @@ def main_three():
 
     def reset_finger(joint_position):
         for i, joint_id in enumerate(finger.revolute_joint_ids):
-            pybullet.resetJointState(finger.finger_id, joint_id,
-                                     joint_position[i])
+            pybullet.resetJointState(
+                finger.finger_id, joint_id, joint_position[i]
+            )
 
     data = []
     for filename in (args.data_file_0, args.data_file_120, args.data_file_240):
@@ -103,24 +107,29 @@ def main_three():
             rot_z_120 @ rot_z_120 @ (data[2][i]["tip_goal"][0] + y_shift),
         ]
 
-        initial_position = np.concatenate([
-            data[0][i]["joint_positions"][0],
-            data[1][i]["joint_positions"][0],
-            data[2][i]["joint_positions"][0],
-        ])
+        initial_position = np.concatenate(
+            [
+                data[0][i]["joint_positions"][0],
+                data[1][i]["joint_positions"][0],
+                data[2][i]["joint_positions"][0],
+            ]
+        )
 
         joint_positions = []
         for f in range(3):
-            for stamp, pos in zip(data[f][i]["timestamps"],
-                                  data[f][i]["joint_positions"]):
+            for stamp, pos in zip(
+                data[f][i]["timestamps"], data[f][i]["joint_positions"]
+            ):
                 joint_positions.append((f, stamp, pos))
         joint_positions = sorted(joint_positions, key=lambda x: x[1])
 
-        episodes.append({
-            "tip_goals": goals,
-            "joint_positions": joint_positions,
-            "initial_position": initial_position,
-        })
+        episodes.append(
+            {
+                "tip_goals": goals,
+                "joint_positions": joint_positions,
+                "initial_position": initial_position,
+            }
+        )
 
     input()
 
@@ -138,8 +147,9 @@ def main_three():
             start_time_data = episode_start_time
 
         timediff_data = episode_start_time - start_time_data - 1
-        sleep_until(start_time_playback +
-                    datetime.timedelta(seconds=timediff_data))
+        sleep_until(
+            start_time_playback + datetime.timedelta(seconds=timediff_data)
+        )
         finger.reset_goal_markers(tip_goals)
         reset_finger(data["initial_position"])
 
@@ -147,11 +157,12 @@ def main_three():
 
         for finger_idx, timestamp, position in trajectory:
             timediff_data = timestamp - start_time_data
-            sleep_until(start_time_playback +
-                        datetime.timedelta(seconds=timediff_data))
+            sleep_until(
+                start_time_playback + datetime.timedelta(seconds=timediff_data)
+            )
 
             slice_start = finger_idx * 3
-            current_pos[slice_start:slice_start + 3] = position
+            current_pos[slice_start : slice_start + 3] = position
 
             reset_finger(current_pos)
 

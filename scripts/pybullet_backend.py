@@ -10,21 +10,35 @@ import pybullet_fingers.drivers
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--finger-type", choices=["single", "tri"],
-                        required=True,
-                        help="""Specify whether the Single Finger ("single")
+    parser.add_argument(
+        "--finger-type",
+        choices=["single", "tri"],
+        required=True,
+        help="""Specify whether the Single Finger ("single")
                         or the TriFinger ("tri") is used.
-                        """)
-    parser.add_argument("--real-time-mode", "-r", action="store_true",
-                        help="""Run simulation in real time.  If not set,
+                        """,
+    )
+    parser.add_argument(
+        "--real-time-mode",
+        "-r",
+        action="store_true",
+        help="""Run simulation in real time.  If not set,
                         the simulation runs as fast as possible.
-                        """)
-    parser.add_argument("--logfile", "-l", type=str,
-                        help="""Path to a file to which the data log is
+                        """,
+    )
+    parser.add_argument(
+        "--logfile",
+        "-l",
+        type=str,
+        help="""Path to a file to which the data log is
                         written.  If not specified, no log is generated.
-                        """)
-    parser.add_argument("--visualize", action="store_true",
-                        help="Run pyBullet's GUI for visualization.")
+                        """,
+    )
+    parser.add_argument(
+        "--visualize",
+        action="store_true",
+        help="Run pyBullet's GUI for visualization.",
+    )
     args = parser.parse_args()
 
     # select the correct types/functions based on which robot is used

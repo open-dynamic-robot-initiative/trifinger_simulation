@@ -1,4 +1,4 @@
-#NOT IN USE RN, HAVEN't ENSURED COMPATIBILITY
+# NOT IN USE RN, HAVEN't ENSURED COMPATIBILITY
 
 from __future__ import print_function
 
@@ -42,12 +42,14 @@ def to_matrix(array):
 
 
 class Robot(RobotWrapper):
-    def __init__(self,
-                 symplectic=True,
-                 init='cad',
-                 visualizer=None,
-                 viscous_friction=0.0,
-                 static_friction=0.0):
+    def __init__(
+        self,
+        symplectic=True,
+        init="cad",
+        visualizer=None,
+        viscous_friction=0.0,
+        static_friction=0.0,
+    ):
         self.load_urdf()
         self.viscous_friction = to_matrix(np.zeros(3)) + viscous_friction
         self.static_friction = to_matrix(np.zeros(3)) + static_friction
@@ -60,26 +62,28 @@ class Robot(RobotWrapper):
             raise NotImplementedError
 
         # Initialization of Parameters
-        if init == 'cad':
+        if init == "cad":
             pass
-        elif init == 'random':
+        elif init == "random":
             self.set_random_params()
-        elif init == 'noisy':
+        elif init == "noisy":
             self.set_noisy_params()
-        elif init == 'identity':
+        elif init == "identity":
             self.set_identity_params()
         else:
             raise NotImplementedError
 
     # dynamics -----------------------------------------------------------------
-    def simulate(self,
-                 dt,
-                 n_steps=None,
-                 torque=None,
-                 initial_angle=None,
-                 initial_velocity=None,
-                 mask=np.ones(3),
-                 verbose=False):
+    def simulate(
+        self,
+        dt,
+        n_steps=None,
+        torque=None,
+        initial_angle=None,
+        initial_velocity=None,
+        mask=np.ones(3),
+        verbose=False,
+    ):
         """ Returns the sequence of angles, velocities and torques resulting
             from simulating the given torques."""
         zero = pinocchio.utils.zero(self.model.nv)
@@ -87,14 +91,15 @@ class Robot(RobotWrapper):
         torque = np.array(zero) if torque is None else np.array(torque)
         torque = torque.reshape(-1, 3, 1)
         if torque.shape[0] == 1:
-            assert (n_steps)
+            assert n_steps
             torque = np.repeat(torque, repeats=n_steps, axis=0)
         elif n_steps:
-            assert (n_steps == torque.shape[0])
+            assert n_steps == torque.shape[0]
 
         angle = zero if initial_angle is None else to_matrix(initial_angle)
-        velocity = \
+        velocity = (
             zero if initial_velocity is None else to_matrix(initial_velocity)
+        )
         mask = to_matrix(mask)
 
         simulated_angles = []
@@ -115,10 +120,18 @@ class Robot(RobotWrapper):
                 angle = angle + np.multiply(mask, velocity * dt)
                 velocity = velocity + np.multiply(mask, acceleration * dt)
             if verbose:
-                print('angle: ', np.array(angle).flatten(),
-                      '\nvelocity: ', np.array(velocity).flatten())
-        return np.array(simulated_angles), np.array(simulated_vels), \
-            np.array(simulated_accelerations), np.array(applied_torques)
+                print(
+                    "angle: ",
+                    np.array(angle).flatten(),
+                    "\nvelocity: ",
+                    np.array(velocity).flatten(),
+                )
+        return (
+            np.array(simulated_angles),
+            np.array(simulated_vels),
+            np.array(simulated_accelerations),
+            np.array(applied_torques),
+        )
 
     def predict(self, angle, velocity, torque, dt):
         angle = to_matrix(angle)
@@ -135,47 +148,60 @@ class Robot(RobotWrapper):
 
     def friction_torque(self, velocity):
         velocity = to_matrix(velocity)
-        return -(np.multiply(velocity, self.viscous_friction) +
-                 np.multiply(np.sign(velocity), self.static_friction))
+        return -(
+            np.multiply(velocity, self.viscous_friction)
+            + np.multiply(np.sign(velocity), self.static_friction)
+        )
 
     def forward_dynamics(self, angle, velocity, actuator_torque):
         joint_torque = actuator_torque + self.friction_torque(velocity)
 
-        return pinocchio.aba(self.model, self.data, angle, velocity,
-                             joint_torque)
+        return pinocchio.aba(
+            self.model, self.data, angle, velocity, joint_torque
+        )
 
     def inverse_dynamics(self, angle, velocity, acceleration):
 
-        joint_torque = pinocchio.rnea(self.model, self.data,
-                                      to_matrix(angle),
-                                      to_matrix(velocity),
-                                      to_matrix(acceleration))
+        joint_torque = pinocchio.rnea(
+            self.model,
+            self.data,
+            to_matrix(angle),
+            to_matrix(velocity),
+            to_matrix(acceleration),
+        )
         actuator_torque = joint_torque - self.friction_torque(velocity)
 
         # TODO: Figure out why this fails some times.
         # just as a sanity check -----------------------------------------------
         Y = self.compute_regressor_matrix(angle, velocity, acceleration)
         actuator_torque_1 = Y * self.get_params()
-        assert ((abs(actuator_torque - actuator_torque_1) <= 1e-6).all())
+        assert (abs(actuator_torque - actuator_torque_1) <= 1e-6).all()
         # ----------------------------------------------------------------------
 
         return actuator_torque
 
     def compute_regressor_matrix(self, angle, velocity, acceleration):
-        joint_torque_regressor = \
-            pinocchio.computeJointTorqueRegressor(self.model, self.data,
-                                                  to_matrix(angle),
-                                                  to_matrix(velocity),
-                                                  to_matrix(acceleration))
+        joint_torque_regressor = pinocchio.computeJointTorqueRegressor(
+            self.model,
+            self.data,
+            to_matrix(angle),
+            to_matrix(velocity),
+            to_matrix(acceleration),
+        )
 
         viscous_friction_torque_regressor = to_diagonal_matrix(velocity)
         static_friction_torque_regressor = to_diagonal_matrix(
-            np.sign(velocity))
+            np.sign(velocity)
+        )
 
-        regressor_matrix = np.concatenate([
-            joint_torque_regressor,
-            viscous_friction_torque_regressor,
-            static_friction_torque_regressor], axis=1)
+        regressor_matrix = np.concatenate(
+            [
+                joint_torque_regressor,
+                viscous_friction_torque_regressor,
+                static_friction_torque_regressor,
+            ],
+            axis=1,
+        )
 
         return regressor_matrix
 
@@ -183,20 +209,37 @@ class Robot(RobotWrapper):
         if isinstance(params, np.ndarray):
             params = np.array(params).flatten()
 
-        inertia_about_origin = \
-            np.array([[params[10 * link_index + 4], params[10 * link_index + 5], params[10 * link_index + 7]],
-                      [params[10 * link_index + 5], params[10 *
-                                                           link_index + 6], params[10 * link_index + 8]],
-                      [params[10 * link_index + 7], params[10 * link_index + 8], params[10 * link_index + 9]]])
+        inertia_about_origin = np.array(
+            [
+                [
+                    params[10 * link_index + 4],
+                    params[10 * link_index + 5],
+                    params[10 * link_index + 7],
+                ],
+                [
+                    params[10 * link_index + 5],
+                    params[10 * link_index + 6],
+                    params[10 * link_index + 8],
+                ],
+                [
+                    params[10 * link_index + 7],
+                    params[10 * link_index + 8],
+                    params[10 * link_index + 9],
+                ],
+            ]
+        )
         return inertia_about_origin
 
     # see Wensing et al 2018 for details
     def params_to_second_moment(self, params, link_index):
         inertia_about_origin = self.params_to_inertia_about_origin(
-            params, link_index)
+            params, link_index
+        )
 
-        second_moment = np.diag([0.5 * np.trace(inertia_about_origin)
-                                 for _ in range(3)]) - inertia_about_origin
+        second_moment = (
+            np.diag([0.5 * np.trace(inertia_about_origin) for _ in range(3)])
+            - inertia_about_origin
+        )
 
         return second_moment
 
@@ -219,8 +262,13 @@ class Robot(RobotWrapper):
         if isinstance(params, np.ndarray):
             params = np.array(params).flatten()
 
-        mass_times_com = np.array([params[10 * link_index + 1],
-                                   params[10 * link_index + 2], params[10 * link_index + 3]])
+        mass_times_com = np.array(
+            [
+                params[10 * link_index + 1],
+                params[10 * link_index + 2],
+                params[10 * link_index + 3],
+            ]
+        )
         return mass_times_com
 
     def params_to_mass(self, params, link_index):
@@ -248,8 +296,10 @@ class Robot(RobotWrapper):
     # getters and setters ------------------------------------------------------
 
     def get_params(self):
-        theta = [self.model.inertias[i].toDynamicParameters()
-                 for i in range(1, len(self.model.inertias))]
+        theta = [
+            self.model.inertias[i].toDynamicParameters()
+            for i in range(1, len(self.model.inertias))
+        ]
 
         theta = theta + [self.viscous_friction, self.static_friction]
 
@@ -259,27 +309,27 @@ class Robot(RobotWrapper):
         for i in range(len(self.model.inertias) - 1):
             A = self.params_to_inertia_about_origin(theta, i)
             B = self.get_inertia_about_origin(i)
-            assert(np.allclose(A, B))
+            assert np.allclose(A, B)
 
             A = self.params_to_mass_times_com(theta, i)
             B = self.get_mass_times_com(i)
-            assert(np.allclose(A, B))
+            assert np.allclose(A, B)
 
             A = self.params_to_mass(theta, i)
             B = self.get_mass(i)
-            assert(np.allclose(A, B))
+            assert np.allclose(A, B)
 
             A = self.params_to_viscous_friction(theta, i)
             B = self.get_viscous_friction(i)
-            assert(np.allclose(A, B))
+            assert np.allclose(A, B)
 
             A = self.params_to_static_friction(theta, i)
             B = self.get_static_friction(i)
-            assert(np.allclose(A, B))
+            assert np.allclose(A, B)
 
             A = self.params_to_second_moment(theta, i)
             B = self.get_second_moment(i)
-            assert(np.allclose(A, B))
+            assert np.allclose(A, B)
 
         return theta
 
@@ -301,8 +351,9 @@ class Robot(RobotWrapper):
         mass = self.get_mass(link_index)
 
         # parallel axis theorem
-        inertia_matrix_origin = inertia_matrix_com + mass * \
-            (np.inner(com, com)*np.identity(3) - np.outer(com, com))
+        inertia_matrix_origin = inertia_matrix_com + mass * (
+            np.inner(com, com) * np.identity(3) - np.outer(com, com)
+        )
         return inertia_matrix_origin
 
     def get_viscous_friction(self, link_index):
@@ -316,26 +367,34 @@ class Robot(RobotWrapper):
         mass = self.get_mass(link_index)
         com = self.get_com(link_index)
 
-        second_moment = 0.5 * np.trace(inertia_about_com) * \
-            np.identity(3) - \
-            inertia_about_com + mass * np.outer(com, com)
+        second_moment = (
+            0.5 * np.trace(inertia_about_com) * np.identity(3)
+            - inertia_about_com
+            + mass * np.outer(com, com)
+        )
 
         return second_moment
 
     def set_params(self, theta):
 
         for dof in range(self.model.nv):
-            theta_dof = theta[dof * 10: (dof + 1) * 10]
+            theta_dof = theta[dof * 10 : (dof + 1) * 10]
 
-            self.model.inertias[dof + 1] = pinocchio.libpinocchio_pywrap.Inertia.FromDynamicParameters(
-                theta_dof)
+            self.model.inertias[
+                dof + 1
+            ] = pinocchio.libpinocchio_pywrap.Inertia.FromDynamicParameters(
+                theta_dof
+            )
 
         n_inertial_params = self.model.nv * 10
-        self.viscous_friction = theta[n_inertial_params: n_inertial_params + 3]
+        self.viscous_friction = theta[
+            n_inertial_params : n_inertial_params + 3
+        ]
         self.static_friction = theta[
-            n_inertial_params + 3: n_inertial_params + 6]
+            n_inertial_params + 3 : n_inertial_params + 6
+        ]
 
-        assert (((self.get_params() - theta) < 1e-9).all())
+        assert ((self.get_params() - theta) < 1e-9).all()
 
     def set_random_params(self):
         for dof in range(self.model.nv):
@@ -350,19 +409,24 @@ class Robot(RobotWrapper):
         for dof in range(self.model.nv):
             self.model.inertias[dof + 1].mass += sigma * np.random.randn()
             self.model.inertias[dof + 1].lever += sigma * np.random.randn(3, 1)
-            self.model.inertias[dof + 1].inertia += np.abs(np.diag(
-                sigma * np.random.randn(3)))
+            self.model.inertias[dof + 1].inertia += np.abs(
+                np.diag(sigma * np.random.randn(3))
+            )
 
     # loading ------------------------------------------------------------------
     def load_urdf(self):
         try:
-            model_path = rospkg.RosPack().get_path(
-                "robot_properties_fingers")
+            model_path = rospkg.RosPack().get_path("robot_properties_fingers")
         except rospkg.ResourceNotFound:
-            print('Warning: The URDF is not being loaded from a ROS package.')
+            print("Warning: The URDF is not being loaded from a ROS package.")
             current_path = str(os.path.dirname(os.path.abspath(__file__)))
-            model_path = str(os.path.abspath(os.path.join(current_path,
-                                                          '../../robot_properties_fingers')))
+            model_path = str(
+                os.path.abspath(
+                    os.path.join(
+                        current_path, "../../robot_properties_fingers"
+                    )
+                )
+            )
         urdf_path = join(model_path, "urdf", "finger.urdf")
         meshes_path = dirname(model_path)
         print(urdf_path, meshes_path)
@@ -380,15 +444,14 @@ class Robot(RobotWrapper):
 
             torque = self.inverse_dynamics(angle, velocity, acceleration)
 
-            assert ((abs(torque - other_tau) <= 1e-9).all())
+            assert (abs(torque - other_tau) <= 1e-9).all()
 
 
 def some_demo():
     dt = 0.001
     n_steps = 5000
 
-    robot = Robot(visualizer='meshcat',
-                  viscous_friction=0.0)
+    robot = Robot(visualizer="meshcat", viscous_friction=0.0)
     robot.initViewer(loadModel=True)
 
     torque = np.array([0.5, 0, 0.0])
@@ -399,20 +462,22 @@ def some_demo():
             torque = -torque
         torques[t] = torque
 
-
-    positions, _, _, _ = robot.simulate(dt=dt,
-                                        n_steps=n_steps,
-                                        torque=torques,
-                                        initial_velocity=[0, 0, 0],
-                                        initial_angle=[0, 0, 0])
+    positions, _, _, _ = robot.simulate(
+        dt=dt,
+        n_steps=n_steps,
+        torque=torques,
+        initial_velocity=[0, 0, 0],
+        initial_angle=[0, 0, 0],
+    )
 
     start_time = time.time()
     robot.play(positions.transpose(), 0.1)
     elapsed_time = time.time() - start_time
 
-    print('elapsed time:', elapsed_time)
+    print("elapsed time:", elapsed_time)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     try:
         some_demo()
     except:

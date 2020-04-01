@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     finger = sim_finger.SimFinger()
     last_time = None
-    torque = np.array([0., 0.3, 0.3])
+    torque = np.array([0.0, 0.3, 0.3])
 
     for t in range(10000000):
         time.sleep(0.001)

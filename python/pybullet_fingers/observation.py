@@ -5,6 +5,7 @@ class Observation:
     """
     The observation structure
     """
+
     def __init__(self):
         position = []
         velocity = []

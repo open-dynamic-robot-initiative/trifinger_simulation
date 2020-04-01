@@ -49,7 +49,8 @@ def main():
     if backend_type == "real":
         # Use the default config file from the blmc_robots package
         config_file_path = os.path.join(
-            rospkg.RosPack().get_path("blmc_robots"), "config", "finger.yml")
+            rospkg.RosPack().get_path("blmc_robots"), "config", "finger.yml"
+        )
 
         # Storage for all observations, actions, etc.
         finger_data = robot_interfaces.finger.Data()
@@ -57,9 +58,10 @@ def main():
         # The backend sends actions from the data to the robot and writes
         # observations from the robot to the data.
         real_finger_backend = blmc_robots.create_real_finger_backend(
-            finger_data, config_file_path)
+            finger_data, config_file_path
+        )
 
-        #fake_finger_backend = blmc_robots.create_fake_finger_backend(finger_data)
+        # fake_finger_backend = blmc_robots.create_fake_finger_backend(finger_data)
 
         # The frontend is used by the user to get observations and send actions
         frontend = robot_interfaces.finger.Frontend(finger_data)
@@ -70,10 +72,12 @@ def main():
     elif backend_type == "simulation":
         # action_bounds only need to be set when using SimFinger for sampling
         # possitions, which is not done in this demo.
-        frontend = sim_finger.SimFinger(time_step=0.001,
-                                        enable_visualization=True,
-                                        finger_type="single",
-                                        action_bounds=None)
+        frontend = sim_finger.SimFinger(
+            time_step=0.001,
+            enable_visualization=True,
+            finger_type="single",
+            action_bounds=None,
+        )
         frontend.disable_velocity_control()
 
     else:

@@ -26,15 +26,22 @@ def get_random_position(num_fingers=1):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--finger-type", choices=["single", "tri"],
-                        required=True,
-                        help="""Specify whether the Single Finger ("single")
+    parser.add_argument(
+        "--finger-type",
+        choices=["single", "tri"],
+        required=True,
+        help="""Specify whether the Single Finger ("single")
                         or the TriFinger ("tri") is used.
-                        """)
-    parser.add_argument("--real-time-mode", "-r", action="store_true",
-                        help="""Run simulation in real time.  If not set,
+                        """,
+    )
+    parser.add_argument(
+        "--real-time-mode",
+        "-r",
+        action="store_true",
+        help="""Run simulation in real time.  If not set,
                         the simulation runs as fast as possible.
-                        """)
+                        """,
+    )
     args = parser.parse_args()
 
     # select the correct types/functions based on which robot is used
@@ -52,9 +59,9 @@ def main():
     # Create backend with the simulation as driver.
     # Simply replace this line by creating a backend for the real robot to run
     # the same code on the real robot.
-    backend = create_backend(robot_data,
-                             real_time_mode=args.real_time_mode,
-                             visualize=True)
+    backend = create_backend(
+        robot_data, real_time_mode=args.real_time_mode, visualize=True
+    )
 
     frontend = finger_types.Frontend(robot_data)
 

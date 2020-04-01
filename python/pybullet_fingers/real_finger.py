@@ -34,22 +34,23 @@ class RealFinger(BaseFinger):
 
     """
 
-    def __init__(self,
-                 enable_visualization,
-                 finger_type,
-                 action_bounds,
-                 finger_config_suffix,
-                 sampling_strategy="separated"):
+    def __init__(
+        self,
+        enable_visualization,
+        finger_type,
+        action_bounds,
+        finger_config_suffix,
+        sampling_strategy="separated",
+    ):
         """
         Constructor, initializes the physical world we will work in.
         """
         # Simulation is only used for visualization, so only run it when needed
         self.enable_simulation = enable_visualization
 
-        super().__init__(finger_type,
-                         action_bounds,
-                         enable_visualization,
-                         sampling_strategy)
+        super().__init__(
+            finger_type, action_bounds, enable_visualization, sampling_strategy
+        )
 
         if self.enable_simulation:
             self.make_physical_world()
@@ -58,12 +59,14 @@ class RealFinger(BaseFinger):
             self.robot = blmc_robots.Robot(
                 robot_interfaces.trifinger,
                 blmc_robots.create_trifinger_backend,
-                "trifinger.yml")
+                "trifinger.yml",
+            )
         elif finger_type == "single":
             self.robot = blmc_robots.Robot(
                 robot_interfaces.finger,
                 blmc_robots.create_real_finger_backend,
-                "finger_%s.yml" % finger_config_suffix)
+                "finger_%s.yml" % finger_config_suffix,
+            )
         else:
             raise ValueError("Invalid finger type")
 
@@ -131,8 +134,9 @@ class RealFinger(BaseFinger):
 
             if self.enable_visualization:
                 for i, joint_id in enumerate(self.revolute_joint_ids):
-                    pybullet.resetJointState(self.finger_id, joint_id,
-                                             self.observation.position[i])
+                    pybullet.resetJointState(
+                        self.finger_id, joint_id, self.observation.position[i]
+                    )
 
     def reset_finger(self):
         """
