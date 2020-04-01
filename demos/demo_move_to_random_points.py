@@ -17,24 +17,28 @@ def main():
     num_fingers = 1 if finger_type == "single" else 3
 
     action_bounds = {
-        "low": np.array([-math.radians(90),
-                         -math.radians(90),
-                         -math.radians(172)] * num_fingers),
-        "high": np.array([math.radians(90),
-                          math.radians(100),
-                          math.radians(-2)] * num_fingers),
+        "low": np.array(
+            [-math.radians(90), -math.radians(90), -math.radians(172)]
+            * num_fingers
+        ),
+        "high": np.array(
+            [math.radians(90), math.radians(100), math.radians(-2)]
+            * num_fingers
+        ),
     }
     finger = sim_finger.SimFinger(time_step, True, finger_type, action_bounds)
     finger.reset_finger()
 
     finger.display_goal()
     while True:
-        desired_joint_positions = \
+        desired_joint_positions = (
             finger.sample_random_joint_positions_for_reaching()
+        )
 
         # for visualization
         desired_tip_positions = finger.forward_kinematics(
-            np.array(desired_joint_positions))
+            np.array(desired_joint_positions)
+        )
         finger.reset_goal_markers(desired_tip_positions)
 
         for _ in range(500):

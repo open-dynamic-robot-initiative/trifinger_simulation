@@ -26,8 +26,13 @@ class FingerPush(gym.Env):
             ([default] "separated")
     """
 
-    def __init__(self, control_rate_s, enable_visualization,
-                 finger_type, sampling_strategy="separated"):
+    def __init__(
+        self,
+        control_rate_s,
+        enable_visualization,
+        finger_type,
+        sampling_strategy="separated",
+    ):
         """
         Constructor sets up the physical world parameters,
         and resets to begin training.
@@ -41,41 +46,48 @@ class FingerPush(gym.Env):
             self.num_fingers = 3
         simulation_rate_s = 0.004
         self.steps_per_control = int(round(control_rate_s / simulation_rate_s))
-        assert(abs(control_rate_s - self.steps_per_control * simulation_rate_s)
-               <= 0.000001)
+        assert (
+            abs(control_rate_s - self.steps_per_control * simulation_rate_s)
+            <= 0.000001
+        )
 
         self.observations_keys = [
-            'joint_positions',
-            'joint_velocities',
-            'action_joint_positions',
-            'goal_position',
-            'object_position'
+            "joint_positions",
+            "joint_velocities",
+            "action_joint_positions",
+            "goal_position",
+            "object_position",
         ]
         self.observations_sizes = [
             3 * self.num_fingers,
             3 * self.num_fingers,
             3 * self.num_fingers,
             3,
-            3
+            3,
         ]
 
-        self.spaces = FingerSpaces(num_fingers=self.num_fingers,
-                                   observations_keys=self.observations_keys,
-                                   observations_sizes=self.observations_sizes,
-                                   separate_goals=False)
+        self.spaces = FingerSpaces(
+            num_fingers=self.num_fingers,
+            observations_keys=self.observations_keys,
+            observations_sizes=self.observations_sizes,
+            separate_goals=False,
+        )
 
-        self.finger = SimFinger(time_step=simulation_rate_s,
-                                enable_visualization=enable_visualization,
-                                finger_type=finger_type,
-                                action_bounds=self.spaces.action_bounds,
-                                sampling_strategy=sampling_strategy)
+        self.finger = SimFinger(
+            time_step=simulation_rate_s,
+            enable_visualization=enable_visualization,
+            finger_type=finger_type,
+            action_bounds=self.spaces.action_bounds,
+            sampling_strategy=sampling_strategy,
+        )
 
         gym.Env.__init__(self)
 
-        self.metadata = {'render.modes': ['human']}
+        self.metadata = {"render.modes": ["human"]}
 
-        self.unscaled_observation_space = \
+        self.unscaled_observation_space = (
             self.spaces.get_unscaled_observation_space()
+        )
         self.unscaled_action_space = self.spaces.get_unscaled_action_space()
 
         self.observation_space = self.spaces.get_scaled_observation_space()
@@ -121,34 +133,39 @@ class FingerPush(gym.Env):
         """
         joint_positions = self.finger.observation.position
         joint_velocities = self.finger.observation.velocity
-        tip_positions = self.finger.forward_kinematics(
-            joint_positions)
+        tip_positions = self.finger.forward_kinematics(joint_positions)
         end_effector_position = np.concatenate(tip_positions)
         flat_goals = np.concatenate([self.goal] * self.num_fingers)
 
         if self.num_fingers == 1:
             flat_goals = self.goal
 
-        end_effector_to_goal = list(np.subtract(flat_goals,
-                                    end_effector_position))
+        end_effector_to_goal = list(
+            np.subtract(flat_goals, end_effector_position)
+        )
         observation_dict = {}
-        observation_dict['joint_positions'] = joint_positions
-        observation_dict['joint_velocities'] = joint_velocities
-        observation_dict['end_effector_position'] = end_effector_position
-        observation_dict['end_effector_to_goal'] = end_effector_to_goal
-        observation_dict['goal_position'] = self.goal
-        observation_dict['object_position'] = \
-            self.finger.get_block_state()[0:3]
-        observation_dict['action_joint_positions'] = action
+        observation_dict["joint_positions"] = joint_positions
+        observation_dict["joint_velocities"] = joint_velocities
+        observation_dict["end_effector_position"] = end_effector_position
+        observation_dict["end_effector_to_goal"] = end_effector_to_goal
+        observation_dict["goal_position"] = self.goal
+        observation_dict["object_position"] = self.finger.get_block_state()[
+            0:3
+        ]
+        observation_dict["action_joint_positions"] = action
 
         if log_observation:
-            self.logger.append(observation_dict['joint_positions'],
-                               observation_dict['end_effector_position'],
-                               time.time())
+            self.logger.append(
+                observation_dict["joint_positions"],
+                observation_dict["end_effector_position"],
+                time.time(),
+            )
 
-        observation = [v
-                       for key in self.spaces.observations_keys
-                       for v in observation_dict[key]]
+        observation = [
+            v
+            for key in self.spaces.observations_keys
+            for v in observation_dict[key]
+        ]
 
         return observation
 
@@ -173,14 +190,15 @@ class FingerPush(gym.Env):
                 observation = self._get_observation(unscaled_action, True)
 
         key_observation = observation[
-            self.spaces.key_to_index['object_position']]
+            self.spaces.key_to_index["object_position"]
+        ]
 
-        reward, done = self._compute_reward(key_observation,
-                                            self.goal)
-        info = {'is_success': np.float32(done)}
+        reward, done = self._compute_reward(key_observation, self.goal)
+        info = {"is_success": np.float32(done)}
 
-        scaled_observation = utils.scale(observation,
-                                         self.unscaled_observation_space)
+        scaled_observation = utils.scale(
+            observation, self.unscaled_observation_space
+        )
         print("reward", reward)
 
         return scaled_observation, reward, done, info
@@ -194,13 +212,17 @@ class FingerPush(gym.Env):
         """
         action = self.finger.reset_finger()
         self.goal = self.finger.sample_random_position_in_arena(
-            height_limits=0.0425)
+            height_limits=0.0425
+        )
         self.block_position = self.finger.sample_random_position_in_arena(
-            height_limits=0.0425)
+            height_limits=0.0425
+        )
         self.finger.set_goal_object_position(self.goal)
         self.finger.set_block_state(self.block_position, [0, 0, 0, 1])
 
         self.logger.new_episode(self.block_position, self.goal)
 
-        return utils.scale(self._get_observation(action, True),
-                           self.unscaled_observation_space)
+        return utils.scale(
+            self._get_observation(action, True),
+            self.unscaled_observation_space,
+        )

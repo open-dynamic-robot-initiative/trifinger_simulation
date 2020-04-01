@@ -6,6 +6,7 @@ class EpisodeData:
     The structure in which the data from each episode
     will be logged.
     """
+
     def __init__(self, joint_goal, tip_goal):
         self.joint_goal = joint_goal
         self.tip_goal = tip_goal
@@ -23,6 +24,7 @@ class DataLogger:
     """
     Dumps the env episodic data to a pickle file
     """
+
     def __init__(self):
         self.episodes = []
         self._curr = None
@@ -40,4 +42,3 @@ class DataLogger:
     def store(self, filename):
         with open(filename, "wb") as file_handle:
             pickle.dump(self.episodes, file_handle)
-

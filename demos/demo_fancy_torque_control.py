@@ -18,7 +18,8 @@ def main():
     while True:
         desired_position = finger.sample_random_position_in_arena()
         tip_positions = finger.get_tip_positions_around_position(
-            desired_position)
+            desired_position
+        )
         finger.reset_goal_markers(tip_positions)
 
         joint_positions = finger.pybullet_inverse_kinematics(tip_positions)

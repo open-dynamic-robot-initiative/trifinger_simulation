@@ -75,30 +75,33 @@ class SimFinger(BaseFinger):
 
     """
 
-    def __init__(self,
-                 time_step,
-                 enable_visualization,
-                 finger_type,
-                 action_bounds,
-                 sampling_strategy="separated"):
+    def __init__(
+        self,
+        time_step,
+        enable_visualization,
+        finger_type,
+        action_bounds,
+        sampling_strategy="separated",
+    ):
         """
         Constructor, initializes the physical world we will work in.
         """
         # Always enable the simulation for the simulated robot :)
         self.enable_simulation = True
 
-        super().__init__(finger_type,
-                         action_bounds,
-                         enable_visualization,
-                         sampling_strategy)
+        super().__init__(
+            finger_type, action_bounds, enable_visualization, sampling_strategy
+        )
 
         self.time_step = time_step
-        self.position_gains = np.array([10.0, 10.0, 10.0]
-                                       * self.number_of_fingers)
-        self.velocity_gains = np.array([0.1, 0.3, 0.001]
-                                       * self.number_of_fingers)
+        self.position_gains = np.array(
+            [10.0, 10.0, 10.0] * self.number_of_fingers
+        )
+        self.velocity_gains = np.array(
+            [0.1, 0.3, 0.001] * self.number_of_fingers
+        )
         self.safety_kd = np.array([0.08, 0.08, 0.04] * self.number_of_fingers)
-        self.max_motor_torque = .36
+        self.max_motor_torque = 0.36
 
         self.action_index = -1
         self.observation_index = 0
@@ -119,7 +122,7 @@ class SimFinger(BaseFinger):
             the_action (TheAction): the action to be applied to the motors
         """
         if torque is None:
-            torque = np.array([0.] * 3 * self.number_of_fingers)
+            torque = np.array([0.0] * 3 * self.number_of_fingers)
         if position is None:
             position = np.array([np.nan] * 3 * self.number_of_fingers)
 
@@ -149,8 +152,9 @@ class SimFinger(BaseFinger):
         # flat list
         end_effector_positions = []
         for finger_tip in self.finger_tip_ids:
-            end_effector_positions += pybullet.getLinkState(self.finger_id,
-                                                            finger_tip)[0]
+            end_effector_positions += pybullet.getLinkState(
+                self.finger_id, finger_tip
+            )[0]
 
         return end_effector_positions
 
@@ -162,8 +166,9 @@ class SimFinger(BaseFinger):
             joint_positions (list of floats): Angular positions of all joints.
             joint_velocities (list of floats): Angular velocities of all joints
         """
-        joints_data = pybullet.getJointStates(self.finger_id,
-                                              self.revolute_joint_ids)
+        joints_data = pybullet.getJointStates(
+            self.finger_id, self.revolute_joint_ids
+        )
         positions = [joint[0] for joint in joints_data]
         velocities = [joint[1] for joint in joints_data]
 
@@ -201,7 +206,8 @@ class SimFinger(BaseFinger):
                 linearDamping=0.5,
                 angularDamping=0.5,
                 contactStiffness=0.1,
-                contactDamping=0.05)
+                contactDamping=0.05,
+            )
 
     def create_stage(self, high_border=True):
         """Create the stage (table and boundary).
@@ -210,38 +216,44 @@ class SimFinger(BaseFinger):
             high_border:  Only used for the TriFinger.  If set to False, the
                 old, low boundary will be loaded instead of the high one.
         """
+
         def mesh_path(filename):
-            return os.path.join(self.robot_properties_path,
-                                "meshes",
-                                "stl",
-                                filename)
+            return os.path.join(
+                self.robot_properties_path, "meshes", "stl", filename
+            )
 
         if "single" in self.finger_type:
-            self.import_object(mesh_path("Stage_simplified.stl"),
-                               position=[0, 0, 0.01],
-                               is_concave=True)
+            self.import_object(
+                mesh_path("Stage_simplified.stl"),
+                position=[0, 0, 0.01],
+                is_concave=True,
+            )
 
         elif "tri" in self.finger_type:
             table_colour = (0.31, 0.27, 0.25, 1.0)
             high_border_colour = (0.95, 0.95, 0.95, 1.0)
             if high_border:
-                self.import_object(mesh_path("trifinger_table_without_border.stl"),
-                                   position=[0, 0, 0.01],
-                                   is_concave=False,
-                                   color_rgba=table_colour)
-                self.import_object(mesh_path("high_table_boundary.stl"),
-                                   position=[0, 0, 0.01],
-                                   is_concave=True,
-                                   color_rgba=high_border_colour)
+                self.import_object(
+                    mesh_path("trifinger_table_without_border.stl"),
+                    position=[0, 0, 0.01],
+                    is_concave=False,
+                    color_rgba=table_colour,
+                )
+                self.import_object(
+                    mesh_path("high_table_boundary.stl"),
+                    position=[0, 0, 0.01],
+                    is_concave=True,
+                    color_rgba=high_border_colour,
+                )
             else:
-                self.import_object(mesh_path("BL-M_Table_ASM_big.stl"),
-                                   position=[0, 0, 0.01],
-                                   is_concave=True,
-                                   color_rgba=table_colour)
+                self.import_object(
+                    mesh_path("BL-M_Table_ASM_big.stl"),
+                    position=[0, 0, 0.01],
+                    is_concave=True,
+                    color_rgba=table_colour,
+                )
         else:
             raise ValueError("Invalid finger type '%s'" % self.finger_type)
-
-
 
     def print_link_information(self):
         """
@@ -256,8 +268,9 @@ class SimFinger(BaseFinger):
         """
 
         for joint_index in range(pybullet.getNumJoints(self.finger_id)):
-            joint_name = pybullet.getJointInfo(
-                self.finger_id, joint_index)[1].decode('UTF-8')
+            joint_name = pybullet.getJointInfo(self.finger_id, joint_index)[
+                1
+            ].decode("UTF-8")
             print(joint_index, joint_name)
 
     def disable_velocity_control(self):
@@ -272,7 +285,8 @@ class SimFinger(BaseFinger):
             jointIndices=self.revolute_joint_ids,
             controlMode=pybullet.VELOCITY_CONTROL,
             targetVelocities=[0] * len(self.revolute_joint_ids),
-            forces=[0] * len(self.revolute_joint_ids))
+            forces=[0] * len(self.revolute_joint_ids),
+        )
 
     def pinocchio_inverse_kinematics(self, fid, xdes, q0):
         """
@@ -280,18 +294,22 @@ class SimFinger(BaseFinger):
         of using pinocchio for inverse kinematics instead of using
         the in-house IK solver of pybullet.
         """
-        dt = 1.e-3
-        pinocchio.computeJointJacobians(self.pinocchio_robot_model,
-                                        self.pinocchio_robot_data, q0)
-        pinocchio.framesKinematics(self.pinocchio_robot_model,
-                                   self.pinocchio_robot_data, q0)
-        pinocchio.framesForwardKinematics(self.pinocchio_robot_model,
-                                          self.pinocchio_robot_data, q0)
-        Ji = pinocchio.getFrameJacobian(self.pinocchio_robot_model,
-                                        self.pinocchio_robot_data,
-                                        fid,
-                                        pinocchio.ReferenceFrame.
-                                        LOCAL_WORLD_ALIGNED)[:3, :]
+        dt = 1.0e-3
+        pinocchio.computeJointJacobians(
+            self.pinocchio_robot_model, self.pinocchio_robot_data, q0
+        )
+        pinocchio.framesKinematics(
+            self.pinocchio_robot_model, self.pinocchio_robot_data, q0
+        )
+        pinocchio.framesForwardKinematics(
+            self.pinocchio_robot_model, self.pinocchio_robot_data, q0
+        )
+        Ji = pinocchio.getFrameJacobian(
+            self.pinocchio_robot_model,
+            self.pinocchio_robot_data,
+            fid,
+            pinocchio.ReferenceFrame.LOCAL_WORLD_ALIGNED,
+        )[:3, :]
         xcurrent = self.pinocchio_robot_data.oMf[fid].translation
         try:
             Jinv = np.linalg.inv(Ji)
@@ -333,15 +351,18 @@ class SimFinger(BaseFinger):
 
         joint_pos = [None] * len(self.revolute_joint_ids)
         for i, (tip_index, desired_tip_position) in enumerate(
-                zip(self.finger_tip_ids, desired_tip_positions)):
+            zip(self.finger_tip_ids, desired_tip_positions)
+        ):
 
-            q = list(pybullet.calculateInverseKinematics(
-                bodyUniqueId=self.finger_id,
-                endEffectorLinkIndex=tip_index,
-                targetPosition=desired_tip_position,
-                residualThreshold=at_target_threshold,
-                maxNumIterations=100000,
-            ))
+            q = list(
+                pybullet.calculateInverseKinematics(
+                    bodyUniqueId=self.finger_id,
+                    endEffectorLinkIndex=tip_index,
+                    targetPosition=desired_tip_position,
+                    residualThreshold=at_target_threshold,
+                    maxNumIterations=100000,
+                )
+            )
             range_start = i * 3
             range_end = range_start + 3
             joint_pos[range_start:range_end] = q[range_start:range_end]
@@ -367,21 +388,26 @@ class SimFinger(BaseFinger):
             output[mask] = defaults[mask]
             return output
 
-        applied_action.position_kp = set_gains(desired_action.position_kp,
-                                               self.position_gains)
-        applied_action.position_kd = set_gains(desired_action.position_kd,
-                                               self.velocity_gains)
+        applied_action.position_kp = set_gains(
+            desired_action.position_kp, self.position_gains
+        )
+        applied_action.position_kd = set_gains(
+            desired_action.position_kd, self.velocity_gains
+        )
 
         torque_command = np.asarray(copy.copy(desired_action.torque))
         if not np.isnan(desired_action.position).all():
-            torque_command += np.array(self.compute_pd_control_torques(
-                desired_action.position,
-                applied_action.position_kp,
-                applied_action.position_kd,
-            ))
+            torque_command += np.array(
+                self.compute_pd_control_torques(
+                    desired_action.position,
+                    applied_action.position_kp,
+                    applied_action.position_kd,
+                )
+            )
 
         applied_action.torque = self._set_motor_torques(
-            torque_command.tolist())
+            torque_command.tolist()
+        )
 
         return applied_action
 
@@ -398,8 +424,10 @@ class SimFinger(BaseFinger):
                 was applied.
         """
         if self.action_index >= self.observation_index:
-            raise Exception('You have to call get_observation after each'
-                            'append_desired_action.')
+            raise Exception(
+                "You have to call get_observation after each"
+                "append_desired_action."
+            )
 
         self._set_desired_action(action)
 
@@ -414,15 +442,19 @@ class SimFinger(BaseFinger):
                 torques of the joints.
         """
         observation = Observation()
-        current_joint_states = pybullet.getJointStates(self.finger_id,
-                                                       self.revolute_joint_ids)
+        current_joint_states = pybullet.getJointStates(
+            self.finger_id, self.revolute_joint_ids
+        )
 
-        observation.position = np.array([joint[0] for joint in
-                                         current_joint_states])
-        observation.velocity = np.array([joint[1] for joint in
-                                         current_joint_states])
-        observation.torque = np.array([joint[3] for joint in
-                                       current_joint_states])
+        observation.position = np.array(
+            [joint[0] for joint in current_joint_states]
+        )
+        observation.velocity = np.array(
+            [joint[1] for joint in current_joint_states]
+        )
+        observation.torque = np.array(
+            [joint[3] for joint in current_joint_states]
+        )
 
         return observation
 
@@ -449,12 +481,15 @@ class SimFinger(BaseFinger):
             at which the action is applied, is queried for.
         """
         if not time_index == self.action_index:
-            raise Exception('currently you can only get the latest'
-                            'observation')
+            raise Exception(
+                "currently you can only get the latest" "observation"
+            )
 
-        assert self.observation_index == self.action_index, \
-            "observation_index {} != action_index {}".format(
-                self.observation_index, self.action_index)
+        assert (
+            self.observation_index == self.action_index
+        ), "observation_index {} != action_index {}".format(
+            self.observation_index, self.action_index
+        )
 
         observation = self._get_latest_observation()
         self.observation_index = self.observation_index + 1
@@ -487,8 +522,10 @@ class SimFinger(BaseFinger):
         elif control_mode == "pybullet_position":
             self._pybullet_position_control(joint_positions)
         else:
-            raise ValueError('Invalid control_mode, enter either "position"'
-                             'or "pybullet_position".')
+            raise ValueError(
+                'Invalid control_mode, enter either "position"'
+                'or "pybullet_position".'
+            )
 
     def compute_pd_control_torques(self, joint_positions, kp=None, kd=None):
         """
@@ -509,12 +546,15 @@ class SimFinger(BaseFinger):
         if kd is None:
             kd = self.velocity_gains
 
-        current_joint_states = pybullet.getJointStates(self.finger_id,
-                                                       self.revolute_joint_ids)
-        current_position = np.array([joint[0] for joint in
-                                     current_joint_states])
-        current_velocity = np.array([joint[1] for joint in
-                                     current_joint_states])
+        current_joint_states = pybullet.getJointStates(
+            self.finger_id, self.revolute_joint_ids
+        )
+        current_position = np.array(
+            [joint[0] for joint in current_joint_states]
+        )
+        current_velocity = np.array(
+            [joint[1] for joint in current_joint_states]
+        )
 
         position_error = joint_positions - current_position
 
@@ -549,7 +589,8 @@ class SimFinger(BaseFinger):
             bodyUniqueId=self.finger_id,
             jointIndices=self.revolute_joint_ids,
             controlMode=pybullet.TORQUE_CONTROL,
-            forces=torque_commands)
+            forces=torque_commands,
+        )
 
         return torque_commands
 
@@ -571,7 +612,8 @@ class SimFinger(BaseFinger):
             targetVelocities=[0] * len(self.revolute_joint_ids),
             forces=[2.5] * len(self.revolute_joint_ids),
             positionGains=list(self.position_gains),
-            velocityGains=list(self.velocity_gains))
+            velocityGains=list(self.velocity_gains),
+        )
 
     def _safety_torque_check(self, desired_torques):
         """
@@ -586,19 +628,27 @@ class SimFinger(BaseFinger):
             applied_torques (list of floats): The torques that can be actually
                 applied to the motors (and will be applied)
         """
-        applied_torques = np.clip(np.asarray(desired_torques),
-                                  -self.max_motor_torque,
-                                  +self.max_motor_torque)
+        applied_torques = np.clip(
+            np.asarray(desired_torques),
+            -self.max_motor_torque,
+            +self.max_motor_torque,
+        )
 
-        current_joint_states = pybullet.getJointStates(self.finger_id,
-                                                       self.revolute_joint_ids)
-        current_velocity = np.array([joint[1] for joint in
-                                     current_joint_states])
+        current_joint_states = pybullet.getJointStates(
+            self.finger_id, self.revolute_joint_ids
+        )
+        current_velocity = np.array(
+            [joint[1] for joint in current_joint_states]
+        )
         applied_torques -= self.safety_kd * current_velocity
 
-        applied_torques = list(np.clip(np.asarray(applied_torques),
-                                       -self.max_motor_torque,
-                                       +self.max_motor_torque))
+        applied_torques = list(
+            np.clip(
+                np.asarray(applied_torques),
+                -self.max_motor_torque,
+                +self.max_motor_torque,
+            )
+        )
 
         return applied_torques
 
@@ -649,8 +699,9 @@ class SimFinger(BaseFinger):
         if joint_positions is None:
             joint_positions = self.sample_random_joint_positions_for_reaching()
         for i, joint_id in enumerate(self.revolute_joint_ids):
-            pybullet.resetJointState(self.finger_id, joint_id,
-                                     joint_positions[i])
+            pybullet.resetJointState(
+                self.finger_id, joint_id, joint_positions[i]
+            )
 
         self.action = self.Action(position=joint_positions)
         self.step_robot(True)
