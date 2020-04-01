@@ -7,67 +7,15 @@ import datetime
 import gym
 from gym import spaces
 from pybullet_fingers.sim_finger import SimFinger
-
-
-class EpisodeData:
-    """
-    The structure in which the data from each episode
-    will be logged.
-    """
-    def __init__(self, joint_goal, tip_goal):
-        self.joint_goal = joint_goal
-        self.tip_goal = tip_goal
-        self.joint_positions = []
-        self.tip_positions = []
-        self.timestamps = []
-
-    def append(self, joint_pos, tip_pos, timestamp):
-        self.joint_positions.append(joint_pos)
-        self.tip_positions.append(tip_pos)
-        self.timestamps.append(timestamp)
-
-
-class DataLogger:
-    """
-    Dumps the env episodic data to a pickle file
-    """
-    def __init__(self):
-        self.episodes = []
-        self._curr = None
-
-    def new_episode(self, joint_goal, tip_goal):
-        if self._curr:
-            # convert to dict for saving so loading has no dependencies
-            self.episodes.append(self._curr.__dict__)
-
-        self._curr = EpisodeData(joint_goal, tip_goal)
-
-    def append(self, joint_pos, tip_pos, timestamp):
-        self._curr.append(joint_pos, tip_pos, timestamp)
-
-    def store(self, filename):
-        with open(filename, "wb") as file_handle:
-            pickle.dump(self.episodes, file_handle)
-
-
-def sleep_until(until, accuracy=0.01):
-    """
-    Sleep until the given time.
-
-    Args:
-        until (datetime.datetime): Time until the function should sleep.
-        accuracy (float): Accuracy with which it will check if the "until" time
-            is reached.
-
-    """
-    while until > datetime.datetime.now():
-        time.sleep(accuracy)
+from pybullet_fingers.gym_wrapper.data_logger import DataLogger
+from pybullet_fingers.gym_wrapper.finger_spaces import FingerSpaces
+from pybullet_fingers.gym_wrapper import utils
 
 
 class FingerReach(gym.Env):
     """
     A gym environment to enable training on either the single or
-    the tri-fingers robots for the task of reaaching
+    the tri-fingers robots for the task of reaching
 
     Args:
         control_rate_s (float): the rate at which the env step runs
@@ -110,17 +58,17 @@ class FingerReach(gym.Env):
                  synchronize=False,
                  ):
         """
-        Constructor sets up the observation and action spaces, the finger robot
-        depending on whether or the simulated or the real one is to be used,
-        sets up the physical world parameters, and resets it to begin training
+        Constructor sets up smoothing, the finger robot depending on whether
+        the simulated or the real one is to be used, sets up the physical world
+        parameters, and resets to begin training.
         """
 
         self.logger = DataLogger()
 
         if finger_type == "single":
-            num_fingers = 1
+            self.num_fingers = 1
         else:
-            num_fingers = 3
+            self.num_fingers = 3
 
         simulation_rate_s = 0.004
         self.steps_per_control = int(round(control_rate_s / simulation_rate_s))
@@ -149,55 +97,6 @@ class FingerReach(gym.Env):
         self.smoothed_action = None
         self.episode_count = 0
 
-        action_bounds = {
-            "low": np.array([-math.radians(70),
-                             -math.radians(70),
-                             -math.radians(160)] * num_fingers),
-            "high": np.array([math.radians(70),
-                              0,
-                              -math.radians(30)] * num_fingers),
-        }
-
-        lower_bounds = {}
-        upper_bounds = {}
-        lower_bounds['end_effector_position'] = [-0.5, -0.5, 0.] * num_fingers
-        upper_bounds['end_effector_position'] = [0.5, 0.5, 0.5] * num_fingers
-        lower_bounds['joint_positions'] = [-math.radians(90),
-                                           -math.radians(90),
-                                           -math.radians(172)] * num_fingers
-        upper_bounds['joint_positions'] = [math.radians(90),
-                                           math.radians(100),
-                                           math.radians(-2)] * num_fingers
-        lower_bounds['joint_velocities'] = [-20] * 3 * num_fingers
-        upper_bounds['joint_velocities'] = [20] * 3 * num_fingers
-        lower_bounds['end_effector_to_goal'] = [-0.5] * 3 * num_fingers
-        upper_bounds['end_effector_to_goal'] = [0.5] * 3 * num_fingers
-        lower_bounds['goal_position'] = [-0.5, -0.5, 0.] * num_fingers
-        upper_bounds['goal_position'] = [0.5, 0.5, 0.5] * num_fingers
-        lower_bounds['action_joint_positions'] = action_bounds["low"]
-        upper_bounds['action_joint_positions'] = action_bounds["high"]
-
-        if use_real_robot:
-            from pybullet_fingers.real_finger import RealFinger
-            self.finger = RealFinger(
-                enable_visualization=enable_visualization,
-                finger_type=finger_type,
-                action_bounds=action_bounds,
-                finger_config_suffix=finger_config_suffix,
-                sampling_strategy=sampling_strategy)
-
-        else:
-            self.finger = SimFinger(time_step=simulation_rate_s,
-                                    enable_visualization=enable_visualization,
-                                    finger_type=finger_type,
-                                    action_bounds=action_bounds,
-                                    sampling_strategy=sampling_strategy)
-
-        gym.Env.__init__(self)
-        self.metadata = {'render.modes': ['human']}
-
-        self.velocity_cost_factor = velocity_cost_factor
-
         self.observations_keys = [
             'joint_positions',
             'joint_velocities',
@@ -205,36 +104,45 @@ class FingerReach(gym.Env):
             'action_joint_positions'
         ]
 
-        self.key_to_index = {}
-        for i in range(len(self.observations_keys)):
-            slice_start = 3 * num_fingers * i
-            self.key_to_index[self.observations_keys[i]] = slice(
-                slice_start,
-                slice_start + 3 * num_fingers)
+        self.observations_sizes = [
+            3 * self.num_fingers,
+            3 * self.num_fingers,
+            3 * self.num_fingers,
+            3 * self.num_fingers
+        ]
 
-        observation_lower_bounds = [value
-                                    for key in self.observations_keys
-                                    for value in lower_bounds[key]]
-        observation_higher_bounds = [value
-                                     for key in self.observations_keys
-                                     for value in upper_bounds[key]]
+        self.spaces = FingerSpaces(num_fingers=self.num_fingers,
+                                   observations_keys=self.observations_keys,
+                                   observations_sizes=self.observations_sizes,
+                                   separate_goals=True)
 
-        self._observation_space = spaces.Box(
-            low=np.array(observation_lower_bounds),
-            high=np.array(observation_higher_bounds))
+        if use_real_robot:
+            from pybullet_fingers.real_finger import RealFinger
+            self.finger = RealFinger(
+                enable_visualization=enable_visualization,
+                finger_type=finger_type,
+                action_bounds=self.spaces.action_bounds,
+                finger_config_suffix=finger_config_suffix,
+                sampling_strategy=sampling_strategy)
 
-        self._action_space = spaces.Box(
-            low=action_bounds["low"],
-            high=action_bounds["high"],
-            dtype=np.float32)
+        else:
+            self.finger = SimFinger(time_step=simulation_rate_s,
+                                    enable_visualization=enable_visualization,
+                                    finger_type=finger_type,
+                                    action_bounds=self.spaces.action_bounds,
+                                    sampling_strategy=sampling_strategy)
 
-        self.observation_space = spaces.Box(
-            low=-np.ones_like(self._observation_space.low),
-            high=np.ones_like(self._observation_space.high))
+        gym.Env.__init__(self)
+        self.metadata = {'render.modes': ['human']}
 
-        self.action_space = spaces.Box(
-            low=-np.ones(3 * num_fingers),
-            high=np.ones(3 * num_fingers))
+        self.velocity_cost_factor = velocity_cost_factor
+
+        self.unscaled_observation_space = \
+            self.spaces.get_unscaled_observation_space()
+        self.unscaled_action_space = self.spaces.get_unscaled_action_space()
+
+        self.observation_space = self.spaces.get_scaled_observation_space()
+        self.action_space = self.spaces.get_scaled_action_space()
 
         self.finger.display_goal()
 
@@ -249,13 +157,6 @@ class FingerReach(gym.Env):
 
         self.reset()
 
-    def _compute_distance(self, a, b):
-        """
-        Returns the Euclidean distance between two
-        vectors (lists/arrays)
-        """
-        return np.linalg.norm(np.subtract(a, b))
-
     def _compute_reward(self, observation, goal):
         """
         The reward function of the environment
@@ -268,17 +169,18 @@ class FingerReach(gym.Env):
         Returns:
             the reward, and the done signal
         """
-        joint_positions = observation[self.key_to_index['joint_positions']]
+        joint_positions = observation[
+            self.spaces.key_to_index['joint_positions']]
 
         end_effector_positions = self.finger.forward_kinematics(
             np.array(joint_positions))
 
         velocity = np.linalg.norm(
-            observation[self.key_to_index['joint_velocities']])
+            observation[self.spaces.key_to_index['joint_velocities']])
 
         # TODO is matrix norm really always same as vector norm on flattend
         # matrices?
-        distance_to_goal = self._compute_distance(end_effector_positions, goal)
+        distance_to_goal = utils.compute_distance(end_effector_positions, goal)
 
         reward = -distance_to_goal - self.velocity_cost_factor * velocity
         done = False
@@ -318,27 +220,11 @@ class FingerReach(gym.Env):
         if log_observation:
             self.logger.append(joint_positions, end_effector_position,
                                time.time())
-
         observation = [v
                        for key in self.observations_keys
                        for v in observation_dict[key]]
 
         return observation
-
-    @staticmethod
-    def _scale(x, space):
-        """
-        Scale some input to be between the range [-1;1] from the range
-        of the space it belongs to
-        """
-        return 2.0 * (x - space.low) / (space.high - space.low) - 1.0
-
-    @staticmethod
-    def _unscale(y, space):
-        """
-        Unscale some input from [-1;1] to the range of another space
-        """
-        return space.low + (y + 1.0) / 2.0 * (space.high - space.low)
 
     def step(self, action):
         """
@@ -351,12 +237,11 @@ class FingerReach(gym.Env):
             the observation scaled to lie between [-1;1], the reward,
             the done signal, and info on if the agent was successful at
             the current step
-
         """
         # Unscale the action to the ranges of the action space of the
         # environment, explicitly (as the prediction from the network
         # lies in the range [-1;1])
-        unscaled_action = self._unscale(action, self._action_space)
+        unscaled_action = utils.unscale(action, self.unscaled_action_space)
 
         # smooth the action by taking a weighted average with the previous
         # action, where the weight, ie, the smoothing_alpha is gradually
@@ -381,7 +266,8 @@ class FingerReach(gym.Env):
                 observation = self._get_observation(self.smoothed_action, True)
         reward, done = self._compute_reward(observation, self.goal)
         info = {'is_success': np.float32(done)}
-        scaled_observation = self._scale(observation, self._observation_space)
+        scaled_observation = utils.scale(observation,
+                                         self.unscaled_observation_space)
         return scaled_observation, reward, done, info
 
     def reset(self):
@@ -401,7 +287,7 @@ class FingerReach(gym.Env):
             except Exception:
                 pass
 
-            sleep_until(self.next_start_time)
+            utils.sleep_until(self.next_start_time)
             self.next_start_time += datetime.timedelta(seconds=4)
 
         self.update_smoothing()
@@ -418,8 +304,8 @@ class FingerReach(gym.Env):
 
         self.finger.reset_goal_markers(self.goal)
 
-        return self._scale(self._get_observation(action=action),
-                           self._observation_space)
+        return utils.scale(self._get_observation(action=action),
+                           self.unscaled_observation_space)
 
     def render(self, mode='human'):
         """
