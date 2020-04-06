@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 import numpy as np
+import gym
 
 from pybullet_fingers.sim_finger import SimFinger
 
@@ -43,6 +44,57 @@ class TestSimulationDeterminisim(unittest.TestCase):
         np.testing.assert_array_equal(first_run.torque, second_run.torque)
         np.testing.assert_array_equal(first_run.position, second_run.position)
         np.testing.assert_array_equal(first_run.velocity, second_run.velocity)
+
+    def test_reach_rollouts(self):
+
+        smoothing_params = {
+            "num_episodes": 10,
+            # ratio of total training time after which smoothing starts
+            "start_after": 3.0 / 7.0,
+            # smoothing coeff. that shall be reached at end of training
+            "final_alpha": 0.975,
+            "stop_after": 5.0 / 7.0,
+        }
+
+        num_samples = 10
+        horizon = 100
+
+        env = gym.make(
+            "pybullet_fingers.gym_wrapper:reach-v0",
+            control_rate_s=0.02,
+            enable_visualization=False,
+            finger_type="single",
+            smoothing_params=smoothing_params,
+            velocity_cost_factor=0,
+        )
+
+        env.finger.set_real_time_sim(0)
+
+        start_position = [0.5, -0.7, -1.5]
+
+        plans = -1.0 + 2.0 * np.random.rand(horizon, num_samples, 3)
+
+        def run():
+            states = []
+            rewards = []
+
+            for i in range(num_samples):
+                env.finger.reset_finger(start_position)
+                for t in range(horizon):
+                    state, reward, _, _ = env.step(plans[t, i])
+                    states.append(state)
+                    rewards.append(reward)
+            states = np.array(states)
+            rewards = np.array(rewards)
+            return states, rewards
+
+        first_states, first_rewards = run()
+        second_states, second_rewards = run()
+
+        np.testing.assert_array_equal(first_states.all(), second_states.all())
+        np.testing.assert_array_equal(
+            first_rewards.all(), second_rewards.all()
+        )
 
 
 if __name__ == "__main__":
