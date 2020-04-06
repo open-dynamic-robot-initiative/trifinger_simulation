@@ -78,7 +78,7 @@ def main():
             finger_type="single",
             action_bounds=None,
         )
-        frontend.disable_velocity_control()
+        frontend.reset_finger([0.0, -0.7, -1.5])
 
     else:
         raise ValueError("Invalid backend type")
