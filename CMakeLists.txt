@@ -32,3 +32,9 @@ install(TARGETS drivers DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})
 
 # build with -DBUILD_DOCUMENTATION=ON to build documentation
 build_doxygen_documentation()
+
+
+# Tests
+if (CATKIN_ENABLE_TESTING)
+  catkin_add_nosetests(tests)
+endif()
