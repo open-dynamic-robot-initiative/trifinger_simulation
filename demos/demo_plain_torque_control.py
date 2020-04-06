@@ -1,36 +1,32 @@
 #!/usr/bin/env python3
-
-"""
-To demonstrate reaching a randomly set target point in the arena using torque
-control by directly specifying the position of the target only.
-"""
+"""Demonstrate how to run the simulated finger with torque control."""
 import time
 import numpy as np
 
-import robot_interfaces
-
 from pybullet_fingers import sim_finger
+
 
 if __name__ == "__main__":
 
-    finger = sim_finger.SimFinger()
-    last_time = None
+    time_step = 0.001
+
+    finger = sim_finger.SimFinger(
+        time_step=time_step,
+        enable_visualization=True,
+        finger_type="single",
+        action_bounds=None,
+    )
+    # set the finger to a reasonable start position
+    finger.reset_finger([0, -0.7, -1.5])
+
     torque = np.array([0.0, 0.3, 0.3])
-
     for t in range(10000000):
-        time.sleep(0.001)
+        time.sleep(time_step)
 
+        # invert the direction of the command every 100 steps
         if t % 100 == 0:
-            torque = -torque
+            torque *= -1
 
-        if t > 100:
-            torque = torque * 0
-
-        action = robot_interfaces.finger.Action(torque=torque)
-        print(action.torque)
+        action = finger.Action(torque=torque)
         t = finger.append_desired_action(action)
         observation = finger.get_observation(t)
-
-        print(t)
-
-    finger.reset()
