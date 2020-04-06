@@ -15,7 +15,7 @@ of installation is recommended to ensure the latest robot models are used.
   ```bash
   git clone git@git-amd.tuebingen.mpg.de:robotics/pybullet_fingers.git
   cd pybullet_fingers
-  conda env create -f pybullet_fingers_linux_cpu.yml
+  conda env create -f environment.yml
   ```
 
 2. Install the pybullet_fingers package inside the (pybullet_fingers) conda env.
