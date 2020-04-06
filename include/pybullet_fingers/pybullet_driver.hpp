@@ -131,22 +131,9 @@ template <typename Types, typename Driver>
 typename Types::BackendPtr create_finger_backend(
     typename Types::BaseDataPtr robot_data, bool real_time_mode, bool visualize)
 {
-    // this is simulation, so disable timeouts
-    constexpr double MAX_ACTION_DURATION_S =
-        std::numeric_limits<double>::infinity();
-    constexpr double MAX_INTER_ACTION_DURATION_S =
-        std::numeric_limits<double>::infinity();
-
-    std::shared_ptr<robot_interfaces::RobotDriver<typename Types::Action,
-                                                  typename Types::Observation>>
-        robot = std::make_shared<Driver>(real_time_mode, visualize);
-
-    auto backend =
-        std::make_shared<typename Types::Backend>(robot,
-                                                  robot_data,
-                                                  MAX_ACTION_DURATION_S,
-                                                  MAX_INTER_ACTION_DURATION_S,
-                                                  real_time_mode);
+    auto robot = std::make_shared<Driver>(real_time_mode, visualize);
+    auto backend = std::make_shared<typename Types::Backend>(
+        robot, robot_data, real_time_mode);
 
     if (real_time_mode)
     {
