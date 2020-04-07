@@ -10,6 +10,7 @@ from pybullet_fingers.sim_finger import SimFinger
 from pybullet_fingers.gym_wrapper.data_logger import DataLogger
 from pybullet_fingers.gym_wrapper.finger_spaces import FingerSpaces
 from pybullet_fingers.gym_wrapper import utils
+from pybullet_fingers import visual_objects
 
 
 class FingerReach(gym.Env):
@@ -158,7 +159,9 @@ class FingerReach(gym.Env):
         self.observation_space = self.spaces.get_scaled_observation_space()
         self.action_space = self.spaces.get_scaled_action_space()
 
-        self.finger.display_goal()
+        self.goal_marker = visual_objects.Marker(
+            number_of_goals=self.num_fingers
+        )
 
         self.seed()
 
@@ -327,7 +330,7 @@ class FingerReach(gym.Env):
 
         self.logger.new_episode(target_joint_config, self.goal)
 
-        self.finger.reset_goal_markers(self.goal)
+        self.goal_marker.set_state(self.goal)
 
         return utils.scale(
             self._get_observation(action=action),
