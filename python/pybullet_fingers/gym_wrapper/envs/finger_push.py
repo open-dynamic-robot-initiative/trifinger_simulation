@@ -8,6 +8,7 @@ from pybullet_fingers.sim_finger import SimFinger
 from pybullet_fingers.gym_wrapper.data_logger import DataLogger
 from pybullet_fingers.gym_wrapper.finger_spaces import FingerSpaces
 from pybullet_fingers.gym_wrapper import utils
+from pybullet_fingers import collision_objects, visual_objects
 
 
 class FingerPush(gym.Env):
@@ -96,8 +97,12 @@ class FingerPush(gym.Env):
         self.distance_threshold = 0.05
         self.epsilon_reward = 0.001
 
-        self.finger.import_interaction_objects()
-        self.finger.set_visual_goal_object_position()
+        self.block = collision_objects.Block()
+        self.goal_marker = visual_objects.Marker(
+            number_of_goals=1,
+            goal_size=0.0325,
+            initial_position=[0.19, 0.08, 0.0425],
+        )
 
         self.reset()
 
@@ -149,9 +154,7 @@ class FingerPush(gym.Env):
         observation_dict["end_effector_position"] = end_effector_position
         observation_dict["end_effector_to_goal"] = end_effector_to_goal
         observation_dict["goal_position"] = self.goal
-        observation_dict["object_position"] = self.finger.get_block_state()[
-            0:3
-        ]
+        observation_dict["object_position"], _ = self.block.get_state()
         observation_dict["action_joint_positions"] = action
 
         if log_observation:
@@ -217,8 +220,9 @@ class FingerPush(gym.Env):
         self.block_position = self.finger.sample_random_position_in_arena(
             height_limits=0.0425
         )
-        self.finger.set_goal_object_position(self.goal)
-        self.finger.set_block_state(self.block_position, [0, 0, 0, 1])
+
+        self.goal_marker.set_state([self.goal])
+        self.block.set_state(self.block_position, [0, 0, 0, 1])
 
         self.logger.new_episode(self.block_position, self.goal)
 

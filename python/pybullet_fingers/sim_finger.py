@@ -15,6 +15,7 @@ import pinocchio
 
 from pybullet_fingers.observation import Observation
 from pybullet_fingers.base_finger import BaseFinger
+from pybullet_fingers import collision_objects
 
 
 class TheAction:
@@ -223,7 +224,7 @@ class SimFinger(BaseFinger):
             )
 
         if "single" in self.finger_type:
-            self.import_object(
+            collision_objects.import_mesh(
                 mesh_path("Stage_simplified.stl"),
                 position=[0, 0, 0.01],
                 is_concave=True,
@@ -233,20 +234,20 @@ class SimFinger(BaseFinger):
             table_colour = (0.31, 0.27, 0.25, 1.0)
             high_border_colour = (0.95, 0.95, 0.95, 1.0)
             if high_border:
-                self.import_object(
+                collision_objects.import_mesh(
                     mesh_path("trifinger_table_without_border.stl"),
                     position=[0, 0, 0.01],
                     is_concave=False,
                     color_rgba=table_colour,
                 )
-                self.import_object(
+                collision_objects.import_mesh(
                     mesh_path("high_table_boundary.stl"),
                     position=[0, 0, 0.01],
                     is_concave=True,
                     color_rgba=high_border_colour,
                 )
             else:
-                self.import_object(
+                collision_objects.import_mesh(
                     mesh_path("BL-M_Table_ASM_big.stl"),
                     position=[0, 0, 0.01],
                     is_concave=True,
