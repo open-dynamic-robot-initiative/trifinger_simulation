@@ -68,7 +68,6 @@ def main():
     backend.initialize()
 
     # Simple example application that moves the finger to random positions.
-    desired_torque = np.zeros(3)
     while True:
         action = finger_types.Action(position=get_random_position(num_fingers))
         for _ in range(300):

@@ -379,7 +379,13 @@ class SimFinger(BaseFinger):
             applied_action:  The action that is actually applied after
                 performing the safety checks.
         """
-        applied_action = copy.copy(desired_action)
+        # copy the action in a way that works for both TheAction and
+        # robot_interfaces.(tri)finger.Action.  Note that a simple
+        # copy.copy(desired_action) does **not** work for robot_interfaces
+        # actions!
+        applied_action = type(desired_action)(
+            copy.copy(desired_action.torque),
+            copy.copy(desired_action.position))
 
         def set_gains(gains, defaults):
             """Replace NaN entries in gains with values from defaults."""
