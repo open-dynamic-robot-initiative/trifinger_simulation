@@ -11,7 +11,6 @@ import numpy as np
 
 import pybullet
 import pybullet_data
-import pinocchio
 
 from pybullet_fingers.observation import Observation
 from pybullet_fingers.base_finger import BaseFinger
@@ -44,16 +43,6 @@ class SimFinger(BaseFinger):
     This environment is based on PyBullet, the official Python wrapper around
     the Bullet-C API.
 
-    Args:
-
-        time_step (float): It is the time between two simulation steps.
-            Defaults to 1./240. Don't set this to be larger than 1./60.
-            The gains etc are set according to a time_step of 0.004 s.
-        enable_visualization (bool): See BaseFinger.
-        finger_type: See BaseFinger.
-        action_bounds: See BaseFinger.
-        sampling_strategy:  See BaseFinger.
-
     Attributes:
 
         position_gains (array): The kp gains for the pd control of the
@@ -77,22 +66,22 @@ class SimFinger(BaseFinger):
     """
 
     def __init__(
-        self,
-        time_step,
-        enable_visualization,
-        finger_type,
-        action_bounds,
-        sampling_strategy="separated",
+        self, time_step, enable_visualization, finger_type,
     ):
         """
         Constructor, initializes the physical world we will work in.
+
+        Args:
+            time_step (float): It is the time between two simulation steps.
+                Defaults to 1./240. Don't set this to be larger than 1./60.
+                The gains etc are set according to a time_step of 0.004 s.
+            enable_visualization (bool): See BaseFinger.
+            finger_type: See BaseFinger.
         """
         # Always enable the simulation for the simulated robot :)
         self.enable_simulation = True
 
-        super().__init__(
-            finger_type, action_bounds, enable_visualization, sampling_strategy
-        )
+        super().__init__(finger_type, enable_visualization)
 
         self.time_step = time_step
         self.position_gains = np.array(
@@ -289,87 +278,6 @@ class SimFinger(BaseFinger):
             forces=[0] * len(self.revolute_joint_ids),
         )
 
-    def pinocchio_inverse_kinematics(self, fid, xdes, q0):
-        """
-        Method not in use right now, but is here with the intention
-        of using pinocchio for inverse kinematics instead of using
-        the in-house IK solver of pybullet.
-        """
-        dt = 1.0e-3
-        pinocchio.computeJointJacobians(
-            self.pinocchio_robot_model, self.pinocchio_robot_data, q0
-        )
-        pinocchio.framesKinematics(
-            self.pinocchio_robot_model, self.pinocchio_robot_data, q0
-        )
-        pinocchio.framesForwardKinematics(
-            self.pinocchio_robot_model, self.pinocchio_robot_data, q0
-        )
-        Ji = pinocchio.getFrameJacobian(
-            self.pinocchio_robot_model,
-            self.pinocchio_robot_data,
-            fid,
-            pinocchio.ReferenceFrame.LOCAL_WORLD_ALIGNED,
-        )[:3, :]
-        xcurrent = self.pinocchio_robot_data.oMf[fid].translation
-        try:
-            Jinv = np.linalg.inv(Ji)
-        except Exception:
-            Jinv = np.linalg.pinv(Ji)
-        dq = Jinv.dot(xdes - xcurrent)
-        qnext = pinocchio.integrate(self.pinocchio_robot_model, q0, dt * dq)
-        return qnext
-
-    def pybullet_inverse_kinematics(self, desired_tip_positions):
-        """
-        Compute the joint angular positions needed to get to reach the block.
-
-        WARNING: pybullet's inverse kinematics seem to be very inaccurate! (or
-        we are somehow using it wrongly...)
-
-        Args:
-            desired_tip_position (list of floats): xyz target position for
-                each finger tip.
-
-        Returns:
-            joint_pos (list of floats): The angular positions to be applid at
-                the joints to reach the desired_tip_position
-        """
-        at_target_threshold = 0.0001
-
-        # joint_pos = list(
-        #    pybullet.calculateInverseKinematics2(
-        #        bodyUniqueId=self.finger_id,
-        #        endEffectorLinkIndices=self.finger_tip_ids,
-        #        targetPositions=desired_tip_positions,
-        #        residualThreshold=at_target_threshold))
-
-        # For some reason calculateInverseKinematics2 above is not working
-        # properly (only gives proper results for the joints of the first
-        # finger).  As a workaround for now, call calculateInverseKinematics
-        # for a single end-effector for each finger and always pick only the
-        # joint positions for that finger.
-
-        joint_pos = [None] * len(self.revolute_joint_ids)
-        for i, (tip_index, desired_tip_position) in enumerate(
-            zip(self.finger_tip_ids, desired_tip_positions)
-        ):
-
-            q = list(
-                pybullet.calculateInverseKinematics(
-                    bodyUniqueId=self.finger_id,
-                    endEffectorLinkIndex=tip_index,
-                    targetPosition=desired_tip_position,
-                    residualThreshold=at_target_threshold,
-                    maxNumIterations=100000,
-                )
-            )
-            range_start = i * 3
-            range_end = range_start + 3
-            joint_pos[range_start:range_end] = q[range_start:range_end]
-
-        return joint_pos
-
     def _set_desired_action(self, desired_action):
         """Set the given action after performing safety checks.
 
@@ -386,7 +294,8 @@ class SimFinger(BaseFinger):
         # actions!
         applied_action = type(desired_action)(
             copy.copy(desired_action.torque),
-            copy.copy(desired_action.position))
+            copy.copy(desired_action.position),
+        )
 
         def set_gains(gains, defaults):
             """Replace NaN entries in gains with values from defaults."""
@@ -505,35 +414,6 @@ class SimFinger(BaseFinger):
 
         return observation
 
-    def _apply_action(self, joint_positions, control_mode):
-        """
-        Use a well-tuned pd-controller to apply motor torques for
-        the desired joint positions, or use pybullet's position
-        controller which relaxes the maximum motor torque limit
-
-        Args:
-            joint_positions (list of floats): The desired joint positions
-                to achieve
-            control_mode (string- "position"/"pybullet_position"): Specify
-                preference for environment-specific tuned pd-controller,
-                or pybullet's off-the-shelf adaptive pd controller.
-
-        Raises:
-            A ValueError() if the control_mode is specifies as anything else
-            from "position" or "pybullet_position"
-        """
-
-        if control_mode == "position":
-            torque_commands = self.compute_pd_control_torques(joint_positions)
-            self._set_motor_torques(torque_commands)
-        elif control_mode == "pybullet_position":
-            self._pybullet_position_control(joint_positions)
-        else:
-            raise ValueError(
-                'Invalid control_mode, enter either "position"'
-                'or "pybullet_position".'
-            )
-
     def compute_pd_control_torques(self, joint_positions, kp=None, kd=None):
         """
         Compute torque command to reach given target position using a PD
@@ -576,6 +456,57 @@ class SimFinger(BaseFinger):
 
         return joint_torques.tolist()
 
+    def pybullet_inverse_kinematics(self, desired_tip_positions):
+        """
+        Compute the joint angular positions needed to get to reach the block.
+
+        WARNING: pybullet's inverse kinematics seem to be very inaccurate! (or
+        we are somehow using it wrongly...)
+
+        Args:
+            finger (SimFinger): a SimFinger object
+            desired_tip_position (list of floats): xyz target position for
+                each finger tip.
+
+        Returns:
+            joint_pos (list of floats): The angular positions to be applid at
+                the joints to reach the desired_tip_position
+        """
+        at_target_threshold = 0.0001
+
+        # joint_pos = list(
+        #    pybullet.calculateInverseKinematics2(
+        #        bodyUniqueId=self.finger_id,
+        #        endEffectorLinkIndices=self.finger_tip_ids,
+        #        targetPositions=desired_tip_positions,
+        #        residualThreshold=at_target_threshold))
+
+        # For some reason calculateInverseKinematics2 above is not working
+        # properly (only gives proper results for the joints of the first
+        # finger).  As a workaround for now, call calculateInverseKinematics
+        # for a single end-effector for each finger and always pick only the
+        # joint positions for that finger.
+
+        joint_pos = [None] * len(self.revolute_joint_ids)
+        for i, (tip_index, desired_tip_position) in enumerate(
+            zip(self.finger_tip_ids, desired_tip_positions)
+        ):
+
+            q = list(
+                pybullet.calculateInverseKinematics(
+                    bodyUniqueId=self.finger_id,
+                    endEffectorLinkIndex=tip_index,
+                    targetPosition=desired_tip_position,
+                    residualThreshold=at_target_threshold,
+                    maxNumIterations=100000,
+                )
+            )
+            range_start = i * 3
+            range_end = range_start + 3
+            joint_pos[range_start:range_end] = q[range_start:range_end]
+
+        return joint_pos
+
     def _set_motor_torques(self, desired_torque_commands):
         """
         Send torque commands to the motors.
@@ -600,27 +531,6 @@ class SimFinger(BaseFinger):
         )
 
         return torque_commands
-
-    def _pybullet_position_control(self, position_commands):
-        """
-        Perform position control on the finger
-            (CONTROL_MODE_POSITION_VELOCITY_PD)
-
-        Args:
-            joint_positions (list of floats): The desired target position
-                of the joints.
-        """
-
-        pybullet.setJointMotorControlArray(
-            bodyUniqueId=self.finger_id,
-            jointIndices=self.revolute_joint_ids,
-            controlMode=pybullet.POSITION_CONTROL,
-            targetPositions=position_commands,
-            targetVelocities=[0] * len(self.revolute_joint_ids),
-            forces=[2.5] * len(self.revolute_joint_ids),
-            positionGains=list(self.position_gains),
-            velocityGains=list(self.velocity_gains),
-        )
 
     def _safety_torque_check(self, desired_torques):
         """
@@ -694,7 +604,7 @@ class SimFinger(BaseFinger):
         if wait_for_observation:
             self.observation = observation
 
-    def reset_finger(self, joint_positions=None):
+    def reset_finger(self, joint_positions):
         """
         Reset the finger(s) to some random position (sampled in the joint
         space) and step the robot with this random position
@@ -703,8 +613,6 @@ class SimFinger(BaseFinger):
             joint_positions (array-like):  Angular position for each joint.  If
                 None, a random position is sampled.
         """
-        if joint_positions is None:
-            joint_positions = self.sample_random_joint_positions_for_reaching()
         for i, joint_id in enumerate(self.revolute_joint_ids):
             pybullet.resetJointState(
                 self.finger_id, joint_id, joint_positions[i]

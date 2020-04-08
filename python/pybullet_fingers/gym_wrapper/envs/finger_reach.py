@@ -6,45 +6,18 @@ import datetime
 
 import gym
 from gym import spaces
+
 from pybullet_fingers.sim_finger import SimFinger
 from pybullet_fingers.gym_wrapper.data_logger import DataLogger
 from pybullet_fingers.gym_wrapper.finger_spaces import FingerSpaces
 from pybullet_fingers.gym_wrapper import utils
-from pybullet_fingers import visual_objects
+from pybullet_fingers import visual_objects, sample
 
 
 class FingerReach(gym.Env):
     """
     A gym environment to enable training on either the single or
     the tri-fingers robots for the task of reaching
-
-    Args:
-        control_rate_s (float): the rate at which the env step runs
-        enable_visualization (bool): if the simulation env is to be
-            visualized
-        finger-type (str "single"/"tri"): to train on the "single"
-            or the "tri" finger
-        smoothing_params:
-            num_episodes: the total number of episodes for which the training
-                is performed
-            start_after: the fraction of episodes after which the smoothing of
-                applied actions to the motors should start
-            final_alpha: smoothing coeff that will be reached at the end of the
-                smoothing
-            stop_after: the fraction of total episodes by which final alpha is
-                to be reached, after which the same final alpha will be used
-                for smoothing in the remainder of the episodes
-        velocity_cost_factor (float): The factor by which a velocity
-            related component to the total reward is to be added
-            ([default] 0)
-        sampling_strategy (str [default]"separated"/"triangle"): the
-            strategy according to which the goals are sampled
-            ([default] "separated")
-        use_real_robot (bool): if the model was trained on the
-            real robot
-            ([default] False)
-        finger_config_suffix (arg use-real): which finger was trained
-            ([default] 0)
     """
 
     def __init__(
@@ -63,6 +36,34 @@ class FingerReach(gym.Env):
         Constructor sets up smoothing, the finger robot depending on whether
         the simulated or the real one is to be used, sets up the physical world
         parameters, and resets to begin training.
+
+        Args:
+            control_rate_s (float): the rate at which the env step runs
+            enable_visualization (bool): if the simulation env is to be
+                visualized
+            finger-type (str "single"/"tri"): to train on the "single"
+                or the "tri" finger
+            smoothing_params:
+                num_episodes: the total number of episodes for which the
+                    training is performed
+                start_after: the fraction of episodes after which the
+                    smoothing of applied actions to the motors should start
+                final_alpha: smoothing coeff that will be reached at the end
+                    of the smoothing
+                stop_after: the fraction of total episodes by which final alpha
+                    is to be reached, after which the same final alpha will be
+                    used for smoothing in the remainder of the episodes
+            velocity_cost_factor (float): The factor by which a velocity
+                related component to the total reward is to be added
+                ([default] 0)
+            sampling_strategy (str [default]"separated"/"triangle"): the
+                strategy according to which the goals are sampled
+                ([default] "separated")
+            use_real_robot (bool): if the model was trained on the
+                real robot
+                ([default] False)
+            finger_config_suffix (arg use-real): which finger was trained
+                ([default] 0)
         """
 
         self.logger = DataLogger()
@@ -132,9 +133,7 @@ class FingerReach(gym.Env):
             self.finger = RealFinger(
                 enable_visualization=enable_visualization,
                 finger_type=finger_type,
-                action_bounds=self.spaces.action_bounds,
                 finger_config_suffix=finger_config_suffix,
-                sampling_strategy=sampling_strategy,
             )
 
         else:
@@ -142,8 +141,6 @@ class FingerReach(gym.Env):
                 time_step=simulation_rate_s,
                 enable_visualization=enable_visualization,
                 finger_type=finger_type,
-                action_bounds=self.spaces.action_bounds,
-                sampling_strategy=sampling_strategy,
             )
 
         gym.Env.__init__(self)
@@ -191,7 +188,7 @@ class FingerReach(gym.Env):
             self.spaces.key_to_index["joint_positions"]
         ]
 
-        end_effector_positions = self.finger.forward_kinematics(
+        end_effector_positions = self.finger.pinocchio_utils.forward_kinematics(
             np.array(joint_positions)
         )
 
@@ -220,7 +217,7 @@ class FingerReach(gym.Env):
             observation (list): comprising of the observations corresponding
                 to the key values in the observation_keys
         """
-        tip_positions = self.finger.forward_kinematics(
+        tip_positions = self.finger.pinocchio_utils.forward_kinematics(
             self.finger.observation.position
         )
         end_effector_position = np.concatenate(tip_positions)
@@ -321,12 +318,20 @@ class FingerReach(gym.Env):
         self.episode_count += 1
         self.smoothed_action = None
 
-        action = self.finger.reset_finger()
+        action = self.finger.reset_finger(
+            sample.feasible_random_joint_positions_for_reaching(
+                self.finger, self.spaces.action_bounds
+            )
+        )
 
         target_joint_config = np.asarray(
-            self.finger.sample_random_joint_positions_for_reaching()
+            sample.feasible_random_joint_positions_for_reaching(
+                self.finger, self.spaces.action_bounds
+            )
         )
-        self.goal = self.finger.forward_kinematics(target_joint_config)
+        self.goal = self.finger.pinocchio_utils.forward_kinematics(
+            target_joint_config
+        )
 
         self.logger.new_episode(target_joint_config, self.goal)
 

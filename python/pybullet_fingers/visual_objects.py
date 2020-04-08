@@ -5,12 +5,6 @@ class Marker:
     """
     In case any point(for eg. the goal position) in space is to be
     visualized using a marker.
-
-    Args:
-        number_of_goals (int): the desired number of goals to display
-        goal_size (float): how big should this goal be
-        initial_position (list of floats): where in xyz space should the
-            goal first be displayed
     """
 
     def __init__(
@@ -21,7 +15,13 @@ class Marker:
     ):
         """
         Import a marker for visualization
-        """
+
+        Args:
+            number_of_goals (int): the desired number of goals to display
+            goal_size (float): how big should this goal be
+            initial_position (list of floats): where in xyz space should the
+                goal first be displayed
+            """
         color_cycle = [[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1]]
 
         goal_shape_ids = [None] * number_of_goals

@@ -3,59 +3,39 @@ import math
 import random
 import numpy as np
 
-import pinocchio
 import pybullet
+from pybullet_fingers import pinocchio_utils
 
 
 class BaseFinger:
     """
     The SimFinger and RealFinger environments derive from this base
     class, which implements some common core functions.
-
-    Args:
-        enable_visualization (bool): Set this to 'True' for a GUI interface to
-            the simulation.
-        finger_type (string- "single"/ "tri"): Specify if you want to run the
-            single finger model or the trifinger model, so finger_type expects
-            one of the two values: "single" or "tri", respectively.
-        action_bounds (dict): The limits of the action space used by the
-            policy network.  Has to contain keys "low" and "high" with lists of
-            limit values.
-        sampling_strategy (string):  Strategy with which positions for the
-            three fingers are sampled. Unused when using the single finger. Has
-            to be one of the following values:
-
-            - "separated": Samples for each finger a tip position somewhere
-                  in this fingers section of the workspace.  This should
-                  result in target positions that minimize the risk of
-                  collisions between the fingers.
-            - "uniform": Samples for each finger a position uniformly over the
-                  whole joint range.
-            - "triangle": Samples a position somewhere in the workspace and
-                  places the tips of the free fingers around it with fixed
-                  distance.
     """
 
     def __init__(
-        self,
-        finger_type,
-        action_bounds,
-        enable_visualization,
-        sampling_strategy,
+        self, finger_type, enable_visualization,
     ):
         """
         Constructor sets up the requirements for either of the single or
         the trifinger robots.
+
+        Args:
+            finger_type (string- "single"/ "tri"): Specify if you want to run
+                the single finger model or the trifinger model, so finger_type
+                expects one of the two values: "single" or "tri", respectively.
+            enable_visualization (bool): Set this to 'True' for a GUI interface
+                to the simulation.
         """
         self.enable_visualization = enable_visualization
         self.finger_type = finger_type
-        self.action_bounds = action_bounds
-        self.sampling_strategy = sampling_strategy
 
         self.set_finger_type_dependency()
         self.init_joint_lists()
         self.connect_to_simulation()
-        self.pinocchio_finger_init()
+        self.pinocchio_utils = pinocchio_utils.PinocchioUtils(
+            self.finger_urdf_path, self.tip_link_names
+        )
 
     def __del__(self):
         """Clean up."""
@@ -86,19 +66,6 @@ class BaseFinger:
         if self.enable_simulation:
             pybullet.disconnect()
             self.enable_simulation = False
-
-    def pinocchio_finger_init(self):
-        """
-        Initialize the robot model and data in pinocchio from the urdf
-        """
-        self.pinocchio_robot_model = pinocchio.buildModelFromUrdf(
-            self.finger_urdf_path
-        )
-        self.pinocchio_robot_data = self.pinocchio_robot_model.createData()
-        self.pinocchio_tip_link_ids = [
-            self.pinocchio_robot_model.getFrameId(link_name)
-            for link_name in self.tip_link_names
-        ]
 
     def set_finger_type_dependency(self):
         """
@@ -217,192 +184,3 @@ class BaseFinger:
         # joint and link indices are the same in pybullet
         # TODO do we even need this variable?
         self.finger_link_ids = self.revolute_joint_ids
-
-    def sample_random_joint_positions(self):
-        """
-        Sample a random joint configuration for each finger.
-
-        Returns:
-            Flat list of joint positions.
-        """
-        list_to_return = []
-        for _ in range(self.number_of_fingers):
-            upper = random.uniform(-math.radians(30), math.radians(30))
-            middle = random.uniform(-math.radians(60), math.radians(60))
-            lower = random.uniform(-math.radians(100), -math.radians(2))
-            list_to_return += [upper, middle, lower]
-        return list_to_return
-
-    def sample_random_joint_positions_for_reaching(self):
-        """
-        Sample random joint configuration with low risk of collisions.
-
-        For the single Finger, this just calls
-        sample_random_joint_positions().
-
-        For the TriFinger, the sampling strategy depends on
-        self.sampling_strategy.
-
-        Returns:
-            Flat list of joint angles.
-        """
-        if self.sampling_strategy == "uniform":
-            return self.sample_random_joint_positions()
-
-        elif self.sampling_strategy == "triangle":
-            if self.number_of_fingers == 1:
-                raise RuntimeError(
-                    "Sampling strategy 'triangle' cannot"
-                    " be used with a single finger."
-                )
-            random_position = self.sample_random_position_in_arena()
-            tip_positions = self.get_tip_positions_around_position(
-                random_position
-            )
-            joint_positions = self.inverse_kinematics(tip_positions)
-            # The inverse kinematics is _very_ inaccurate, but as we anyway
-            # are sampling random positions, we don't care so much for some
-            # random deviation.  The placement of the goals for the single
-            # fingers relative to each other should more or less be
-            # preserved.
-            return joint_positions
-
-        elif self.sampling_strategy == "separated":
-
-            def sample_point_in_angle_limits():
-                while True:
-                    joint_pos = np.random.uniform(
-                        low=[-np.pi / 2, np.deg2rad(-77.5), np.deg2rad(-172)],
-                        high=[np.pi / 2, np.deg2rad(257.5), np.deg2rad(-2)],
-                    )
-                    tip_pos = self.forward_kinematics(
-                        np.concatenate(
-                            [joint_pos for i in range(self.number_of_fingers)]
-                        )
-                    )[0]
-                    dist_to_center = np.linalg.norm(tip_pos[:2])
-                    angle = np.arccos(tip_pos[0] / dist_to_center)
-                    if (
-                        (np.pi / 6 < angle < 5 / 6 * np.pi)
-                        and (tip_pos[1] > 0)
-                        and (0.02 < dist_to_center < 0.2)
-                        and np.all(
-                            (self.action_bounds["low"])[0:3] < joint_pos
-                        )
-                        and np.all(
-                            (self.action_bounds["high"])[0:3] > joint_pos
-                        )
-                    ):
-                        return joint_pos
-
-            joint_positions = np.concatenate(
-                [
-                    sample_point_in_angle_limits()
-                    for i in range(self.number_of_fingers)
-                ]
-            )
-
-            return joint_positions
-
-        else:
-            raise ValueError(
-                "Invalid sampling strategy '{}'".format(self.sampling_strategy)
-            )
-
-    def forward_kinematics(self, joint_positions):
-        """
-        Compute end effector positions for the given joint configuration.
-
-        Args:
-            joint_positions: Flat list of angular joint positions.
-
-        Returns:
-            List of end-effector positions. Each position is given as an
-            np.array with x,y,z positions.
-        """
-        pinocchio.framesForwardKinematics(
-            self.pinocchio_robot_model,
-            self.pinocchio_robot_data,
-            joint_positions,
-        )
-
-        return [
-            np.asarray(self.pinocchio_robot_data.oMf[link_id].translation)
-            .reshape(-1)
-            .tolist()
-            for link_id in self.pinocchio_tip_link_ids
-        ]
-
-    def sample_random_position_in_arena(
-        self,
-        height_limits=(0.05, 0.15),
-        angle_limits=(-2 * math.pi, 2 * math.pi),
-        radius_limits=(0.0, 0.15),
-    ):
-        """
-        Set a new position in the arena for the interaction object, which
-        the finger has to reach.
-
-        Args:
-            height_limits: the height range to sample from, or
-                a fixed height
-            angle_limits: the range of angles to sample from
-            radius_limits: distance range from the centre of the
-                arena at which a sampled point can lie
-
-        Returns:
-            The random position of the target set in the arena.
-        """
-        angle = random.uniform(*angle_limits)
-        radial_distance = random.uniform(*radius_limits)
-
-        if isinstance(height_limits, (int, float)):
-            height_z = height_limits
-        else:
-            height_z = random.uniform(*height_limits)
-
-        object_position = [
-            radial_distance * math.cos(angle),
-            radial_distance * math.sin(angle),
-            height_z,
-        ]
-
-        return object_position
-
-    def get_tip_positions_around_position(self, position):
-        """
-        Compute finger tip positions close to the given target position
-
-        For single finger, the tip position will be the same as the given
-        position.  For the TriFinger, the tips of the three fingers will be
-        placed around it with some distance to avoid collision.
-
-        Args:
-            position (array-like): The target x,y,z-position.
-
-        Returns:
-            tip_positions (list of array-like): List with one target position
-                for each finger tip (each position given as a (x, y, z) tuple).
-        """
-        position = np.array(position)
-        if self.number_of_fingers == 1:
-            return [position]
-        elif self.number_of_fingers == 3:
-            angle = np.deg2rad(-120)
-            rot_120 = np.array(
-                [
-                    [np.cos(angle), -np.sin(angle), 0],
-                    [np.sin(angle), np.cos(angle), 0],
-                    [0, 0, 1],
-                ]
-            )
-            displacement = np.array([0.05, 0, 0])
-            tip1 = position + displacement
-            displacement = rot_120 @ displacement
-            tip2 = position + displacement
-            displacement = rot_120 @ displacement
-            tip3 = position + displacement
-
-            return [tip1, tip2, tip3]
-        else:
-            raise ValueError("Invalid number of fingers")
