@@ -61,6 +61,7 @@ class RealFinger(BaseFinger):
             raise ValueError("Invalid finger type")
 
         self.robot.initialize()
+        self.Action = self.robot.Action
 
     def get_end_effector_position(self):
         """
@@ -109,7 +110,7 @@ class RealFinger(BaseFinger):
             specified as the control_mode
         """
         if control_mode == "position":
-            self.action = self.robot.Action(position=joint_positions)
+            self.action = self.Action(position=joint_positions)
         else:
             raise NotImplementedError()
 
@@ -134,7 +135,7 @@ class RealFinger(BaseFinger):
         The sampled random position is set as target and the robot is stepped
         for one second to give it time to reach there.
         """
-        self.action = self.robot.Action(position=joint_positions)
+        self.action = self.Action(position=joint_positions)
         for i in range(1000):
             self.step_robot(True)
 

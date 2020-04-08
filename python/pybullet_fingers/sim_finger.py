@@ -12,29 +12,10 @@ import numpy as np
 import pybullet
 import pybullet_data
 
+from pybullet_fingers.action import Action
 from pybullet_fingers.observation import Observation
 from pybullet_fingers.base_finger import BaseFinger
 from pybullet_fingers import collision_objects
-
-
-class TheAction:
-    """
-    Create the action data structure used by the SimFinger class.
-    """
-
-    def __init__(self, t, p, kp=None, kd=None):
-        self.torque = t
-        self.position = p
-
-        if kp is None:
-            self.position_kp = np.full_like(p, np.nan, dtype=float)
-        else:
-            self.position_kp = kp
-
-        if kd is None:
-            self.position_kd = np.full_like(p, np.nan, dtype=float)
-        else:
-            self.position_kd = kd
 
 
 class SimFinger(BaseFinger):
@@ -109,16 +90,16 @@ class SimFinger(BaseFinger):
                 the motors have to be rotated.
 
         Returns:
-            the_action (TheAction): the action to be applied to the motors
+            the_action (Action): the action to be applied to the motors
         """
         if torque is None:
             torque = np.array([0.0] * 3 * self.number_of_fingers)
         if position is None:
             position = np.array([np.nan] * 3 * self.number_of_fingers)
 
-        the_action = TheAction(torque, position)
+        action = Action(torque, position)
 
-        return the_action
+        return action
 
     def set_real_time_sim(self, switch=0):
         """
@@ -282,13 +263,13 @@ class SimFinger(BaseFinger):
         """Set the given action after performing safety checks.
 
         Args:
-            desired_action (TheAction): Joint positions or torques or both
+            desired_action (Action): Joint positions or torques or both
 
         Returns:
             applied_action:  The action that is actually applied after
                 performing the safety checks.
         """
-        # copy the action in a way that works for both TheAction and
+        # copy the action in a way that works for both Action and
         # robot_interfaces.(tri)finger.Action.  Note that a simple
         # copy.copy(desired_action) does **not** work for robot_interfaces
         # actions!
@@ -333,7 +314,7 @@ class SimFinger(BaseFinger):
         will be performed and then the action will be applied to the motors.
 
         Args:
-            action (TheAction): Joint positions or torques or both
+            action (Action): Joint positions or torques or both
 
         Returns:
             self.action_index (int): The current time-index at which the action
