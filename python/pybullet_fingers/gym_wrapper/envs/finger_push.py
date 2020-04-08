@@ -4,27 +4,22 @@ import time
 
 import gym
 from gym import spaces
+
 from pybullet_fingers.sim_finger import SimFinger
 from pybullet_fingers.gym_wrapper.data_logger import DataLogger
 from pybullet_fingers.gym_wrapper.finger_spaces import FingerSpaces
 from pybullet_fingers.gym_wrapper import utils
-from pybullet_fingers import collision_objects, visual_objects
+from pybullet_fingers import (
+    collision_objects,
+    visual_objects,
+    sample,
+)
 
 
 class FingerPush(gym.Env):
     """
     A gym environment to enable training on either the single or
     the tri-fingers robots for the task of pushing
-
-    Args:
-        control_rate_s (float): the rate at which the env step runs
-        enable_visualization (bool): if the simulation env is to be
-            visualized
-        finger-type (str "single"/"tri"): to train on the "single"
-            or the "tri" finger
-        sampling_strategy (str [default]"separated"/"triangle"): the
-            strategy according to which the goals are sampled
-            ([default] "separated")
     """
 
     def __init__(
@@ -37,6 +32,16 @@ class FingerPush(gym.Env):
         """
         Constructor sets up the physical world parameters,
         and resets to begin training.
+
+        Args:
+            control_rate_s (float): the rate at which the env step runs
+            enable_visualization (bool): if the simulation env is to be
+                visualized
+            finger-type (str "single"/"tri"): to train on the "single"
+                or the "tri" finger
+            sampling_strategy (str [default]"separated"/"triangle"): the
+                strategy according to which the goals are sampled
+                ([default] "separated")
         """
 
         self.logger = DataLogger()
@@ -78,8 +83,6 @@ class FingerPush(gym.Env):
             time_step=simulation_rate_s,
             enable_visualization=enable_visualization,
             finger_type=finger_type,
-            action_bounds=self.spaces.action_bounds,
-            sampling_strategy=sampling_strategy,
         )
 
         gym.Env.__init__(self)
@@ -138,7 +141,9 @@ class FingerPush(gym.Env):
         """
         joint_positions = self.finger.observation.position
         joint_velocities = self.finger.observation.velocity
-        tip_positions = self.finger.forward_kinematics(joint_positions)
+        tip_positions = self.finger.pinocchio_utils.forward_kinematics(
+            joint_positions
+        )
         end_effector_position = np.concatenate(tip_positions)
         flat_goals = np.concatenate([self.goal] * self.num_fingers)
 
@@ -213,11 +218,13 @@ class FingerPush(gym.Env):
         Returns:
             the scaled to [-1;1] observation from the env after the reset
         """
-        action = self.finger.reset_finger()
-        self.goal = self.finger.sample_random_position_in_arena(
-            height_limits=0.0425
+        action = self.finger.reset_finger(
+            sample.feasible_random_joint_positions_for_reaching(
+                self.finger, self.spaces.action_bounds
+            )
         )
-        self.block_position = self.finger.sample_random_position_in_arena(
+        self.goal = sample.random_position_in_arena(height_limits=0.0425)
+        self.block_position = sample.random_position_in_arena(
             height_limits=0.0425
         )
 

@@ -20,37 +20,27 @@ class RealFinger(BaseFinger):
     """
     For interacting with the physical (real) finger and robot
     in the same way as with its simulated counterpart.
-
-    Args:
-        enable_visualization (bool): Set to 'True' to run a GUI for
-            visualization.  This uses pyBullet but only for visualization, i.e.
-            the state of the simulation is constantly set to match the one of
-            the real robot.
-        finger_type: See BaseFinger.
-        action_bounds: See BaseFinger.
-        finger_config_suffix (int): ID of the finger that is used.  Has to be
-            one of [0, 120, 240].  This ignored if finger_type != "single".
-        sampling_strategy: See BaseFinger.
-
     """
 
     def __init__(
-        self,
-        enable_visualization,
-        finger_type,
-        action_bounds,
-        finger_config_suffix,
-        sampling_strategy="separated",
+        self, enable_visualization, finger_type, finger_config_suffix,
     ):
         """
         Constructor, initializes the physical world we will work in.
+
+        Args:
+            enable_visualization (bool): Set to 'True' to run a GUI for
+                visualization.  This uses pyBullet but only for visualization,
+                i.e. the state of the simulation is constantly set to match the
+                one of the real robot.
+            finger_type: See BaseFinger.
+            finger_config_suffix (int): ID of the finger that is used. Has to
+                be one of [0, 120, 240]. This ignored if finger_type = "tri".
         """
         # Simulation is only used for visualization, so only run it when needed
         self.enable_simulation = enable_visualization
 
-        super().__init__(
-            finger_type, action_bounds, enable_visualization, sampling_strategy
-        )
+        super().__init__(finger_type, enable_visualization)
 
         if self.enable_simulation:
             self.make_physical_world()
@@ -138,18 +128,17 @@ class RealFinger(BaseFinger):
                         self.finger_id, joint_id, self.observation.position[i]
                     )
 
-    def reset_finger(self):
+    def reset_finger(self, joint_positions):
         """
         Move the finger(s) to a random position (sampled in the joint space).
         The sampled random position is set as target and the robot is stepped
         for one second to give it time to reach there.
         """
-        pos = self.sample_random_joint_positions_for_reaching()
-        self.action = self.robot.Action(position=pos)
+        self.action = self.robot.Action(position=joint_positions)
         for i in range(1000):
             self.step_robot(True)
 
-        return pos
+        return joint_positions
 
     # dummy functions for compatible API
     # (refer to the SimFinger class for details)

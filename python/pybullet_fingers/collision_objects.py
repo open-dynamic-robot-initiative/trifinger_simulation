@@ -51,13 +51,6 @@ def import_mesh(
 class Block:
     """
     To interact with a block object
-
-    Args:
-        position (list): where in xyz space should the block
-            be imported
-        orientation (list): initial orientation quaternion of the block
-        half_size (float): how large should this block be
-        mass (float): how heavy should this block be
     """
 
     def __init__(
@@ -69,6 +62,13 @@ class Block:
     ):
         """
         Import the block
+
+        Args:
+            position (list): where in xyz space should the block
+                be imported
+            orientation (list): initial orientation quaternion of the block
+            half_size (float): how large should this block be
+            mass (float): how heavy should this block be
         """
         self.block_id = pybullet.createCollisionShape(
             shapeType=pybullet.GEOM_BOX, halfExtents=[half_size] * 3
