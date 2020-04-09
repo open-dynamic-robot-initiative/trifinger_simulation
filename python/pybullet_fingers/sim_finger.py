@@ -111,40 +111,6 @@ class SimFinger(BaseFinger):
         """
         pybullet.setRealTimeSimulation(switch)
 
-    def get_end_effector_position(self):
-        """
-        Get position(s) of the end-effector(s)
-
-        Returns:
-            Flat list of current end-effector positions, i.e. [x1, y1, z1, x2,
-            y2, ...]
-        """
-        # TODO this should better return a list of lists/arrays instead of a
-        # flat list
-        end_effector_positions = []
-        for finger_tip in self.finger_tip_ids:
-            end_effector_positions += pybullet.getLinkState(
-                self.finger_id, finger_tip
-            )[0]
-
-        return end_effector_positions
-
-    def get_joint_positions_and_velocities(self):
-        """
-        Get the positions and velocities of the joints
-
-        Returns:
-            joint_positions (list of floats): Angular positions of all joints.
-            joint_velocities (list of floats): Angular velocities of all joints
-        """
-        joints_data = pybullet.getJointStates(
-            self.finger_id, self.revolute_joint_ids
-        )
-        positions = [joint[0] for joint in joints_data]
-        velocities = [joint[1] for joint in joints_data]
-
-        return positions, velocities
-
     def make_physical_world(self):
         """
         Set the physical parameters of the world in which the simulation
@@ -225,24 +191,6 @@ class SimFinger(BaseFinger):
                 )
         else:
             raise ValueError("Invalid finger type '%s'" % self.finger_type)
-
-    def print_link_information(self):
-        """
-        Print the link indices along with their names as defined in the URDF.
-        """
-        for link_name, link_index in self.link_name_to_index.items():
-            print(link_index, link_name)
-
-    def print_joint_information(self):
-        """
-        Print the joint indices along with their names as defined in the URDF.
-        """
-
-        for joint_index in range(pybullet.getNumJoints(self.finger_id)):
-            joint_name = pybullet.getJointInfo(self.finger_id, joint_index)[
-                1
-            ].decode("UTF-8")
-            print(joint_index, joint_name)
 
     def disable_velocity_control(self):
         """
