@@ -172,8 +172,7 @@ public:
 
         py::module sim_finger =
             py::module::import("pybullet_fingers.sim_finger");
-        sim_finger_ = sim_finger.attr("SimFinger")(
-            0.001, visualize_, "single", py::none());
+        sim_finger_ = sim_finger.attr("SimFinger")(0.001, visualize_, "single");
 
         Vector initial_position;
         initial_position << 0, -0.7, -1.5;
@@ -202,8 +201,7 @@ public:
 
         py::module sim_finger =
             py::module::import("pybullet_fingers.sim_finger");
-        sim_finger_ =
-            sim_finger.attr("SimFinger")(0.001, visualize_, "tri", py::none());
+        sim_finger_ = sim_finger.attr("SimFinger")(0.001, visualize_, "tri");
 
         Vector initial_position;
         initial_position << 0, -0.7, -1.5, 0, -0.7, -1.5, 0, -0.7, -1.5;
