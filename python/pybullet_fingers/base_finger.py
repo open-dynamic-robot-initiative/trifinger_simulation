@@ -1,7 +1,4 @@
 import os
-import math
-import random
-import numpy as np
 
 import pybullet
 from pybullet_fingers import pinocchio_utils

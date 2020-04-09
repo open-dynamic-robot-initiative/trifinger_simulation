@@ -5,8 +5,6 @@
 # https://docs.google.com/document/d/10sXEhzFRSnvFcl3XxNGhnD4N2SedqwdAvK3dsihxVUA/edit#
 # among other scattered sources.
 # -------------------------------------------------------------------------------------------------
-import numpy as np
-
 import pybullet
 import pybullet_data
 
@@ -63,27 +61,6 @@ class RealFinger(BaseFinger):
         self.robot.initialize()
         self.Action = self.robot.Action
 
-    def get_end_effector_position(self):
-        """
-        Get end effector position(s)
-
-        Returns:
-            Flat list of current end-effector positions, i.e. [x1, y1, z1, x2,
-            y2, ...]
-        """
-        tip_positions = self.forward_kinematics(self.observation.position)
-        return np.concatenate(tip_positions)
-
-    def get_joint_positions_and_velocities(self):
-        """
-        Get the joint positions and velocities
-
-        Returns:
-            joint_positions (list of floats): Angular positions of all joints.
-            joint_velocities (list of floats): Angular velocities of all joints
-        """
-        return self.observation.position, self.observation.velocity
-
     def make_physical_world(self):
         """
         Set the physical parameters of the world in which the simulation
@@ -95,39 +72,39 @@ class RealFinger(BaseFinger):
         pybullet.loadURDF("plane_transparent.urdf", [0, 0, 0])
         self.import_finger_model()
 
-    def set_action(self, joint_positions, control_mode):
+    def append_desired_action(self, action):
         """
-        Specify the desired joint positions and specify "position" as the
-        control mode to set the position field of the action with these
+        Append an action to the action timeseries, that should be
+        applied to the robot.
 
         Args:
-            joint_positions (list of floats): The desired joint positions
-            control_mode (string- "position"): The control mode. Currently only
-                "position" is supported.
+            action (self.Action): Joint positions or torques or both
 
-        Raises:
-            NotImplementedError() if anything else from "position" is
-            specified as the control_mode
+        Returns:
+            self.action_index (int): The current time-index at which the action
+                was applied.
         """
-        if control_mode == "position":
-            self.action = self.Action(position=joint_positions)
-        else:
-            raise NotImplementedError()
+        return self.robot.frontend.append_desired_action(action)
 
-    def step_robot(self, wait_for_observation):
+    def get_observation(self, time_index):
         """
-        Send action and wait for observation
+        Get the observation from the robot at a specified time_index.
+
+        Args:
+            time_index (int): the time_index at which the observation is
+                needed
+        Returns:
+            observation (robot.Observation): the corresponding observation
         """
-        t = self.robot.frontend.append_desired_action(self.action)
+        observation = self.robot.frontend.get_observation(time_index)
 
-        if wait_for_observation:
-            self.observation = self.robot.frontend.get_observation(t)
+        if self.enable_simulation:
+            for i, joint_id in enumerate(self.revolute_joint_ids):
+                pybullet.resetJointState(
+                    self.finger_id, joint_id, observation.position[i]
+                )
 
-            if self.enable_visualization:
-                for i, joint_id in enumerate(self.revolute_joint_ids):
-                    pybullet.resetJointState(
-                        self.finger_id, joint_id, self.observation.position[i]
-                    )
+        return observation
 
     def reset_finger(self, joint_positions):
         """
@@ -135,11 +112,11 @@ class RealFinger(BaseFinger):
         The sampled random position is set as target and the robot is stepped
         for one second to give it time to reach there.
         """
-        self.action = self.Action(position=joint_positions)
+        action = self.Action(position=joint_positions)
         for i in range(1000):
-            self.step_robot(True)
-
-        return joint_positions
+            t = self.append_desired_action(action)
+            observation = self.get_observation(t)
+        return observation
 
     # dummy functions for compatible API
     # (refer to the SimFinger class for details)

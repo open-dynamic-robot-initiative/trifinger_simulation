@@ -2,8 +2,6 @@ import numpy as np
 import random
 import math
 
-from pybullet_fingers import pinocchio_utils
-
 
 def random_position_in_arena(
     height_limits=(0.05, 0.15),

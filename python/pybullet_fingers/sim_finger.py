@@ -325,7 +325,6 @@ class SimFinger(BaseFinger):
                 "You have to call get_observation after each"
                 "append_desired_action."
             )
-
         self._set_desired_action(action)
 
         self.action_index = self.action_index + 1
@@ -556,35 +555,6 @@ class SimFinger(BaseFinger):
         """
         pybullet.stepSimulation()
 
-    def set_action(self, joint_positions, control_mode):
-        """
-        Specify the desired joint positions and specify "position"
-            as the control mode to set the position field of the
-            action with these
-
-        Args:
-            joint_positions (list of floats): The desired joint positions
-            control_mode (string- "position): The field of the action
-                structure to be set
-
-        Raises:
-            NotImplementedError() if anything else from "position"
-            is specified as the control_mode
-        """
-        if control_mode == "position":
-            self.action = self.Action(position=joint_positions)
-        else:
-            raise NotImplementedError()
-
-    def step_robot(self, wait_for_observation):
-        """
-        Send action and wait for observation
-        """
-        t = self.append_desired_action(self.action)
-        observation = self.get_observation(t)
-        if wait_for_observation:
-            self.observation = observation
-
     def reset_finger(self, joint_positions):
         """
         Reset the finger(s) to some random position (sampled in the joint
@@ -598,8 +568,5 @@ class SimFinger(BaseFinger):
             pybullet.resetJointState(
                 self.finger_id, joint_id, joint_positions[i]
             )
-
-        self.action = self.Action(position=joint_positions)
-        self.step_robot(True)
-
-        return joint_positions
+        t = self.append_desired_action(self.Action(position=joint_positions))
+        return self.get_observation(t)
