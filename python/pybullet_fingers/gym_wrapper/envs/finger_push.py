@@ -1,9 +1,7 @@
-import math
 import numpy as np
 import time
 
 import gym
-from gym import spaces
 
 from pybullet_fingers.sim_finger import SimFinger
 from pybullet_fingers.gym_wrapper.data_logger import DataLogger
@@ -23,11 +21,7 @@ class FingerPush(gym.Env):
     """
 
     def __init__(
-        self,
-        control_rate_s,
-        enable_visualization,
-        finger_type,
-        sampling_strategy="separated",
+        self, control_rate_s, finger_type, enable_visualization,
     ):
         """
         Constructor sets up the physical world parameters,
@@ -35,13 +29,10 @@ class FingerPush(gym.Env):
 
         Args:
             control_rate_s (float): the rate at which the env step runs
-            enable_visualization (bool): if the simulation env is to be
-                visualized
             finger-type (str "single"/"tri"): to train on the "single"
                 or the "tri" finger
-            sampling_strategy (str [default]"separated"/"triangle"): the
-                strategy according to which the goals are sampled
-                ([default] "separated")
+            enable_visualization (bool): if the simulation env is to be
+                visualized
         """
 
         self.logger = DataLogger()
@@ -127,7 +118,7 @@ class FingerPush(gym.Env):
         done = False
         return reward, done
 
-    def _get_observation(self, action, log_observation=False):
+    def _get_state(self, observation, action, log_observation=False):
         """
         Get the current observation from the env for the agent
 
@@ -139,8 +130,8 @@ class FingerPush(gym.Env):
             observation (list): comprising of the observations corresponding
                 to the key values in the observation_keys
         """
-        joint_positions = self.finger.observation.position
-        joint_velocities = self.finger.observation.velocity
+        joint_positions = observation.position
+        joint_velocities = observation.velocity
         tip_positions = self.finger.pinocchio_utils.forward_kinematics(
             joint_positions
         )
@@ -190,22 +181,21 @@ class FingerPush(gym.Env):
             the current step
         """
         unscaled_action = utils.unscale(action, self.unscaled_action_space)
-        observation = None
+        finger_action = self.finger.Action(position=unscaled_action)
+        state = None
         for _ in range(self.steps_per_control):
-            self.finger.set_action(unscaled_action, "position")
-            self.finger.step_robot(observation is None)
-            if observation is None:
-                observation = self._get_observation(unscaled_action, True)
+            t = self.finger.append_desired_action(finger_action)
+            observation = self.finger.get_observation(t)
+            if state is None:
+                state = self._get_state(observation, unscaled_action, True)
 
-        key_observation = observation[
-            self.spaces.key_to_index["object_position"]
-        ]
+        key_observation = state[self.spaces.key_to_index["object_position"]]
 
         reward, done = self._compute_reward(key_observation, self.goal)
         info = {"is_success": np.float32(done)}
 
         scaled_observation = utils.scale(
-            observation, self.unscaled_observation_space
+            state, self.unscaled_observation_space
         )
         print("reward", reward)
 
@@ -218,11 +208,10 @@ class FingerPush(gym.Env):
         Returns:
             the scaled to [-1;1] observation from the env after the reset
         """
-        action = self.finger.reset_finger(
-            sample.feasible_random_joint_positions_for_reaching(
-                self.finger, self.spaces.action_bounds
-            )
+        action = sample.feasible_random_joint_positions_for_reaching(
+            self.finger, self.spaces.action_bounds
         )
+        observation = self.finger.reset_finger(action)
         self.goal = sample.random_position_in_arena(height_limits=0.0425)
         self.block_position = sample.random_position_in_arena(
             height_limits=0.0425
@@ -234,6 +223,6 @@ class FingerPush(gym.Env):
         self.logger.new_episode(self.block_position, self.goal)
 
         return utils.scale(
-            self._get_observation(action, True),
+            self._get_state(observation, action, True),
             self.unscaled_observation_space,
         )

@@ -1,11 +1,9 @@
 import math
 import numpy as np
-import pickle
 import time
 import datetime
 
 import gym
-from gym import spaces
 
 from pybullet_fingers.sim_finger import SimFinger
 from pybullet_fingers.gym_wrapper.data_logger import DataLogger
@@ -23,11 +21,9 @@ class FingerReach(gym.Env):
     def __init__(
         self,
         control_rate_s,
-        enable_visualization,
         finger_type,
+        enable_visualization,
         smoothing_params,
-        velocity_cost_factor=0,
-        sampling_strategy="separated",
         use_real_robot=False,
         finger_config_suffix="0",
         synchronize=False,
@@ -53,12 +49,6 @@ class FingerReach(gym.Env):
                 stop_after: the fraction of total episodes by which final alpha
                     is to be reached, after which the same final alpha will be
                     used for smoothing in the remainder of the episodes
-            velocity_cost_factor (float): The factor by which a velocity
-                related component to the total reward is to be added
-                ([default] 0)
-            sampling_strategy (str [default]"separated"/"triangle"): the
-                strategy according to which the goals are sampled
-                ([default] "separated")
             use_real_robot (bool): if the model was trained on the
                 real robot
                 ([default] False)
@@ -146,8 +136,6 @@ class FingerReach(gym.Env):
         gym.Env.__init__(self)
         self.metadata = {"render.modes": ["human"]}
 
-        self.velocity_cost_factor = velocity_cost_factor
-
         self.unscaled_observation_space = (
             self.spaces.get_unscaled_observation_space()
         )
@@ -155,13 +143,14 @@ class FingerReach(gym.Env):
 
         self.observation_space = self.spaces.get_scaled_observation_space()
         self.action_space = self.spaces.get_scaled_action_space()
-
-        self.goal_marker = visual_objects.Marker(
-            number_of_goals=self.num_fingers
-        )
+        self.enable_visualization = enable_visualization
+        if self.enable_visualization:
+            self.goal_marker = visual_objects.Marker(
+                number_of_goals=self.num_fingers
+            )
 
         self.seed()
-
+        self.synchronize = synchronize
         if synchronize:
             now = datetime.datetime.now()
             self.next_start_time = datetime.datetime(
@@ -192,20 +181,16 @@ class FingerReach(gym.Env):
             np.array(joint_positions)
         )
 
-        velocity = np.linalg.norm(
-            observation[self.spaces.key_to_index["joint_velocities"]]
-        )
-
         # TODO is matrix norm really always same as vector norm on flattend
         # matrices?
         distance_to_goal = utils.compute_distance(end_effector_positions, goal)
 
-        reward = -distance_to_goal - self.velocity_cost_factor * velocity
+        reward = -distance_to_goal
         done = False
 
         return reward * self.steps_per_control, done
 
-    def _get_observation(self, action, log_observation=False):
+    def _get_state(self, observation, action, log_observation=False):
         """
         Get the current observation from the env for the agent
 
@@ -218,11 +203,11 @@ class FingerReach(gym.Env):
                 to the key values in the observation_keys
         """
         tip_positions = self.finger.pinocchio_utils.forward_kinematics(
-            self.finger.observation.position
+            observation.position
         )
         end_effector_position = np.concatenate(tip_positions)
-        joint_positions = self.finger.observation.position
-        joint_velocities = self.finger.observation.velocity
+        joint_positions = observation.position
+        joint_velocities = observation.velocity
         flat_goals = np.concatenate(self.goal)
         end_effector_to_goal = list(
             np.subtract(flat_goals, end_effector_position)
@@ -278,18 +263,23 @@ class FingerReach(gym.Env):
 
         # this is the control loop to send the actions for a few timesteps
         # which depends on the actual control rate
-        observation = None
+        finger_action = self.finger.Action(position=self.smoothed_action)
+        state = None
         for _ in range(self.steps_per_control):
-            self.finger.set_action(self.smoothed_action, "position")
-            self.finger.step_robot(observation is None)
+            t = self.finger.append_desired_action(finger_action)
+            observation = self.finger.get_observation(t)
             # get observation from first iteration (when action is applied the
             # first time)
-            if observation is None:
-                observation = self._get_observation(self.smoothed_action, True)
-        reward, done = self._compute_reward(observation, self.goal)
+            if state is None:
+                state = self._get_state(
+                    observation, self.smoothed_action, True
+                )
+            if self.synchronize:
+                self.observation = observation
+        reward, done = self._compute_reward(state, self.goal)
         info = {"is_success": np.float32(done)}
         scaled_observation = utils.scale(
-            observation, self.unscaled_observation_space
+            state, self.unscaled_observation_space
         )
         return scaled_observation, reward, done, info
 
@@ -304,10 +294,10 @@ class FingerReach(gym.Env):
         # (freeze the robot at the current position before starting the sleep)
         if self.next_start_time:
             try:
-                self.finger.set_action(
-                    self.finger.observation.position, "position"
+                t = self.finger.append_desired_action(
+                    self.finger.Action(position=self.observation.position)
                 )
-                self.finger.step_robot(True)
+                self.finger.get_observation(t)
             except Exception:
                 pass
 
@@ -318,11 +308,10 @@ class FingerReach(gym.Env):
         self.episode_count += 1
         self.smoothed_action = None
 
-        action = self.finger.reset_finger(
-            sample.feasible_random_joint_positions_for_reaching(
-                self.finger, self.spaces.action_bounds
-            )
+        action = sample.feasible_random_joint_positions_for_reaching(
+            self.finger, self.spaces.action_bounds
         )
+        observation = self.finger.reset_finger(action)
 
         target_joint_config = np.asarray(
             sample.feasible_random_joint_positions_for_reaching(
@@ -335,10 +324,11 @@ class FingerReach(gym.Env):
 
         self.logger.new_episode(target_joint_config, self.goal)
 
-        self.goal_marker.set_state(self.goal)
+        if self.enable_visualization:
+            self.goal_marker.set_state(self.goal)
 
         return utils.scale(
-            self._get_observation(action=action),
+            self._get_state(observation, action=action),
             self.unscaled_observation_space,
         )
 
