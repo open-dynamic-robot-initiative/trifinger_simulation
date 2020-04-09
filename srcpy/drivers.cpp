@@ -17,6 +17,7 @@ PYBIND11_MODULE(drivers, m)
           "robot_data"_a,
           "real_time_mode"_a,
           "visualize"_a,
+          "first_action_timeout"_a = std::numeric_limits<double>::infinity(),
           R"XXX(
             Create backend for the Single Finger robot using pyBullet simulation.
 
@@ -39,6 +40,7 @@ PYBIND11_MODULE(drivers, m)
           "robot_data"_a,
           "real_time_mode"_a,
           "visualize"_a,
+          "first_action_timeout"_a = std::numeric_limits<double>::infinity(),
           R"XXX(
             Create a backend for the TriFinger robot using pyBullet simulation.
 
