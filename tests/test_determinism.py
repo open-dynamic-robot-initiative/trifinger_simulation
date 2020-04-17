@@ -25,7 +25,6 @@ class TestSimulationDeterminisim(unittest.TestCase):
             time_step=0.004,
             enable_visualization=False,
             finger_type="single",
-            action_bounds=None,
         )
 
         start_position = [0.5, -0.7, -1.5]
@@ -65,7 +64,6 @@ class TestSimulationDeterminisim(unittest.TestCase):
             enable_visualization=False,
             finger_type="single",
             smoothing_params=smoothing_params,
-            velocity_cost_factor=0,
         )
 
         env.finger.set_real_time_sim(0)
