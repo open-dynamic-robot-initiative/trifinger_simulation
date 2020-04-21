@@ -36,5 +36,9 @@ build_doxygen_documentation()
 
 # Tests
 if (CATKIN_ENABLE_TESTING)
-  catkin_add_nosetests(tests)
+    # These tests require Python 3 but catkin will execute them with Python 2,
+    # therefore disable the automatic execution (they can still be executed
+    # manually to verify that they pass).
+    #catkin_add_nosetests(test/test_determinism.py)
+    #catkin_add_nosetests(test/test_pybullet_backend.py)
 endif()
