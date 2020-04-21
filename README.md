@@ -13,7 +13,7 @@ of installation is recommended to ensure the latest robot models are used.
 1. Clone this repo and then create it's conda environment to install all dependencies.
 
   ```bash
-  git clone git@git-amd.tuebingen.mpg.de:robotics/pybullet_fingers.git
+  git clone git@gitlab.is.tue.mpg.de:robotics/pybullet_fingers.git
   cd pybullet_fingers
   conda env create -f environment.yml
   ```
@@ -32,14 +32,14 @@ To train an agent using implementations of RL algorithms from stable-baselines, 
   1. Setup the repositories in your workspace as follows-
 
       ```bash
-      git clone git@git-amd.tuebingen.mpg.de:robotics/treep_robotics.git
+      git clone git@gitlab.is.tue.mpg.de:robotics/treep_robotics.git
       git clone git@github.com:machines-in-motion/treep_machines_in_motion.git
       treep --clone BLMC_EI_SIM
       ```
 
-      You may also need stable_baselines. Clone the repo from [here](https://git-amd.tuebingen.mpg.de/sjoshi/stable-baselines/).
+      You may also need stable_baselines. Clone the repo from [here](git@gitlab.is.tue.mpg.de:sjoshi/stable-baselines.git).
 
-  2. Use the latest version of the container (named blmc_ei.def) from [here](https://git-amd.tuebingen.mpg.de/robotics/blmc_ei_singularity), and follow the steps to build the container from [Build and Run with Singularity](https://atlas.is.localnet/confluence/pages/viewpage.action?spaceKey=AMDW&title=Build+and+Run+with+Singularity), or get the latest pre-built container from [here](https://nextcloud.tuebingen.mpg.de/index.php/s/Jn5qX7NnTqJxopJ).
+  2. Use the latest version of the container (named blmc_ei.def) from [here](git@gitlab.is.tue.mpg.de:robotics/blmc_ei_singularity.git), and follow the steps to build the container from [Build and Run with Singularity](https://atlas.is.localnet/confluence/pages/viewpage.action?spaceKey=AMDW&title=Build+and+Run+with+Singularity), or get the latest pre-built container from [here](https://nextcloud.tuebingen.mpg.de/index.php/s/Jn5qX7NnTqJxopJ).
 
   3. Then, after follow these steps to start the container-
 
