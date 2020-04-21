@@ -76,4 +76,6 @@ class TestPyBulletBackend(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    import rosunit
+    rosunit.unitrun("pybullet_fingers", 'test_pybullet_backend',
+                    TestPyBulletBackend)

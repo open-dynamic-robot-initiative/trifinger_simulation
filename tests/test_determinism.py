@@ -96,4 +96,6 @@ class TestSimulationDeterminisim(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    import rosunit
+    rosunit.unitrun("pybullet_fingers", 'test_simulation_determinisim',
+                    TestSimulationDeterminisim)
