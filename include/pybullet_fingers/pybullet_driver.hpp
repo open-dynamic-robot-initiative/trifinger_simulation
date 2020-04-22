@@ -124,16 +124,20 @@ public:
  * @param real_time_mode  If true, step the simulation in real time, otherwise
  *     as fast as possible.
  * @param visualize If true, pyBullet's GUI is started for visualization.
+ * @param first_action_timeout  See RobotBackend
  *
  * @return Backend using a driver of the specified type.
  */
 template <typename Types, typename Driver>
 typename Types::BackendPtr create_finger_backend(
-    typename Types::BaseDataPtr robot_data, bool real_time_mode, bool visualize)
+    typename Types::BaseDataPtr robot_data,
+    const bool real_time_mode,
+    const bool visualize,
+    const double first_action_timeout = std::numeric_limits<double>::infinity())
 {
     auto robot = std::make_shared<Driver>(real_time_mode, visualize);
     auto backend = std::make_shared<typename Types::Backend>(
-        robot, robot_data, real_time_mode);
+        robot, robot_data, real_time_mode, first_action_timeout);
 
     if (real_time_mode)
     {

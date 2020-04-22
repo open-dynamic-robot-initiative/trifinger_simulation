@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Run robot_interfaces Backend for pyBullet using multi-process robot data."""
 import argparse
-import os
+import math
 
 import robot_interfaces
-import robot_fingers
 import pybullet_fingers.drivers
 
 
@@ -22,17 +21,26 @@ def main():
         "--real-time-mode",
         "-r",
         action="store_true",
-        help="""Run simulation in real time.  If not set,
-                        the simulation runs as fast as possible.
-                        """,
+        help="""Run simulation in real time.  If not set, the simulation runs
+            as fast as possible.
+        """,
+    )
+    parser.add_argument(
+        "--first-action-timeout",
+        "-t",
+        type=float,
+        default=math.inf,
+        help="""Timeout (in seconds) for reception of first action after
+            starting the backend.  If not set, the timeout is disabled.
+        """,
     )
     parser.add_argument(
         "--logfile",
         "-l",
         type=str,
-        help="""Path to a file to which the data log is
-                        written.  If not specified, no log is generated.
-                        """,
+        help="""Path to a file to which the data log is written.  If not
+            specified, no log is generated.
+        """,
     )
     parser.add_argument(
         "--visualize",
@@ -57,7 +65,8 @@ def main():
         logger = finger_types.Logger(robot_data, 100)
         logger.start(args.logfile)
 
-    backend = create_backend(robot_data, args.real_time_mode, args.visualize)
+    backend = create_backend(robot_data, args.real_time_mode, args.visualize,
+                             args.first_action_timeout)
     backend.initialize()
 
     backend.wait_until_terminated()
