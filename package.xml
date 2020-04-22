@@ -19,6 +19,9 @@
 
   <exec_depend>robot_properties_fingers</exec_depend>
 
+  <test_depend>rosunit</test_depend>
+  <test_depend>robot_interfaces</test_depend>
+
   <export>
   </export>
 </package>
