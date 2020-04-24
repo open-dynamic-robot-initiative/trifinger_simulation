@@ -324,10 +324,6 @@ class SimFinger(BaseFinger):
             Exception if the observation at any other time index than the one
             at which the action is applied, is queried for.
         """
-        if not time_index == self.action_index:
-            raise Exception(
-                "currently you can only get the latest" "observation"
-            )
 
         assert (
             self.observation_index == self.action_index
@@ -335,10 +331,20 @@ class SimFinger(BaseFinger):
             self.observation_index, self.action_index
         )
 
-        observation = self._get_latest_observation()
-        self.observation_index = self.observation_index + 1
+        if time_index == self.action_index:
+            observation = self._get_latest_observation()
+            self._step_simulation()
 
-        self._step_simulation()
+        elif time_index == self.action_index + 1:
+            self._step_simulation()
+            observation = self._get_latest_observation()
+
+        else:
+            raise Exception(
+                "currently you can only get the observation at the current"
+                "time index, or the next one mdnjafeqf."
+            )
+        self.observation_index = self.observation_index + 1
 
         return observation
 
@@ -517,4 +523,4 @@ class SimFinger(BaseFinger):
                 self.finger_id, joint_id, joint_positions[i]
             )
         t = self.append_desired_action(self.Action(position=joint_positions))
-        return self.get_observation(t)
+        return self.get_observation(t + 1)
