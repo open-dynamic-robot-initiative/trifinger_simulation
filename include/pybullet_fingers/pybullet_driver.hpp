@@ -55,6 +55,11 @@ public:
     BasePyBulletFingerDriver(bool real_time_mode, bool visualize)
         : real_time_mode_(real_time_mode), visualize_(visualize)
     {
+        // initialize Python interpreter if not already done
+        if (!Py_IsInitialized())
+        {
+            py::initialize_interpreter();
+        }
     }
 
     Observation get_latest_observation() override
@@ -174,6 +179,10 @@ public:
     {
         py::gil_scoped_acquire acquire;
 
+        // need to import the type bindins for casts between C++ and Python
+        // types to work
+        py::module::import("robot_interfaces.py_finger_types");
+
         py::module sim_finger =
             py::module::import("pybullet_fingers.sim_finger");
         sim_finger_ = sim_finger.attr("SimFinger")(0.001, visualize_, "single");
@@ -202,6 +211,10 @@ public:
     void initialize() override
     {
         py::gil_scoped_acquire acquire;
+
+        // need to import the type bindins for casts between C++ and Python
+        // types to work
+        py::module::import("robot_interfaces.py_trifinger_types");
 
         py::module sim_finger =
             py::module::import("pybullet_fingers.sim_finger");

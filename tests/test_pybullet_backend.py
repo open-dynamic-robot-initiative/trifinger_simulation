@@ -7,11 +7,7 @@ import pybullet_fingers.drivers
 
 
 class TestPyBulletBackend(unittest.TestCase):
-    """This test verifies that the simulation always behaves deterministic.
-
-    When starting from the same position and sending the same commands, the
-    result should be the same.
-    """
+    """Test using pyBullet in the robot interface backend via Python."""
 
     def run_position_test(self, finger_type, goal_positions):
         """Run position test for single or tri-finger.
@@ -61,7 +57,7 @@ class TestPyBulletBackend(unittest.TestCase):
         goals = [
             [0.21, 0.32, -1.10],
             [0.69, 0.78, -1.07],
-            [0.11, 0.04, -0.10],
+            [-0.31, 0.24, -0.20],
         ]
         self.run_position_test("single", goals)
 

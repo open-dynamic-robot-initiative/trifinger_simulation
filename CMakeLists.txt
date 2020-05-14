@@ -41,4 +41,21 @@ if (CATKIN_ENABLE_TESTING)
     # manually to verify that they pass).
     #catkin_add_nosetests(test/test_determinism.py)
     #catkin_add_nosetests(test/test_pybullet_backend.py)
+
+
+    macro(create_unittest test_name)
+        # create the executable
+        catkin_add_gtest(${test_name}
+          tests/${test_name}.cpp
+        )
+        if(TARGET ${test_name})
+            # link the dependencies to it
+            target_link_libraries(${test_name}
+                ${catkin_LIBRARIES}
+            )
+        endif()
+    endmacro(create_unittest test_name)
+
+    create_unittest(test_pybullet_backend)
+
 endif()
