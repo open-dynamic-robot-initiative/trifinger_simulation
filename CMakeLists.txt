@@ -1,5 +1,10 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.1)
 project(pybullet_fingers)
+
+# Specify C++ Standard
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED on)
+
 
 find_package(catkin REQUIRED COMPONENTS
     mpi_cmake_modules
