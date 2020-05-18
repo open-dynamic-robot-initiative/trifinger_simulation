@@ -65,8 +65,12 @@ def main():
         logger = finger_types.Logger(robot_data, 100)
         logger.start(args.logfile)
 
-    backend = create_backend(robot_data, args.real_time_mode, args.visualize,
-                             args.first_action_timeout)
+    backend = create_backend(
+        robot_data,
+        args.real_time_mode,
+        args.visualize,
+        args.first_action_timeout,
+    )
     backend.initialize()
 
     backend.wait_until_terminated()

@@ -22,9 +22,7 @@ class TestSimulationDeterminisim(unittest.TestCase):
         observations should be equal.
         """
         finger = SimFinger(
-            time_step=0.004,
-            enable_visualization=False,
-            finger_type="single",
+            time_step=0.004, enable_visualization=False, finger_type="single",
         )
 
         start_position = [0.5, -0.7, -1.5]
@@ -97,5 +95,9 @@ class TestSimulationDeterminisim(unittest.TestCase):
 
 if __name__ == "__main__":
     import rosunit
-    rosunit.unitrun("pybullet_fingers", 'test_simulation_determinisim',
-                    TestSimulationDeterminisim)
+
+    rosunit.unitrun(
+        "pybullet_fingers",
+        "test_simulation_determinisim",
+        TestSimulationDeterminisim,
+    )
