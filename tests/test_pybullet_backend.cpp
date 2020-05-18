@@ -4,6 +4,8 @@
  */
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include <pybullet_fingers/pybullet_driver.hpp>
 #include <robot_interfaces/finger_types.hpp>
 #include <robot_interfaces/robot_frontend.hpp>
@@ -16,15 +18,15 @@ constexpr double POSITION_TOLERANCE = 0.05;
 
 TEST(TestPyBulletDriver, monofingerone)
 {
-    auto robot_data =
-        std::make_shared<robot_interfaces::FingerTypes::SingleProcessData>();
+    auto robot_data = std::make_shared<
+        robot_interfaces::MonoFingerTypes::SingleProcessData>();
 
     auto backend = pybullet_fingers::create_finger_backend<
-        robot_interfaces::FingerTypes,
+        robot_interfaces::MonoFingerTypes,
         pybullet_fingers::PyBulletSingleFingerDriver>(
         robot_data, VISUALIZE, VISUALIZE);
 
-    auto frontend = robot_interfaces::FingerTypes::Frontend(robot_data);
+    auto frontend = robot_interfaces::MonoFingerTypes::Frontend(robot_data);
 
     backend->initialize();
 
@@ -32,15 +34,14 @@ TEST(TestPyBulletDriver, monofingerone)
     // (running in the backend thread) is blocked.
     pybind11::gil_scoped_release foo;
 
-    typedef robot_interfaces::FingerTypes::Action Action;
-    typedef robot_interfaces::FingerTypes::Vector Vector;
+    typedef robot_interfaces::MonoFingerTypes::Action Action;
 
-    std::array<Vector, 3> goals;
+    std::array<Action::Vector, 3> goals;
     goals[0] << 0.21, 0.32, -1.10;
     goals[1] << 0.69, 0.78, -1.07;
     goals[2] << -0.31, 0.24, -0.20;
 
-    for (Vector goal : goals)
+    for (Action::Vector goal : goals)
     {
         unsigned int t;
         auto action = Action::Position(goal);
@@ -76,14 +77,13 @@ TEST(TestPyBulletDriver, trifinger)
     pybind11::gil_scoped_release foo;
 
     typedef robot_interfaces::TriFingerTypes::Action Action;
-    typedef robot_interfaces::TriFingerTypes::Vector Vector;
 
-    std::array<Vector, 3> goals;
+    std::array<Action::Vector, 3> goals;
     goals[0] << 0.27, -0.72, -1.03, 0.53, -0.26, -1.67, -0.10, 0.10, -1.36;
     goals[1] << 0.38, -0.28, -1.91, 0.22, 0.02, -0.03, 0.00, 0.28, -0.03;
     goals[2] << 0.14, 0.27, -0.03, 0.08, -0.08, -0.03, 0.53, -0.00, -0.96;
 
-    for (Vector goal : goals)
+    for (Action::Vector goal : goals)
     {
         unsigned int t;
         auto action = Action::Position(goal);
