@@ -12,7 +12,6 @@
 #include <pybind11/embed.h>
 
 #include <robot_interfaces/finger_types.hpp>
-#include <robot_interfaces/trifinger_types.hpp>
 
 namespace pybullet_fingers
 {
@@ -28,11 +27,10 @@ namespace py = pybind11;
  * All other methods are generic and only need to be templated with the proper
  * types for actions/observations.
  *
- * @tparam Vector  The vector type used for the specific robot.
  * @tparam Action  Action type used for the specific robot.
  * @tparam Observation  Observation type used for the specific robot.
  */
-template <typename Vector, typename Action, typename Observation>
+template <typename Action, typename Observation>
 class BasePyBulletFingerDriver
     : public robot_interfaces::RobotDriver<Action, Observation>
 {
@@ -52,6 +50,8 @@ protected:
     py::object sim_finger_;
 
 public:
+    typedef typename Observation::JointVector JointVector;
+
     BasePyBulletFingerDriver(bool real_time_mode, bool visualize)
         : real_time_mode_(real_time_mode), visualize_(visualize)
     {
@@ -73,9 +73,9 @@ public:
 
         // TODO this would be even simpler when SimFinger would use the correct
         // observation type as there are already bindings for it
-        observation.position = py_obs.attr("position").cast<Vector>();
-        observation.velocity = py_obs.attr("velocity").cast<Vector>();
-        observation.torque = py_obs.attr("torque").cast<Vector>();
+        observation.position = py_obs.attr("position").cast<JointVector>();
+        observation.velocity = py_obs.attr("velocity").cast<JointVector>();
+        observation.torque = py_obs.attr("torque").cast<JointVector>();
 
         return observation;
     }
@@ -165,13 +165,10 @@ typename Types::BackendPtr create_finger_backend(
  */
 class PyBulletSingleFingerDriver
     : public BasePyBulletFingerDriver<
-          robot_interfaces::FingerTypes::Vector,
-          robot_interfaces::FingerTypes::Action,
-          robot_interfaces::FingerTypes::Observation>
+          robot_interfaces::MonoFingerTypes::Action,
+          robot_interfaces::MonoFingerTypes::Observation>
 {
 public:
-    typedef robot_interfaces::FingerTypes::Vector Vector;
-
     // inherit the constructor
     using BasePyBulletFingerDriver::BasePyBulletFingerDriver;
 
@@ -187,7 +184,7 @@ public:
             py::module::import("pybullet_fingers.sim_finger");
         sim_finger_ = sim_finger.attr("SimFinger")(0.001, visualize_, "single");
 
-        Vector initial_position;
+        JointVector initial_position;
         initial_position << 0, -0.7, -1.5;
         sim_finger_.attr("reset_finger")(initial_position);
     }
@@ -198,13 +195,10 @@ public:
  */
 class PyBulletTriFingerDriver
     : public BasePyBulletFingerDriver<
-          robot_interfaces::TriFingerTypes::Vector,
           robot_interfaces::TriFingerTypes::Action,
           robot_interfaces::TriFingerTypes::Observation>
 {
 public:
-    typedef robot_interfaces::TriFingerTypes::Vector Vector;
-
     // inherit the constructor
     using BasePyBulletFingerDriver::BasePyBulletFingerDriver;
 
@@ -220,7 +214,7 @@ public:
             py::module::import("pybullet_fingers.sim_finger");
         sim_finger_ = sim_finger.attr("SimFinger")(0.001, visualize_, "tri");
 
-        Vector initial_position;
+        JointVector initial_position;
         initial_position << 0, -0.7, -1.5, 0, -0.7, -1.5, 0, -0.7, -1.5;
         sim_finger_.attr("reset_finger")(initial_position);
     }
