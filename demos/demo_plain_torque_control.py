@@ -11,9 +11,7 @@ if __name__ == "__main__":
     time_step = 0.001
 
     finger = sim_finger.SimFinger(
-        time_step=time_step,
-        enable_visualization=True,
-        finger_type="single",
+        time_step=time_step, enable_visualization=True, finger_type="single",
     )
     # set the finger to a reasonable start position
     finger.reset_finger([0, -0.7, -1.5])
