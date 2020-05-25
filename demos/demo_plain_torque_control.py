@@ -7,7 +7,6 @@ from pybullet_fingers import sim_finger
 
 
 if __name__ == "__main__":
-
     time_step = 0.001
 
     finger = sim_finger.SimFinger(
@@ -16,6 +15,7 @@ if __name__ == "__main__":
     # set the finger to a reasonable start position
     finger.reset_finger([0, -0.7, -1.5])
 
+    # Send a constant torque to the joints, switching direction periodically.
     torque = np.array([0.0, 0.3, 0.3])
     while True:
         time.sleep(time_step)
