@@ -162,7 +162,7 @@ class SimFinger(BaseFinger):
         if "single" in self.finger_type:
             collision_objects.import_mesh(
                 mesh_path("Stage_simplified.stl"),
-                position=[0, 0, 0.01],
+                position=[0, 0, 0],
                 is_concave=True,
             )
 
@@ -172,20 +172,20 @@ class SimFinger(BaseFinger):
             if high_border:
                 collision_objects.import_mesh(
                     mesh_path("trifinger_table_without_border.stl"),
-                    position=[0, 0, 0.01],
+                    position=[0, 0, 0],
                     is_concave=False,
                     color_rgba=table_colour,
                 )
                 collision_objects.import_mesh(
                     mesh_path("high_table_boundary.stl"),
-                    position=[0, 0, 0.01],
+                    position=[0, 0, 0],
                     is_concave=True,
                     color_rgba=high_border_colour,
                 )
             else:
                 collision_objects.import_mesh(
                     mesh_path("BL-M_Table_ASM_big.stl"),
-                    position=[0, 0, 0.01],
+                    position=[0, 0, 0],
                     is_concave=True,
                     color_rgba=table_colour,
                 )
