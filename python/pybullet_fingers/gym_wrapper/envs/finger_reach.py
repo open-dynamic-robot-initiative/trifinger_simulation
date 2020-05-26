@@ -332,12 +332,6 @@ class FingerReach(gym.Env):
             self.unscaled_observation_space,
         )
 
-    def render(self, mode="human"):
-        """
-        Connect to the simulation in the GUI mode
-        """
-        self.finger.connect_to_simulation(enable_visualization=True)
-
     def update_smoothing(self):
         """
         Update the smoothing coefficient with which the action to be
