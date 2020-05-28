@@ -80,6 +80,14 @@ class SimFinger(BaseFinger):
         self.make_physical_world()
         self.disable_velocity_control()
 
+        # enable force sensor on tips
+        for joint_index in self.finger_tip_ids:
+            pybullet.enableJointForceTorqueSensor(
+                self.finger_id,
+                joint_index,
+                enableSensor=True
+            )
+
     def Action(self, torque=None, position=None):
         """
         Fill in the fields of the action structure
@@ -298,6 +306,15 @@ class SimFinger(BaseFinger):
         )
         observation.torque = np.array(
             [joint[3] for joint in current_joint_states]
+        )
+
+        finger_tip_states = pybullet.getJointStates(
+            self.finger_id, self.finger_tip_ids
+        )
+        # FIXME saturate and scale to [0, 1] so the values are in a similar
+        # range as on the real robot
+        observation.tip_force = np.array(
+            [np.linalg.norm(tip[2][:3]) for tip in finger_tip_states]
         )
 
         return observation

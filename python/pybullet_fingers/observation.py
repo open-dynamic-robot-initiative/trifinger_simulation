@@ -7,10 +7,7 @@ class Observation:
     """
 
     def __init__(self):
-        position = []
-        velocity = []
-        torque = []
-
-        self.position = position
-        self.velocity = velocity
-        self.torque = torque
+        self.position = []
+        self.velocity = []
+        self.torque = []
+        self.tip_force = []
