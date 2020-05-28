@@ -76,6 +76,8 @@ public:
         observation.position = py_obs.attr("position").cast<JointVector>();
         observation.velocity = py_obs.attr("velocity").cast<JointVector>();
         observation.torque = py_obs.attr("torque").cast<JointVector>();
+        observation.tip_force =
+            py_obs.attr("tip_force").cast<typename Observation::FingerVector>();
 
         return observation;
     }
