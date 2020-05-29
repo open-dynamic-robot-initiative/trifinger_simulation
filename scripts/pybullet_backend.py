@@ -13,9 +13,9 @@ def main():
         "--finger-type",
         choices=["single", "tri"],
         required=True,
-        help="""Specify whether the Single Finger ("single")
-                        or the TriFinger ("tri") is used.
-                        """,
+        help="""Specify whether the Single Finger ("single") or the TriFinger
+            ("tri") is used.
+        """,
     )
     parser.add_argument(
         "--real-time-mode",
@@ -35,6 +35,15 @@ def main():
         """,
     )
     parser.add_argument(
+        "--max-number-of-actions",
+        "-a",
+        type=int,
+        default=0,
+        help="""Maximum numbers of actions that are processed.  After this the
+            backend shuts down automatically.
+        """,
+    )
+    parser.add_argument(
         "--logfile",
         "-l",
         type=str,
@@ -44,6 +53,7 @@ def main():
     )
     parser.add_argument(
         "--visualize",
+        "-v",
         action="store_true",
         help="Run pyBullet's GUI for visualization.",
     )
@@ -70,6 +80,7 @@ def main():
         args.real_time_mode,
         args.visualize,
         args.first_action_timeout,
+        args.max_number_of_actions,
     )
     backend.initialize()
 
