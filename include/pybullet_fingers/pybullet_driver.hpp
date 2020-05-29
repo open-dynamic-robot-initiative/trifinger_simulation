@@ -132,6 +132,7 @@ public:
  *     as fast as possible.
  * @param visualize If true, pyBullet's GUI is started for visualization.
  * @param first_action_timeout  See RobotBackend
+ * @param max_number_of_actions  See RobotBackend
  *
  * @return Backend using a driver of the specified type.
  */
@@ -140,11 +141,16 @@ typename Types::BackendPtr create_finger_backend(
     typename Types::BaseDataPtr robot_data,
     const bool real_time_mode,
     const bool visualize,
-    const double first_action_timeout = std::numeric_limits<double>::infinity())
+    const double first_action_timeout = std::numeric_limits<double>::infinity(),
+    const uint32_t max_number_of_actions = 0)
 {
     auto robot = std::make_shared<Driver>(real_time_mode, visualize);
-    auto backend = std::make_shared<typename Types::Backend>(
-        robot, robot_data, real_time_mode, first_action_timeout);
+    auto backend =
+        std::make_shared<typename Types::Backend>(robot,
+                                                  robot_data,
+                                                  real_time_mode,
+                                                  first_action_timeout,
+                                                  max_number_of_actions);
 
     if (real_time_mode)
     {

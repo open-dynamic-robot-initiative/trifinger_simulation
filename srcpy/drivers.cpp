@@ -17,6 +17,7 @@ PYBIND11_MODULE(drivers, m)
           "real_time_mode"_a,
           "visualize"_a,
           "first_action_timeout"_a = std::numeric_limits<double>::infinity(),
+          "max_number_of_actions"_a = 0,
           R"XXX(
             Create backend for the Single Finger robot using pyBullet simulation.
 
@@ -27,6 +28,13 @@ PYBIND11_MODULE(drivers, m)
                     time, otherwise as fast as possible.
                 visualize (bool):  If True, the pyBullet GUI is started for
                     visualization.
+                first_action_timeout (float): Timeout for the first action to
+                    arrive.  If exceeded, the backend shuts down.  Set to
+                    infinity to disable the timeout.
+                max_number_of_actions (int): Maximum number of actions that are
+                    executed by the backend.  If set to a value greater than
+                    zero, the backend will automatically shut down after the
+                    specified number of actions is executed.
 
             Returns:
                 Finger backend using simulation instead of the real robot.
@@ -40,6 +48,7 @@ PYBIND11_MODULE(drivers, m)
           "real_time_mode"_a,
           "visualize"_a,
           "first_action_timeout"_a = std::numeric_limits<double>::infinity(),
+          "max_number_of_actions"_a = 0,
           R"XXX(
             Create a backend for the TriFinger robot using pyBullet simulation.
 
@@ -50,6 +59,13 @@ PYBIND11_MODULE(drivers, m)
                     time, otherwise as fast as possible.
                 visualize (bool):  If True, the pyBullet GUI is started for
                     visualization.
+                first_action_timeout (float): Timeout for the first action to
+                    arrive.  If exceeded, the backend shuts down.  Set to
+                    infinity to disable the timeout.
+                max_number_of_actions (int): Maximum number of actions that are
+                    executed by the backend.  If set to a value greater than
+                    zero, the backend will automatically shut down after the
+                    specified number of actions is executed.
 
             Returns:
                 TriFinger backend using simulation instead of the real robot.
