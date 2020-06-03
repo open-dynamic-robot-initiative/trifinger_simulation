@@ -24,8 +24,16 @@ def main():
         default=1000,
         help="""Size of the object pose time series.  Default: %(default)d""",
     )
+    parser.add_argument(
+        "--non-real-time",
+        action="store_true",
+        help="""Do not run the simulation in real-time but as fast as
+            possible.
+        """,
+    )
     args = parser.parse_args()
 
+    real_time = not args.non_real_time
     time_step = 0.004
     finger = sim_finger.SimFinger(time_step, True, "tri")
 
@@ -43,7 +51,7 @@ def main():
         "object_tracker", True, args.history_size
     )
     object_tracker_backend = object_tracker.SimulationBackend(
-        object_tracker_data, cube
+        object_tracker_data, cube, real_time
     )
     object_tracker_frontend = object_tracker.Frontend(object_tracker_data)
 
@@ -62,7 +70,8 @@ def main():
         for _ in range(50):
             t = finger.append_desired_action(finger_action)
             finger.get_observation(t)
-            time.sleep(time_step)
+            if real_time:
+                time.sleep(time_step)
 
         # get the latest pose estimate of the cube and print it
         t_obj = object_tracker_frontend.get_current_timeindex()
