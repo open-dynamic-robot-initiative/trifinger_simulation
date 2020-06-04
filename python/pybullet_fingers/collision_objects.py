@@ -107,4 +107,7 @@ class Block:
         """
         Removes the block from the environment
         """
-        pybullet.removeBody(self.block)
+        # At this point it may be that pybullet was already shut down. To avoid
+        # an error, only remove the object if the simulation is still running.
+        if pybullet.isConnected():
+            pybullet.removeBody(self.block)

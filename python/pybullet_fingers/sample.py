@@ -39,22 +39,29 @@ def random_position_in_arena(
     return object_position
 
 
-def random_joint_positions(number_of_fingers):
-    """
-    Sample a random joint configuration for each finger.
+def random_joint_positions(
+    number_of_fingers,
+    lower_bounds=[-math.radians(30), -math.radians(60), -math.radians(100)],
+    upper_bounds=[math.radians(30), math.radians(60), math.radians(2)],
+):
+    """Sample a random joint configuration for each finger.
 
     Args:
-        number_of_fingers(int): specify if positions are to be
-        sampled for joints of 1 finger, or 3 fingers
+        number_of_fingers (int): specify if positions are to be sampled for
+            joints of 1 finger, or 3 fingers
+        lower_bounds: List of lower position bounds for upper, middle and lower
+            joint of a single finger.  The same values will be used for all
+            fingers if number_of_fingers > 1.  Unit: radian.
+        upper_bounds: Upper position bounds of the joints.  See lower_bounds.
+
     Returns:
         Flat list of joint positions.
     """
-    list_to_return = []
-    for _ in range(number_of_fingers):
-        upper = random.uniform(-math.radians(30), math.radians(30))
-        middle = random.uniform(-math.radians(60), math.radians(60))
-        lower = random.uniform(-math.radians(100), -math.radians(2))
-        list_to_return += [upper, middle, lower]
+    list_to_return = [
+        random.uniform(lower, upper)
+        for lower, upper in zip(lower_bounds, upper_bounds)
+        for i in range(number_of_fingers)
+    ]
     return list_to_return
 
 
