@@ -59,8 +59,8 @@ def random_joint_positions(
     """
     list_to_return = [
         random.uniform(lower, upper)
-        for lower, upper in zip(lower_bounds, upper_bounds)
         for i in range(number_of_fingers)
+        for lower, upper in zip(lower_bounds, upper_bounds)
     ]
     return list_to_return
 
