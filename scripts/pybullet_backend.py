@@ -4,7 +4,7 @@ import argparse
 import math
 
 import robot_interfaces
-import pybullet_fingers.drivers
+from pybullet_fingers import collision_objects, drivers
 
 
 def main():
@@ -52,6 +52,11 @@ def main():
         """,
     )
     parser.add_argument(
+        "--add-cube",
+        action="store_true",
+        help="""Spawn a cube and run the object tracker backend.""",
+    )
+    parser.add_argument(
         "--visualize",
         "-v",
         action="store_true",
@@ -63,11 +68,11 @@ def main():
     if args.finger_type == "single":
         shared_memory_id = "finger"
         finger_types = robot_interfaces.finger
-        create_backend = pybullet_fingers.drivers.create_single_finger_backend
+        create_backend = drivers.create_single_finger_backend
     else:
         shared_memory_id = "trifinger"
         finger_types = robot_interfaces.trifinger
-        create_backend = pybullet_fingers.drivers.create_trifinger_backend
+        create_backend = drivers.create_trifinger_backend
 
     robot_data = finger_types.MultiProcessData(shared_memory_id, True)
 
@@ -83,6 +88,24 @@ def main():
         args.max_number_of_actions,
     )
     backend.initialize()
+
+    # Object and Object Tracker Interface
+    # Important:  These objects need to be created _after_ the simulation is
+    # initialized (i.e. after the SimFinger instance is created).
+    if args.add_cube:
+        # only import when really needed
+        import trifinger_object_tracking.py_object_tracker as object_tracker
+
+        # spawn a cube in the arena
+        cube = collision_objects.Block()
+
+        # initialize the object tracker interface
+        object_tracker_data = object_tracker.Data(
+            "object_tracker", True
+        )
+        object_tracker_backend = object_tracker.SimulationBackend(
+            object_tracker_data, cube, args.real_time_mode
+        )
 
     backend.wait_until_terminated()
 
