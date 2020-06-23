@@ -79,9 +79,7 @@ class SimFinger(BaseFinger):
         # enable force sensor on tips
         for joint_index in self.finger_tip_ids:
             pybullet.enableJointForceTorqueSensor(
-                self.finger_id,
-                joint_index,
-                enableSensor=True
+                self.finger_id, joint_index, enableSensor=True
             )
 
     def Action(self, torque=None, position=None):
