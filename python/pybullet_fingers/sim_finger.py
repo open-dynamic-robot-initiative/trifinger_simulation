@@ -40,9 +40,6 @@ class SimFinger(BaseFinger):
             time-series of length 1 for the action in which the application
             of the action precedes (in time) the observation corresponding
             to it. Incremented each time an action is applied.
-        observation_index (int): The corresponding index for the observation
-            to ensure the same structure as the action time-series for the
-            observation time-series (of length 1).
 
     """
 
@@ -75,7 +72,6 @@ class SimFinger(BaseFinger):
         self.max_motor_torque = 0.36
 
         self.action_index = -1
-        self.observation_index = 0
 
         self.make_physical_world()
         self.disable_velocity_control()
@@ -276,11 +272,6 @@ class SimFinger(BaseFinger):
             self.action_index (int): The current time-index at which the action
                 was applied.
         """
-        if self.action_index >= self.observation_index:
-            raise Exception(
-                "You have to call get_observation after each"
-                "append_desired_action."
-            )
         self._set_desired_action(action)
 
         # save current observation, then step simulation
@@ -345,13 +336,6 @@ class SimFinger(BaseFinger):
             Exception if the observation at any other time index than the one
             at which the action is applied, is queried for.
         """
-
-        assert (
-            self.observation_index == self.action_index
-        ), "observation_index {} != action_index {}".format(
-            self.observation_index, self.action_index
-        )
-
         if time_index == self.action_index:
             observation = self._observation_before_last_step
 
@@ -363,7 +347,6 @@ class SimFinger(BaseFinger):
                 "currently you can only get the observation at the current"
                 "time index, or the next one."
             )
-        self.observation_index = self.observation_index + 1
 
         return observation
 
