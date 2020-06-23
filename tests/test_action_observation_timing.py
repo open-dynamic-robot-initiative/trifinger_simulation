@@ -96,6 +96,9 @@ class TestActionObservationTiming(unittest.TestCase):
         for i in range(10):
             obs_ti = self.finger.get_observation(t)
             np.testing.assert_array_equal(obs_t1.position, obs_ti.position)
+            np.testing.assert_array_equal(obs_t1.velocity, obs_ti.velocity)
+            np.testing.assert_array_equal(obs_t1.torque, obs_ti.torque)
+            np.testing.assert_array_equal(obs_t1.tip_force, obs_ti.tip_force)
 
     def test_timing_observation_tplus1_multiple_times(self):
         # Apply a max torque action for one step
@@ -113,6 +116,25 @@ class TestActionObservationTiming(unittest.TestCase):
         for i in range(10):
             obs_ti = self.finger.get_observation(t + 1)
             np.testing.assert_array_equal(obs_t1.position, obs_ti.position)
+            np.testing.assert_array_equal(obs_t1.velocity, obs_ti.velocity)
+            np.testing.assert_array_equal(obs_t1.torque, obs_ti.torque)
+            np.testing.assert_array_equal(obs_t1.tip_force, obs_ti.tip_force)
+
+    def test_exception_on_old_t(self):
+        # append two actions
+        t1 = self.finger.append_desired_action(self.finger.Action())
+        t2 = self.finger.append_desired_action(self.finger.Action())
+
+        # it should be possible to get observation for t2 and t2 + 1 but not t1
+        # or t2 + 2
+        self.finger.get_observation(t2)
+        self.finger.get_observation(t2 + 1)
+
+        with self.assertRaises(ValueError):
+            self.finger.get_observation(t1)
+
+        with self.assertRaises(ValueError):
+            self.finger.get_observation(t2 + 2)
 
 
 if __name__ == "__main__":
