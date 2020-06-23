@@ -27,9 +27,9 @@ possible to simply replace the ``SimFinger`` instance with with an
 ``RobotFrontend`` instance to execute the same code on the real robot (in
 practice, there are a few things to consider, see `Simulation vs Real Robot`_).
 
-Note that it is important to call ``finger.get_observation(t)`` in *each*
-iteration, even if you don't actually use the observation.  This is because
-inside there the next simulation step is computed.
+Note that the next simulation step is computed in the
+``append_desired_action()`` method.  So the state of the simulation only
+changes when calling this method.
 
 
 Simulation vs Real Robot
@@ -49,22 +49,14 @@ not possible to directly access the simulation, e.g. to visualize goal
 positions.  For more details see `robot_interfaces with Simulation`_.
 
 
-Always call ``get_observation()``
----------------------------------
+Simulation is stepped in ``append_desired_action()``
+----------------------------------------------------
 
-With the real robot, it is possible to send multiple actions in a row without
-getting the observation after each step.  This is different in simulation:  To
-ensure the same time-relation between action and observation of one time step,
-the simulation is stepped in the ``get_observation()`` function.  It is
-therefore important to call this function in *every* iteration, even if the
-resulting observation is not used.
-
-
-Do not call ``get_observation(t)`` multiple times
--------------------------------------------------
-
-With ``RobotFrontend`` it is safe to call ``get_observation(t)`` multiple times
-in a row with the same ``t``.  With ``SimFinger`` this results in an error.
+Everytime the ``append_desirec_action()`` method is called, the next time step
+in the simulation is computed.  This means that the state of the simulation
+does not change as long as this method is not called.
+This is different to the real robot, which will physically continue to move
+and will repeat the last action if no new action is provided in time.
 
 
 Real Time Behaviour
