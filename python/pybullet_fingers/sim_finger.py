@@ -283,6 +283,10 @@ class SimFinger(BaseFinger):
             )
         self._set_desired_action(action)
 
+        # save current observation, then step simulation
+        self._observation_before_last_step = self._get_latest_observation()
+        self._step_simulation()
+
         self.action_index = self.action_index + 1
         return self.action_index
 
@@ -349,17 +353,15 @@ class SimFinger(BaseFinger):
         )
 
         if time_index == self.action_index:
-            observation = self._get_latest_observation()
-            self._step_simulation()
+            observation = self._observation_before_last_step
 
         elif time_index == self.action_index + 1:
-            self._step_simulation()
             observation = self._get_latest_observation()
 
         else:
             raise Exception(
                 "currently you can only get the observation at the current"
-                "time index, or the next one mdnjafeqf."
+                "time index, or the next one."
             )
         self.observation_index = self.observation_index + 1
 
