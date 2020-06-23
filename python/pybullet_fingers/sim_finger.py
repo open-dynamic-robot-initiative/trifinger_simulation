@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-# -------------------------------------------------------------------------------------------------
-# The documentation in this code is heavily derived from the official
-# documentation of PyBullet at
-# https://docs.google.com/document/d/10sXEhzFRSnvFcl3XxNGhnD4N2SedqwdAvK3dsihxVUA/edit#
-# among other scattered sources.
-# -------------------------------------------------------------------------------------------------
 import copy
 import os
 import numpy as np
@@ -270,13 +263,81 @@ class SimFinger(BaseFinger):
             self.time_index (int): The current time-index at which the action
                 was applied.
         """
-        self._set_desired_action(action)
+        # copy the action in a way that works for both Action and
+        # robot_interfaces.(tri)finger.Action.  Note that a simple
+        # copy.copy(action) does **not** work for robot_interfaces
+        # actions!
+        self._last_desired_action = type(action)(
+            copy.copy(action.torque), copy.copy(action.position),
+        )
+
+        self._last_applied_action = self._set_desired_action(action)
 
         # save current observation, then step simulation
         self._observation_before_last_step = self._get_latest_observation()
         self._step_simulation()
 
         self.time_index += 1
+        return self.time_index
+
+    def _validate_time_index(self, time_index):
+        """Raise error if time_index does not match with self.time_index."""
+        if time_index != self.time_index:
+            raise ValueError(
+                "Given time_index %d does not match with current index %d"
+                % (time_index, self.time_index)
+            )
+
+    def get_desired_action(self, t):
+        """Get the desired action of time step 't'.
+
+        Args:
+            t: Index of the time step.  The only valid value is the index of
+                the current step (return value of the last call of
+                append_desired_action()).
+
+        Returns:
+            The desired action of time step t.
+        """
+        self._validate_time_index(t)
+        return self._last_desired_action
+
+    def get_applied_action(self, t):
+        """Get the actually applied action of time step 't'.
+
+        The actually applied action can differ from the desired one, e.g.
+        because the position controller affects the torque command or because
+        too big torques are clamped to the limits.
+
+        Args:
+            t: Index of the time step.  The only valid value is the index of
+                the current step (return value of the last call of
+                append_desired_action()).
+
+        Returns:
+            The applied action of time step t.
+        """
+        self._validate_time_index(t)
+        return self._last_applied_action
+
+    def get_timestamp_ms(self, t):
+        """Get timestamp of time step 't'.
+
+        Args:
+            t: Index of the time step.  The only valid value is the index of
+                the current step (return value of the last call of
+                append_desired_action()).
+
+        Returns:
+            Timestamp in milliseconds.  The timestamp starts at zero when
+            initializing and is increased with every simulation step according
+            to the configured time step.
+        """
+        self._validate_time_index(t)
+        return self.time_step * 1000 * self.time_index
+
+    def get_current_timeindex(self):
+        """Get the current time index."""
         return self.time_index
 
     def _get_latest_observation(self):
