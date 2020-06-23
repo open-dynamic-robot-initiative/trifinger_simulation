@@ -59,6 +59,17 @@ This is different to the real robot, which will physically continue to move
 and will repeat the last action if no new action is provided in time.
 
 
+No waiting for future time steps
+--------------------------------
+
+On the real robot, it is possible to pass a time index that lies in the future
+and most methods of the ``RobotFrontend`` will simply block and wait until this
+time step is reached.  The simulation, however, is not running asynchronously
+but is actively stepped every time ``append_desired_action()`` is called.
+Therefore the behaviour of waiting for a time step is not supported.  Instead,
+passing a time index that lies in the future will result in an error.
+
+
 Real Time Behaviour
 -------------------
 
@@ -93,18 +104,28 @@ the observation of the current time step ``t``.  Passing any other value for
 ``t`` will result in an error.
 
 
-The Simulation API is not complete
-----------------------------------
+API-differences to RobotFrontend
+--------------------------------
 
-While our goal is to provide the full API of ``RobotFrontend`` in ``SimFinger``,
-this is not yet the case, so some methods of ``RobotFrontend`` are not yet
-available in ``SimFinger``.
-
+Our goal is to provide the same API in ``SimFinger`` as in ``RobotFrontend`` to
+make transition between simulation and real robot easy.  There are a few
+differences, though.
 
 Currently ``SimFinger`` supports the following methods:
 
 - ``append_desired_action()``
 - ``get_observation()``
+- ``get_desired_action()``
+- ``get_applied_action()``
+- ``get_timestamp_ms()``
+- ``get_current_timeindex()``
+
+The following methods are not supported:
+
+- ``get_status()``:  There are no meaningful values for the status message in
+  simulation, so this method is omitted to avoid confusion.
+- ``wait_until_timeindex()``:  In general the process of waiting for a specific
+  time step is not supported, see `No waiting for future time steps`_.
 
 
 
