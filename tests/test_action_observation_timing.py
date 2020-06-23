@@ -64,6 +64,56 @@ class TestActionObservationTiming(unittest.TestCase):
         # new position should be less, as negative torque is applied
         np.testing.assert_array_less(obs.position, self.initial_position)
 
+    def test_timing_observation_t_vs_tplus1(self):
+        # Apply a max torque action for one step
+        action = self.finger.Action(
+            torque=[
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+            ]
+        )
+        t = self.finger.append_desired_action(action)
+        obs_t = self.finger.get_observation(t)
+        obs_tplus1 = self.finger.get_observation(t + 1)
+
+        # newer position should be lesser, as negative torque is applied
+        np.testing.assert_array_less(obs_tplus1.position, obs_t.position)
+
+    def test_timing_observation_t_multiple_times(self):
+        # Apply a max torque action for one step
+        action = self.finger.Action(
+            torque=[
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+            ]
+        )
+        t = self.finger.append_desired_action(action)
+        obs_t1 = self.finger.get_observation(t)
+
+        # observation should not change when calling multiple times with same t
+        for i in range(10):
+            obs_ti = self.finger.get_observation(t)
+            np.testing.assert_array_equal(obs_t1.position, obs_ti.position)
+
+    def test_timing_observation_tplus1_multiple_times(self):
+        # Apply a max torque action for one step
+        action = self.finger.Action(
+            torque=[
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+            ]
+        )
+        t = self.finger.append_desired_action(action)
+        obs_t1 = self.finger.get_observation(t + 1)
+
+        # observation should not change when calling multiple times with same t
+        for i in range(10):
+            obs_ti = self.finger.get_observation(t + 1)
+            np.testing.assert_array_equal(obs_t1.position, obs_ti.position)
+
 
 if __name__ == "__main__":
     import rosunit
