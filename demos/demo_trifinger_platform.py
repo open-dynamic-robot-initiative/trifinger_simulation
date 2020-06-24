@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Simple demo on how to use the TriFingerPlatform interface."""
-import numpy as np
 import time
+
+import cv2
+import numpy as np
 
 from pybullet_fingers import trifinger_platform, sample
 
@@ -31,6 +33,11 @@ def main():
 
         cube_pose = platform.get_object_pose(t)
         print("Cube Position: %s" % cube_pose.position)
+
+        camera_observation = platform.get_camera_observation(t)
+        for i, name in enumerate(("camera60", "camera180", "camera300")):
+            cv2.imshow(name, camera_observation.cameras[i].image)
+        cv2.waitKey(1)
 
         print()
 

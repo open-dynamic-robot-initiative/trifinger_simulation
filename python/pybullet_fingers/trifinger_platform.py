@@ -1,7 +1,7 @@
 import numpy as np
 
 from .sim_finger import SimFinger
-from . import collision_objects  # , camera
+from . import camera, collision_objects
 
 
 class ObjectPose:
@@ -13,6 +13,24 @@ class ObjectPose:
         self.orientation = np.zeros(4)
         self.timestamp = 0.0
         self.confidence = 1.0
+
+
+class CameraObservation:
+    """Pure-python copy of trifinger_cameras.camera.CameraObservation."""
+    __slots__ = ["image", "timestamp"]
+
+    def __init__(self):
+        self.image = None
+        self.timestamp = None
+
+
+class TriCameraObservation:
+    """Pure-python copy of trifinger_cameras.tricamera.TriCameraObservation."""
+    __slots__ = ["cameras"]
+
+    def __init__(self):
+        # create three camera observations
+        self.cameras = [CameraObservation() for i in range(3)]
 
 
 class TriFingerPlatform:
@@ -37,8 +55,7 @@ class TriFingerPlatform:
         self.simfinger = SimFinger(0.001, visualization, "tri")
         self.cube = collision_objects.Block()
 
-        # TODO Add camera when corresponding PR is merged
-        # self.tricamera = camera.TriFingerCameras()
+        self.tricamera = camera.TriFingerCameras()
 
         # forward "RobotFrontend" methods directly to simfinger
         self.Action = self.simfinger.Action
@@ -62,4 +79,14 @@ class TriFingerPlatform:
         return pose
 
     def get_camera_observation(self, t):
-        raise NotImplementedError()
+        self.simfinger._validate_time_index(t)
+
+        images = self.tricamera.get_images()
+        timestamp = self.get_timestamp_ms(t) * 1000.0
+
+        observation = TriCameraObservation()
+        for i, image in enumerate(images):
+            observation.cameras[i].image = image
+            observation.cameras[i].timestamp = timestamp
+
+        return observation
