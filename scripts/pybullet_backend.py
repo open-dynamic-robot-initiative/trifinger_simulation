@@ -4,7 +4,7 @@ import argparse
 import math
 
 import robot_interfaces
-from pybullet_fingers import collision_objects, drivers
+from pybullet_fingers import collision_objects, drivers, camera
 
 
 def main():
@@ -57,6 +57,11 @@ def main():
         help="""Spawn a cube and run the object tracker backend.""",
     )
     parser.add_argument(
+        "--cameras",
+        action="store_true",
+        help="""Run camera backend using rendered images.""",
+    )
+    parser.add_argument(
         "--visualize",
         "-v",
         action="store_true",
@@ -106,6 +111,12 @@ def main():
         object_tracker_backend = object_tracker.SimulationBackend(
             object_tracker_data, cube, args.real_time_mode
         )
+
+    if args.cameras:
+        from trifinger_cameras import tricamera
+        camera_data = tricamera.MultiProcessData("tricamera", True, 10)
+        camera_driver = tricamera.PyBulletTriCameraDriver()
+        camera_backend = tricamera.Backend(camera_driver, camera_data)
 
     backend.wait_until_terminated()
 
