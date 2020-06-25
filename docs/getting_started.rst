@@ -52,7 +52,7 @@ positions.  For more details see `robot_interfaces with Simulation`_.
 Simulation is stepped in ``append_desired_action()``
 ----------------------------------------------------
 
-Everytime the ``append_desirec_action()`` method is called, the next time step
+Everytime the ``append_desired_action()`` method is called, the next time step
 in the simulation is computed.  This means that the state of the simulation
 does not change as long as this method is not called.
 This is different to the real robot, which will physically continue to move
