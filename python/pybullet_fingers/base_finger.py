@@ -1,7 +1,14 @@
 import os
+import typing
+import warnings
 
 import pybullet
 from pybullet_fingers import pinocchio_utils
+
+
+class FingerTypeData(typing.NamedTuple):
+    urdf_file: str
+    number_of_fingers: int
 
 
 class BaseFinger:
@@ -9,6 +16,25 @@ class BaseFinger:
     The SimFinger and RealFinger environments derive from this base
     class, which implements some common core functions.
     """
+
+    finger_type_data = {
+        "fingerone": FingerTypeData("finger.urdf", 1),
+        # for backward compatibility
+        "single": FingerTypeData("finger.urdf", 1),
+        "trifingerone": FingerTypeData("trifinger.urdf", 3),
+        # for backward compatibility
+        "tri": FingerTypeData("trifinger.urdf", 3),
+        "trifingeredu": FingerTypeData("edu/trifingeredu.urdf", 3),
+    }
+
+    @classmethod
+    def get_valid_finger_types(cls):
+        """Get list of supported finger types.
+
+        Returns:
+            List of supported finger types.
+        """
+        return cls.finger_type_data.keys()
 
     def __init__(
         self, finger_type, enable_visualization,
@@ -18,9 +44,8 @@ class BaseFinger:
         the trifinger robots.
 
         Args:
-            finger_type (string- "single"/ "tri"): Specify if you want to run
-                the single finger model or the trifinger model, so finger_type
-                expects one of the two values: "single" or "tri", respectively.
+            finger_type (string): Name of the finger type.  Use
+                get_valid_finger_types() to get a list of all supported types.
             enable_visualization (bool): Set this to 'True' for a GUI interface
                 to the simulation.
         """
@@ -83,19 +108,23 @@ class BaseFinger:
                 os.path.dirname(__file__), "robot_properties_fingers"
             )
 
-        if "single" in self.finger_type:
-            self.finger_urdf_path = os.path.join(
-                self.robot_properties_path, "urdf", "finger.urdf"
+        if self.finger_type in ["single", "tri"]:
+            warnings.warn(
+                "Finger types 'single' and 'tri' are deprecated."
+                " Use 'fingerone' and 'trifingerone' instead."
             )
-            self.number_of_fingers = 1
 
-        elif "tri" in self.finger_type:
+        if self.finger_type in self.finger_type_data:
+            data = self.finger_type_data[self.finger_type]
             self.finger_urdf_path = os.path.join(
-                self.robot_properties_path, "urdf", "trifinger.urdf"
+                self.robot_properties_path, "urdf", data.urdf_file
             )
-            self.number_of_fingers = 3
+            self.number_of_fingers = data.number_of_fingers
         else:
-            raise ValueError("Finger type has to be one of 'single' or 'tri'")
+            raise ValueError(
+                "Invalid finger type '%s'.  Valid types are %s"
+                % (self.finger_type, self.finger_type_data.keys())
+            )
 
     def init_joint_lists(self):
         """

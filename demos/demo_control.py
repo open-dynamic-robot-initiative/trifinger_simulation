@@ -15,25 +15,23 @@ def main():
 
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument(
-        "--control_mode",
+        "--control-mode",
         default="position",
         choices=["position", "torque"],
         help="Specify position or torque as the control mode.",
     )
     argparser.add_argument(
-        "--finger_type",
+        "--finger-type",
         default="tri",
-        choices=["single", "tri"],
+        choices=sim_finger.SimFinger.get_valid_finger_types(),
         help="Specify type of finger as single or tri.",
     )
     args = argparser.parse_args()
     time_step = 0.004
 
     finger = sim_finger.SimFinger(time_step, True, args.finger_type)
-    if args.finger_type == "single":
-        num_fingers = 1
-    elif args.finger_type == "tri":
-        num_fingers = 3
+    num_fingers = finger.number_of_fingers
+
     if args.control_mode == "position":
         position_goals = visual_objects.Marker(number_of_goals=num_fingers)
 
@@ -54,7 +52,8 @@ def main():
             desired_joint_torques = [random.random()] * 3 * num_fingers
             finger_action = finger.Action(torque=desired_joint_torques)
 
-        for _ in range(20):
+        # pursue this goal for one second
+        for _ in range(int(1/time_step)):
             t = finger.append_desired_action(finger_action)
             finger.get_observation(t)
             time.sleep(time_step)
