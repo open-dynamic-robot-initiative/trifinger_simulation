@@ -35,7 +35,7 @@ def main():
 
     real_time = not args.non_real_time
     time_step = 0.004
-    finger = sim_finger.SimFinger(time_step, True, "tri")
+    finger = sim_finger.SimFinger(time_step, True, "trifingerone")
 
     # Object and Object Tracker Interface
     # ===================================
