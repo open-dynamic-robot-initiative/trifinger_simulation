@@ -1,0 +1,147 @@
+#!/usr/bin/env python3
+import unittest
+import numpy as np
+
+from pybullet_fingers.sim_finger import SimFinger
+
+
+class TestActionObservationTiming(unittest.TestCase):
+    """Test if time relation between action_t and observation_t are correct.
+    """
+
+    def setUp(self):
+        self.finger = SimFinger(
+            time_step=0.001, enable_visualization=False, finger_type="single",
+        )
+
+        start_position = [0, -0.7, -1.5]
+        self.finger.reset_finger(start_position)
+
+        # Run position control for several iterations to make sure the target
+        # position is reached
+        action = self.finger.Action(position=start_position)
+        for i in range(1000):
+            t = self.finger.append_desired_action(action)
+            obs = self.finger.get_observation(t)
+
+        self.initial_position = obs.position
+
+    def test_timing_action_t_vs_observation_t(self):
+        # Apply a max torque action for one step
+        action = self.finger.Action(
+            torque=[
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+            ]
+        )
+        t = self.finger.append_desired_action(action)
+        obs = self.finger.get_observation(t)
+
+        # as obs_t is from just before action_t is applied, the position should
+        # not yet have changed
+        np.testing.assert_array_equal(self.initial_position, obs.position)
+
+        # after applying another action (even with zero torque), we should see
+        # the effect
+        t = self.finger.append_desired_action(self.finger.Action())
+        obs = self.finger.get_observation(t)
+        # new position should be less, as negative torque is applied
+        np.testing.assert_array_less(obs.position, self.initial_position)
+
+    def test_timing_action_t_vs_observation_tplus1(self):
+        # Apply a max torque action for one step
+        action = self.finger.Action(
+            torque=[
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+            ]
+        )
+        t = self.finger.append_desired_action(action)
+        obs = self.finger.get_observation(t + 1)
+
+        # new position should be less, as negative torque is applied
+        np.testing.assert_array_less(obs.position, self.initial_position)
+
+    def test_timing_observation_t_vs_tplus1(self):
+        # Apply a max torque action for one step
+        action = self.finger.Action(
+            torque=[
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+            ]
+        )
+        t = self.finger.append_desired_action(action)
+        obs_t = self.finger.get_observation(t)
+        obs_tplus1 = self.finger.get_observation(t + 1)
+
+        # newer position should be lesser, as negative torque is applied
+        np.testing.assert_array_less(obs_tplus1.position, obs_t.position)
+
+    def test_timing_observation_t_multiple_times(self):
+        # Apply a max torque action for one step
+        action = self.finger.Action(
+            torque=[
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+            ]
+        )
+        t = self.finger.append_desired_action(action)
+        obs_t1 = self.finger.get_observation(t)
+
+        # observation should not change when calling multiple times with same t
+        for i in range(10):
+            obs_ti = self.finger.get_observation(t)
+            np.testing.assert_array_equal(obs_t1.position, obs_ti.position)
+            np.testing.assert_array_equal(obs_t1.velocity, obs_ti.velocity)
+            np.testing.assert_array_equal(obs_t1.torque, obs_ti.torque)
+            np.testing.assert_array_equal(obs_t1.tip_force, obs_ti.tip_force)
+
+    def test_timing_observation_tplus1_multiple_times(self):
+        # Apply a max torque action for one step
+        action = self.finger.Action(
+            torque=[
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+            ]
+        )
+        t = self.finger.append_desired_action(action)
+        obs_t1 = self.finger.get_observation(t + 1)
+
+        # observation should not change when calling multiple times with same t
+        for i in range(10):
+            obs_ti = self.finger.get_observation(t + 1)
+            np.testing.assert_array_equal(obs_t1.position, obs_ti.position)
+            np.testing.assert_array_equal(obs_t1.velocity, obs_ti.velocity)
+            np.testing.assert_array_equal(obs_t1.torque, obs_ti.torque)
+            np.testing.assert_array_equal(obs_t1.tip_force, obs_ti.tip_force)
+
+    def test_exception_on_old_t(self):
+        # append two actions
+        t1 = self.finger.append_desired_action(self.finger.Action())
+        t2 = self.finger.append_desired_action(self.finger.Action())
+
+        # it should be possible to get observation for t2 and t2 + 1 but not t1
+        # or t2 + 2
+        self.finger.get_observation(t2)
+        self.finger.get_observation(t2 + 1)
+
+        with self.assertRaises(ValueError):
+            self.finger.get_observation(t1)
+
+        with self.assertRaises(ValueError):
+            self.finger.get_observation(t2 + 2)
+
+
+if __name__ == "__main__":
+    import rosunit
+
+    rosunit.unitrun(
+        "pybullet_fingers",
+        "test_action_observation_timing",
+        TestActionObservationTiming,
+    )

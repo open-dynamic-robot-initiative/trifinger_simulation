@@ -36,13 +36,10 @@ class SimFinger(BaseFinger):
             velocities during the safety torque check on the joint motors.
         max_motor_torque (float): The maximum allowable torque that can
             be applied to each motor.
-        action_index (int): An index used to enforce the structure of a
+        time_index (int): An index used to enforce the structure of a
             time-series of length 1 for the action in which the application
             of the action precedes (in time) the observation corresponding
             to it. Incremented each time an action is applied.
-        observation_index (int): The corresponding index for the observation
-            to ensure the same structure as the action time-series for the
-            observation time-series (of length 1).
 
     """
 
@@ -74,8 +71,7 @@ class SimFinger(BaseFinger):
         self.safety_kd = np.array([0.08, 0.08, 0.04] * self.number_of_fingers)
         self.max_motor_torque = 0.36
 
-        self.action_index = -1
-        self.observation_index = 0
+        self.time_index = -1
 
         self.make_physical_world()
         self.disable_velocity_control()
@@ -83,9 +79,7 @@ class SimFinger(BaseFinger):
         # enable force sensor on tips
         for joint_index in self.finger_tip_ids:
             pybullet.enableJointForceTorqueSensor(
-                self.finger_id,
-                joint_index,
-                enableSensor=True
+                self.finger_id, joint_index, enableSensor=True
             )
 
     def Action(self, torque=None, position=None):
@@ -273,18 +267,17 @@ class SimFinger(BaseFinger):
             action (Action): Joint positions or torques or both
 
         Returns:
-            self.action_index (int): The current time-index at which the action
+            self.time_index (int): The current time-index at which the action
                 was applied.
         """
-        if self.action_index >= self.observation_index:
-            raise Exception(
-                "You have to call get_observation after each"
-                "append_desired_action."
-            )
         self._set_desired_action(action)
 
-        self.action_index = self.action_index + 1
-        return self.action_index
+        # save current observation, then step simulation
+        self._observation_before_last_step = self._get_latest_observation()
+        self._step_simulation()
+
+        self.time_index += 1
+        return self.time_index
 
     def _get_latest_observation(self):
         """Get observation of the current state.
@@ -330,8 +323,8 @@ class SimFinger(BaseFinger):
 
         Args:
             time_index (int): the time index at which the observation is
-                needed. This can only be the current time-index (so same as the
-                action_index)
+                needed. This can only be the current time-index
+                (self.time_index) or current time-index + 1.
 
         Returns:
             observation (Observation): the joint positions, velocities, and
@@ -341,27 +334,19 @@ class SimFinger(BaseFinger):
             Exception if the observation at any other time index than the one
             at which the action is applied, is queried for.
         """
+        if time_index == self.time_index:
+            # observation from before action_t was applied
+            observation = self._observation_before_last_step
 
-        assert (
-            self.observation_index == self.action_index
-        ), "observation_index {} != action_index {}".format(
-            self.observation_index, self.action_index
-        )
-
-        if time_index == self.action_index:
-            observation = self._get_latest_observation()
-            self._step_simulation()
-
-        elif time_index == self.action_index + 1:
-            self._step_simulation()
+        elif time_index == self.time_index + 1:
+            # observation from after action_t was applied
             observation = self._get_latest_observation()
 
         else:
-            raise Exception(
-                "currently you can only get the observation at the current"
-                "time index, or the next one mdnjafeqf."
+            raise ValueError(
+                "You can only get the observation at the current time index,"
+                " or the next one."
             )
-        self.observation_index = self.observation_index + 1
 
         return observation
 
