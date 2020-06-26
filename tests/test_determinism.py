@@ -7,7 +7,7 @@ from pybullet_fingers.sim_finger import SimFinger
 
 
 class TestSimulationDeterminisim(unittest.TestCase):
-    """This test verifies that the simulation always behaves deterministic.
+    """This test verifies that the simulation always behaves deterministically.
 
     When starting from the same position and sending the same commands, the
     result should be the same.
