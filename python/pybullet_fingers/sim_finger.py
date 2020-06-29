@@ -43,9 +43,9 @@ class SimFinger(BaseFinger):
         Constructor, initializes the physical world we will work in.
 
         Args:
-            time_step (float): It is the time between two simulation steps.
-                Defaults to 1./240. Don't set this to be larger than 1./60.
-                The gains etc are set according to a time_step of 0.004 s.
+            time_step (float): Time (in seconds) between two simulation steps.
+                Don't set this to be larger than 1/60.  The gains etc. are set
+                according to a time_step of 0.004 s.
             enable_visualization (bool): See BaseFinger.
             finger_type: See BaseFinger.
         """
@@ -54,7 +54,7 @@ class SimFinger(BaseFinger):
 
         super().__init__(finger_type, enable_visualization)
 
-        self.time_step = time_step
+        self.time_step_s = time_step
         self.position_gains = np.array(
             [10.0, 10.0, 10.0] * self.number_of_fingers
         )
@@ -113,7 +113,7 @@ class SimFinger(BaseFinger):
         """
         pybullet.setAdditionalSearchPath(pybullet_data.getDataPath())
         pybullet.setGravity(0, 0, -9.81)
-        pybullet.setTimeStep(self.time_step)
+        pybullet.setTimeStep(self.time_step_s)
 
         pybullet.loadURDF("plane_transparent.urdf", [0, 0, 0])
         self.import_finger_model()
@@ -334,7 +334,7 @@ class SimFinger(BaseFinger):
             to the configured time step.
         """
         self._validate_time_index(t)
-        return self.time_step * 1000 * self.time_index
+        return self.time_step_s * 1000 * self.time_index
 
     def get_current_timeindex(self):
         """Get the current time index."""
