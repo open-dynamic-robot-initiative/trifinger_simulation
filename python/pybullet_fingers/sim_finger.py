@@ -29,10 +29,8 @@ class SimFinger(BaseFinger):
             velocities during the safety torque check on the joint motors.
         max_motor_torque (float): The maximum allowable torque that can
             be applied to each motor.
-        time_index (int): An index used to enforce the structure of a
-            time-series of length 1 for the action in which the application
-            of the action precedes (in time) the observation corresponding
-            to it. Incremented each time an action is applied.
+        _t (int): "Time index" of the current time step.  Incremented each time
+            an action is applied.
 
     """
 
@@ -64,7 +62,7 @@ class SimFinger(BaseFinger):
         self.safety_kd = np.array([0.08, 0.08, 0.04] * self.number_of_fingers)
         self.max_motor_torque = 0.36
 
-        self.time_index = -1
+        self._t = -1
 
         self.make_physical_world()
         self.disable_velocity_control()
@@ -260,32 +258,31 @@ class SimFinger(BaseFinger):
             action (Action): Joint positions or torques or both
 
         Returns:
-            self.time_index (int): The current time-index at which the action
-                was applied.
+            (int): The current time index t at which the action is applied.
         """
         # copy the action in a way that works for both Action and
         # robot_interfaces.(tri)finger.Action.  Note that a simple
         # copy.copy(action) does **not** work for robot_interfaces
         # actions!
-        self._last_desired_action = type(action)(
+        self._desired_action_t = type(action)(
             copy.copy(action.torque), copy.copy(action.position),
         )
 
-        self._last_applied_action = self._set_desired_action(action)
+        self._applied_action_t = self._set_desired_action(action)
 
         # save current observation, then step simulation
-        self._observation_before_last_step = self._get_latest_observation()
+        self._observation_t = self._get_latest_observation()
         self._step_simulation()
 
-        self.time_index += 1
-        return self.time_index
+        self._t += 1
+        return self._t
 
-    def _validate_time_index(self, time_index):
-        """Raise error if time_index does not match with self.time_index."""
-        if time_index != self.time_index:
+    def _validate_time_index(self, t):
+        """Raise error if t does not match with self._t."""
+        if t != self._t:
             raise ValueError(
-                "Given time_index %d does not match with current index %d"
-                % (time_index, self.time_index)
+                "Given time index %d does not match with current index %d"
+                % (t, self._t)
             )
 
     def get_desired_action(self, t):
@@ -300,7 +297,7 @@ class SimFinger(BaseFinger):
             The desired action of time step t.
         """
         self._validate_time_index(t)
-        return self._last_desired_action
+        return self._desired_action_t
 
     def get_applied_action(self, t):
         """Get the actually applied action of time step 't'.
@@ -318,7 +315,7 @@ class SimFinger(BaseFinger):
             The applied action of time step t.
         """
         self._validate_time_index(t)
-        return self._last_applied_action
+        return self._applied_action_t
 
     def get_timestamp_ms(self, t):
         """Get timestamp of time step 't'.
@@ -334,11 +331,11 @@ class SimFinger(BaseFinger):
             to the configured time step.
         """
         self._validate_time_index(t)
-        return self.time_step_s * 1000 * self.time_index
+        return self.time_step_s * 1000 * self._t
 
     def get_current_timeindex(self):
         """Get the current time index."""
-        return self.time_index
+        return self._t
 
     def _get_latest_observation(self):
         """Get observation of the current state.
@@ -373,7 +370,7 @@ class SimFinger(BaseFinger):
 
         return observation
 
-    def get_observation(self, time_index):
+    def get_observation(self, t):
         """
         Get the observation at the time of
         applying the action, so the observation actually corresponds
@@ -383,9 +380,9 @@ class SimFinger(BaseFinger):
         This method steps the simulation!
 
         Args:
-            time_index (int): the time index at which the observation is
-                needed. This can only be the current time-index
-                (self.time_index) or current time-index + 1.
+            t (int): the time index at which the observation is needed. This
+                can only be the current time index (self._t) or current
+                time index + 1.
 
         Returns:
             observation (Observation): the joint positions, velocities, and
@@ -395,11 +392,11 @@ class SimFinger(BaseFinger):
             Exception if the observation at any other time index than the one
             at which the action is applied, is queried for.
         """
-        if time_index == self.time_index:
+        if t == self._t:
             # observation from before action_t was applied
-            observation = self._observation_before_last_step
+            observation = self._observation_t
 
-        elif time_index == self.time_index + 1:
+        elif t == self._t + 1:
             # observation from after action_t was applied
             observation = self._get_latest_observation()
 
