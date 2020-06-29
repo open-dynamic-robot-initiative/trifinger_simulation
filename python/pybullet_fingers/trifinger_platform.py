@@ -91,7 +91,7 @@ class TriFingerPlatform:
         cube_state = self.cube.get_state()
         pose = ObjectPose()
         pose.position = np.asarray(cube_state[0])
-        pose.position = np.asarray(cube_state[0])
+        pose.orientation = np.asarray(cube_state[1])
         pose.timestamp = self.get_timestamp_ms(t) * 1000.0
         pose.confidence = 1.0
 
