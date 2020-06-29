@@ -152,14 +152,14 @@ class SimFinger(BaseFinger):
                 self.robot_properties_path, "meshes", "stl", filename
             )
 
-        if "single" in self.finger_type:
+        if self.finger_type in ["fingerone", "single"]:
             collision_objects.import_mesh(
                 mesh_path("Stage_simplified.stl"),
                 position=[0, 0, 0],
                 is_concave=True,
             )
 
-        elif "tri" in self.finger_type:
+        elif self.finger_type in ["trifingerone", "tri"]:
             table_colour = (0.31, 0.27, 0.25, 1.0)
             high_border_colour = (0.95, 0.95, 0.95, 1.0)
             if high_border:
@@ -182,6 +182,21 @@ class SimFinger(BaseFinger):
                     is_concave=True,
                     color_rgba=table_colour,
                 )
+        elif self.finger_type == "trifingeredu":
+            table_colour = (0.95, 0.95, 0.95, 1.0)
+            high_border_colour = (0.95, 0.95, 0.95, 1.0)
+            collision_objects.import_mesh(
+                mesh_path("trifinger_table_without_border.stl"),
+                position=[0, 0, 0],
+                is_concave=False,
+                color_rgba=table_colour,
+            )
+            collision_objects.import_mesh(
+                mesh_path("edu/frame_wall.stl"),
+                position=[0, 0, 0],
+                is_concave=True,
+                color_rgba=high_border_colour,
+            )
         else:
             raise ValueError("Invalid finger type '%s'" % self.finger_type)
 
