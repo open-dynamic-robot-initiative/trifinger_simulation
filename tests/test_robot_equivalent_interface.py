@@ -5,8 +5,10 @@ import numpy as np
 from pybullet_fingers.sim_finger import SimFinger
 
 
-class TestActionObservationTiming(unittest.TestCase):
-    """Test if time relation between action_t and observation_t are correct.
+class TestRobotEquivalentInterface(unittest.TestCase):
+    """
+    Test the methods of SimFinger that provide an interface equivalent to the
+    RobotFrontend of robot_interfaces.
     """
 
     def setUp(self):
@@ -27,6 +29,7 @@ class TestActionObservationTiming(unittest.TestCase):
         self.initial_position = obs.position
 
     def test_timing_action_t_vs_observation_t(self):
+        """Verify that observation_t is really not affected by action_t."""
         # Apply a max torque action for one step
         action = self.finger.Action(
             torque=[
@@ -50,6 +53,7 @@ class TestActionObservationTiming(unittest.TestCase):
         np.testing.assert_array_less(obs.position, self.initial_position)
 
     def test_timing_action_t_vs_observation_tplus1(self):
+        """Verify that observation_{t+1} is affected by action_t."""
         # Apply a max torque action for one step
         action = self.finger.Action(
             torque=[
@@ -81,6 +85,10 @@ class TestActionObservationTiming(unittest.TestCase):
         np.testing.assert_array_less(obs_tplus1.position, obs_t.position)
 
     def test_timing_observation_t_multiple_times(self):
+        """
+        Verify that calling get_observation(t) multiple times always gives same
+        result.
+        """
         # Apply a max torque action for one step
         action = self.finger.Action(
             torque=[
@@ -101,6 +109,10 @@ class TestActionObservationTiming(unittest.TestCase):
             np.testing.assert_array_equal(obs_t1.tip_force, obs_ti.tip_force)
 
     def test_timing_observation_tplus1_multiple_times(self):
+        """
+        Verify that calling get_observation(t + 1) multiple times always gives
+        same result.
+        """
         # Apply a max torque action for one step
         action = self.finger.Action(
             torque=[
@@ -121,6 +133,7 @@ class TestActionObservationTiming(unittest.TestCase):
             np.testing.assert_array_equal(obs_t1.tip_force, obs_ti.tip_force)
 
     def test_exception_on_old_t(self):
+        """Verify that calling get_observation with invalid t raises error."""
         # append two actions
         t1 = self.finger.append_desired_action(self.finger.Action())
         t2 = self.finger.append_desired_action(self.finger.Action())
@@ -136,12 +149,50 @@ class TestActionObservationTiming(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.finger.get_observation(t2 + 2)
 
+    def test_get_desired_action(self):
+        orig_action = self.finger.Action(
+            torque=[1.0, 2.0, 3.0], position=[0.0, -1.0, -2.0]
+        )
+        t = self.finger.append_desired_action(orig_action)
+        action = self.finger.get_desired_action(t)
+
+        np.testing.assert_array_equal(orig_action.torque, action.torque)
+        np.testing.assert_array_equal(orig_action.position, action.position)
+
+    def test_get_applied_action(self):
+        desired_action = self.finger.Action(torque=[5, 5, 5])
+        t = self.finger.append_desired_action(desired_action)
+        applied_action = self.finger.get_applied_action(t)
+
+        np.testing.assert_array_almost_equal(
+            applied_action.torque,
+            [
+                self.finger.max_motor_torque,
+                self.finger.max_motor_torque,
+                self.finger.max_motor_torque,
+            ],
+        )
+
+    def test_get_timestamp_ms_001(self):
+        t = self.finger.append_desired_action(self.finger.Action())
+        first_stamp = self.finger.get_timestamp_ms(t)
+        t = self.finger.append_desired_action(self.finger.Action())
+        second_stamp = self.finger.get_timestamp_ms(t)
+
+        # time step is set to 0.001, so the difference between two steps should
+        # be 1 ms.
+        self.assertEqual(second_stamp - first_stamp, 1)
+
+    def test_get_current_timeindex(self):
+        t = self.finger.append_desired_action(self.finger.Action())
+        self.assertEqual(self.finger.get_current_timeindex(), t)
+
 
 if __name__ == "__main__":
     import rosunit
 
     rosunit.unitrun(
         "pybullet_fingers",
-        "test_action_observation_timing",
-        TestActionObservationTiming,
+        "test_robot_equivalent_interface",
+        TestRobotEquivalentInterface,
     )

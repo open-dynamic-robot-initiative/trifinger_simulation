@@ -61,7 +61,8 @@ class BaseFinger:
         avoid any further function calls to it.
         """
         if self.enable_simulation:
-            pybullet.disconnect()
+            if pybullet.isConnected():
+                pybullet.disconnect()
             self.enable_simulation = False
 
     def set_finger_type_dependency(self):

@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-# -------------------------------------------------------------------------------------------------
-# The documentation in this code is heavily derived from the official
-# documentation of PyBullet at
-# https://docs.google.com/document/d/10sXEhzFRSnvFcl3XxNGhnD4N2SedqwdAvK3dsihxVUA/edit#
-# among other scattered sources.
-# -------------------------------------------------------------------------------------------------
 import copy
 import os
 import numpy as np
@@ -36,10 +29,8 @@ class SimFinger(BaseFinger):
             velocities during the safety torque check on the joint motors.
         max_motor_torque (float): The maximum allowable torque that can
             be applied to each motor.
-        time_index (int): An index used to enforce the structure of a
-            time-series of length 1 for the action in which the application
-            of the action precedes (in time) the observation corresponding
-            to it. Incremented each time an action is applied.
+        _t (int): "Time index" of the current time step.  Incremented each time
+            an action is applied.
 
     """
 
@@ -50,9 +41,9 @@ class SimFinger(BaseFinger):
         Constructor, initializes the physical world we will work in.
 
         Args:
-            time_step (float): It is the time between two simulation steps.
-                Defaults to 1./240. Don't set this to be larger than 1./60.
-                The gains etc are set according to a time_step of 0.004 s.
+            time_step (float): Time (in seconds) between two simulation steps.
+                Don't set this to be larger than 1/60.  The gains etc. are set
+                according to a time_step of 0.004 s.
             enable_visualization (bool): See BaseFinger.
             finger_type: See BaseFinger.
         """
@@ -61,7 +52,7 @@ class SimFinger(BaseFinger):
 
         super().__init__(finger_type, enable_visualization)
 
-        self.time_step = time_step
+        self.time_step_s = time_step
         self.position_gains = np.array(
             [10.0, 10.0, 10.0] * self.number_of_fingers
         )
@@ -71,7 +62,7 @@ class SimFinger(BaseFinger):
         self.safety_kd = np.array([0.08, 0.08, 0.04] * self.number_of_fingers)
         self.max_motor_torque = 0.36
 
-        self.time_index = -1
+        self._t = -1
 
         self.make_physical_world()
         self.disable_velocity_control()
@@ -120,7 +111,7 @@ class SimFinger(BaseFinger):
         """
         pybullet.setAdditionalSearchPath(pybullet_data.getDataPath())
         pybullet.setGravity(0, 0, -9.81)
-        pybullet.setTimeStep(self.time_step)
+        pybullet.setTimeStep(self.time_step_s)
 
         pybullet.loadURDF("plane_transparent.urdf", [0, 0, 0])
         self.import_finger_model()
@@ -267,17 +258,84 @@ class SimFinger(BaseFinger):
             action (Action): Joint positions or torques or both
 
         Returns:
-            self.time_index (int): The current time-index at which the action
-                was applied.
+            (int): The current time index t at which the action is applied.
         """
-        self._set_desired_action(action)
+        # copy the action in a way that works for both Action and
+        # robot_interfaces.(tri)finger.Action.  Note that a simple
+        # copy.copy(action) does **not** work for robot_interfaces
+        # actions!
+        self._desired_action_t = type(action)(
+            copy.copy(action.torque), copy.copy(action.position),
+        )
+
+        self._applied_action_t = self._set_desired_action(action)
 
         # save current observation, then step simulation
-        self._observation_before_last_step = self._get_latest_observation()
+        self._observation_t = self._get_latest_observation()
         self._step_simulation()
 
-        self.time_index += 1
-        return self.time_index
+        self._t += 1
+        return self._t
+
+    def _validate_time_index(self, t):
+        """Raise error if t does not match with self._t."""
+        if t != self._t:
+            raise ValueError(
+                "Given time index %d does not match with current index %d"
+                % (t, self._t)
+            )
+
+    def get_desired_action(self, t):
+        """Get the desired action of time step 't'.
+
+        Args:
+            t: Index of the time step.  The only valid value is the index of
+                the current step (return value of the last call of
+                append_desired_action()).
+
+        Returns:
+            The desired action of time step t.
+        """
+        self._validate_time_index(t)
+        return self._desired_action_t
+
+    def get_applied_action(self, t):
+        """Get the actually applied action of time step 't'.
+
+        The actually applied action can differ from the desired one, e.g.
+        because the position controller affects the torque command or because
+        too big torques are clamped to the limits.
+
+        Args:
+            t: Index of the time step.  The only valid value is the index of
+                the current step (return value of the last call of
+                append_desired_action()).
+
+        Returns:
+            The applied action of time step t.
+        """
+        self._validate_time_index(t)
+        return self._applied_action_t
+
+    def get_timestamp_ms(self, t):
+        """Get timestamp of time step 't'.
+
+        Args:
+            t: Index of the time step.  The only valid value is the index of
+                the current step (return value of the last call of
+                append_desired_action()).
+
+        Returns:
+            Timestamp in milliseconds.  The timestamp starts at zero when
+            initializing and is increased with every simulation step according
+            to the configured time step.
+        """
+        self._validate_time_index(t)
+        return self.time_step_s * 1000 * self._t
+
+    def get_current_timeindex(self):
+        """Get the current time index."""
+        return self._t
 
     def _get_latest_observation(self):
         """Get observation of the current state.
@@ -312,7 +370,7 @@ class SimFinger(BaseFinger):
 
         return observation
 
-    def get_observation(self, time_index):
+    def get_observation(self, t):
         """
         Get the observation at the time of
         applying the action, so the observation actually corresponds
@@ -322,9 +380,9 @@ class SimFinger(BaseFinger):
         This method steps the simulation!
 
         Args:
-            time_index (int): the time index at which the observation is
-                needed. This can only be the current time-index
-                (self.time_index) or current time-index + 1.
+            t (int): the time index at which the observation is needed. This
+                can only be the current time index (self._t) or current
+                time index + 1.
 
         Returns:
             observation (Observation): the joint positions, velocities, and
@@ -334,11 +392,11 @@ class SimFinger(BaseFinger):
             Exception if the observation at any other time index than the one
             at which the action is applied, is queried for.
         """
-        if time_index == self.time_index:
+        if t == self._t:
             # observation from before action_t was applied
-            observation = self._observation_before_last_step
+            observation = self._observation_t
 
-        elif time_index == self.time_index + 1:
+        elif t == self._t + 1:
             # observation from after action_t was applied
             observation = self._get_latest_observation()
 
