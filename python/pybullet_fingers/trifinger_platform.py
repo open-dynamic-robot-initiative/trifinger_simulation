@@ -1,5 +1,7 @@
 import numpy as np
 
+from robot_fingers.tasks import move_cube
+
 from .sim_finger import SimFinger
 from . import camera, collision_objects
 
@@ -52,8 +54,15 @@ class TriFingerPlatform:
         Args:
             visualization (bool):  Set to true to run visualization.
         """
+        initial_position = [0.0, np.deg2rad(-70), np.deg2rad(-130)] * 3
+
         self.simfinger = SimFinger(0.001, visualization, "tri")
-        self.cube = collision_objects.Block()
+
+        # set fingers to initial pose
+        self.simfinger.reset_finger(initial_position)
+
+        initial_cube_pose = move_cube.sample_goal(difficulty=-1)
+        self.cube = collision_objects.Block(*initial_cube_pose)
 
         self.tricamera = camera.TriFingerCameras()
 
