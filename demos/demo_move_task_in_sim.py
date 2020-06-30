@@ -8,8 +8,6 @@ from pybullet_fingers import trifinger_platform, sample
 
 
 def main():
-    episode_length = 5000  # FIXME where does the user get this value?
-
     # Create simulation
     platform = trifinger_platform.TriFingerPlatform(visualization=True)
 
@@ -20,8 +18,8 @@ def main():
     # towards the goal :).
 
     # Stop when max. number of episodes is reached
-    t = 0
-    while t < episode_length:
+    t = -1
+    while t < move_cube.episode_length - 1:
         # sample random position action
         finger_action = platform.Action(position=np.array(
             sample.random_joint_positions(
@@ -48,7 +46,7 @@ def main():
         )
         print("t = {}, cost: {:.4f}".format(t, cost))
 
-    print("Finished with cost {:.4f}".format(cost))
+    print("==> Finished with cost {:.4f}\n".format(cost))
 
 
 if __name__ == "__main__":
