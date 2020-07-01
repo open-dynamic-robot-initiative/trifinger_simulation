@@ -11,9 +11,13 @@ class ObjectPose:
     __slots__ = ["position", "orientation", "timestamp", "confidence"]
 
     def __init__(self):
+        #: array: Position (x, y, z) of the object.  Units are meters.
         self.position = np.zeros(3)
+        #: array: Orientation of the object as (x, y, z, w) quaternion.
         self.orientation = np.zeros(4)
+        #: float: Timestamp when the pose was observed.
         self.timestamp = 0.0
+        #: float: Estimate of the confidence for this pose observation.
         self.confidence = 1.0
 
 
@@ -23,7 +27,9 @@ class CameraObservation:
     __slots__ = ["image", "timestamp"]
 
     def __init__(self):
+        #: array: The image.
         self.image = None
+        #: float: Timestamp when the image was received.
         self.timestamp = None
 
 
@@ -33,14 +39,15 @@ class TriCameraObservation:
     __slots__ = ["cameras"]
 
     def __init__(self):
-        # create three camera observations
+        #: list of :class:`CameraObservation`: List of observations of cameras
+        #: "camera60", "camera180" and "camera300" (in this order).
         self.cameras = [CameraObservation() for i in range(3)]
 
 
 class TriFingerPlatform:
     """
     Wrapper around the simulation providing the same interface as
-    robot_interfaces::TriFingerPlatformFrontend.
+    ``robot_interfaces::TriFingerPlatformFrontend``.
 
     The following methods of the robot_interfaces counterpart are not
     supported:
@@ -85,6 +92,20 @@ class TriFingerPlatform:
         self.get_robot_observation = self.simfinger.get_observation
 
     def get_object_pose(self, t):
+        """Get object pose at time step t.
+
+        Args:
+            t:  The time index of the step for which the object pose is
+                requested.  Only the value returned by the last call of
+                :meth:`~append_desired_action` is valid.
+
+        Returns:
+            ObjectPose:  Pose of the object.  Values come directly from the
+            simulation without adding noise, so the confidence is 1.0.
+
+        Raises:
+            ValueError: If invalid time index ``t`` is passed.
+        """
         self.simfinger._validate_time_index(t)
 
         cube_state = self.cube.get_state()
@@ -97,6 +118,21 @@ class TriFingerPlatform:
         return pose
 
     def get_camera_observation(self, t):
+        """Get camera observation at time step t.
+
+        Args:
+            t:  The time index of the step for which the observation is
+                requested.  Only the value returned by the last call of
+                :meth:`~append_desired_action` is valid.
+
+        Returns:
+            TriCameraObservation:  Observations of the three cameras.  Images
+            are rendered in the simulation.  Note that they are not optimized
+            to look realistically.
+
+        Raises:
+            ValueError: If invalid time index ``t`` is passed.
+        """
         self.simfinger._validate_time_index(t)
 
         images = self.tricamera.get_images()

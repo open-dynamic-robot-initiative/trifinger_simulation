@@ -14,30 +14,17 @@ See `installation instructions <installation.md>`_.
 A Simple Demo
 =============
 
-`demo_plain_torque_control.py <../demos/demo_plain_torque_control.py>`_ shows a
-minimal example of how to control the robot in simulation.
+See SimFinger :ref:`simfinger-usage-example`.
 
-.. literalinclude:: ../demos/demo_plain_torque_control.py
-   :lines: 2-
 
-The ``SimFinger`` class is a wrapper around pyBullet that sets up the
-environment and provides an API to control the robot equivalent to the
-``RobotFrontend`` from the ``robot_interfaces`` package.  In fact, it should be
-possible to simply replace the ``SimFinger`` instance with with an
-``RobotFrontend`` instance to execute the same code on the real robot (in
-practice, there are a few things to consider, see `Simulation vs Real Robot`_).
-
-Note that the next simulation step is computed in the
-``append_desired_action()`` method.  So the state of the simulation only
-changes when calling this method.
-
+.. _sec-simulation-vs-real-robot:
 
 Simulation vs Real Robot
 ========================
 
 We aim to have the same API for controlling the robot in the ``SimFinger`` class
 as in ``robot_interfaces::RobotFrontend`` to allow transition from simulation to
-real robot with only minimal modifications to the code.  There still a few
+real robot with only minimal modifications to the code.  There are still a few
 important differences one should keep in mind though.  These differences are
 described in the following.
 
@@ -45,14 +32,14 @@ Note that it is also possible to use the simulation through the
 ``robot_interfaces`` structure by using a backend that uses the pyBullet driver.
 This way, the full functionality of ``robot_interfaces`` is available (i.e. all
 the issues described below are not there).  The drawback is that this way it is
-not possible to directly access the simulation, e.g. to visualize goal
-positions.  For more details see `robot_interfaces with Simulation`_.
+not possible to directly access the simulation, e.g. to reset the finger.  For
+more details see `robot_interfaces with Simulation`_.
 
 
 Simulation is stepped in ``append_desired_action()``
 ----------------------------------------------------
 
-Everytime the ``append_desired_action()`` method is called, the next time step
+Every time the ``append_desired_action()`` method is called, the next time step
 in the simulation is computed.  This means that the state of the simulation
 does not change as long as this method is not called.
 This is different to the real robot, which will physically continue to move
@@ -94,7 +81,7 @@ actions, etc.  This means all data of the last few time steps is available.  One
 could, for example do the following to determine how the state of the robot
 changed:
 
-.. code-block::
+.. code-block:: python
 
     previous_observation = frontend.get_observation(t - 1)
     current_observation = frontend.get_observation(t)
@@ -140,7 +127,7 @@ remain the same.
 
 To create a TriFinger backend using simulation:
 
-.. code-block::
+.. code-block:: python
 
     import pybullet_fingers.drivers
 
