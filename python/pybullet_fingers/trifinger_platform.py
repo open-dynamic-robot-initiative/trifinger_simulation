@@ -1,7 +1,6 @@
 import numpy as np
 
-from robot_fingers.tasks import move_cube
-
+from .tasks import move_cube
 from .sim_finger import SimFinger
 from . import camera, collision_objects
 
