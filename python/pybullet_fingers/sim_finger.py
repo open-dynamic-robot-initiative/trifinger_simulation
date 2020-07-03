@@ -377,11 +377,17 @@ class SimFinger(BaseFinger):
         finger_tip_states = pybullet.getJointStates(
             self.finger_id, self.finger_tip_ids
         )
-        # FIXME saturate and scale to [0, 1] so the values are in a similar
-        # range as on the real robot
         observation.tip_force = np.array(
             [np.linalg.norm(tip[2][:3]) for tip in finger_tip_states]
         )
+        # The measurement of the push sensor of the real robot lies in the
+        # interval [0, 1].  It is around 0.23 while there is no contact and
+        # saturates at (very roughly) 20 N.
+        push_sensor_saturation_force_N = 20.0
+        push_sensor_no_contact_value = 0.23
+        observation.tip_force /= push_sensor_saturation_force_N
+        observation.tip_force += push_sensor_no_contact_value
+        np.clip(observation.tip_force, 0.0, 1.0, out=observation.tip_force)
 
         return observation
 
