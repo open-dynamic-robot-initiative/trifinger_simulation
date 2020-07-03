@@ -24,6 +24,7 @@ class BaseFinger:
         "trifingerone": FingerTypeData("trifinger.urdf", 3),
         # for backward compatibility
         "tri": FingerTypeData("trifinger.urdf", 3),
+        "fingeredu": FingerTypeData("edu/fingeredu.urdf", 1),
         "trifingeredu": FingerTypeData("edu/trifingeredu.urdf", 3),
     }
 
