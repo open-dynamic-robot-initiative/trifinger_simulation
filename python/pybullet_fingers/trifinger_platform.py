@@ -1,11 +1,13 @@
 import numpy as np
 
+from .tasks import move_cube
 from .sim_finger import SimFinger
 from . import camera, collision_objects
 
 
 class ObjectPose:
     """A pure-python copy of trifinger_object_tracking::ObjectPose."""
+
     __slots__ = ["position", "orientation", "timestamp", "confidence"]
 
     def __init__(self):
@@ -17,6 +19,7 @@ class ObjectPose:
 
 class CameraObservation:
     """Pure-python copy of trifinger_cameras.camera.CameraObservation."""
+
     __slots__ = ["image", "timestamp"]
 
     def __init__(self):
@@ -26,6 +29,7 @@ class CameraObservation:
 
 class TriCameraObservation:
     """Pure-python copy of trifinger_cameras.tricamera.TriCameraObservation."""
+
     __slots__ = ["cameras"]
 
     def __init__(self):
@@ -46,14 +50,28 @@ class TriFingerPlatform:
 
     """
 
-    def __init__(self, visualization=False):
+    def __init__(self, visualization=False, initial_object_pose=None):
         """Initialize.
 
         Args:
             visualization (bool):  Set to true to run visualization.
+            initial_object_pose:  Initial position for the manipulation object.
+                Tuple with position (x, y, z) and orientation quaternion
+                (x, y, z, w).  This is optional, if not set, a random pose will
+                be sampled.
         """
-        self.simfinger = SimFinger(0.001, visualization, "tri")
-        self.cube = collision_objects.Block()
+        # Initially move the fingers to a pose where they are guaranteed to not
+        # collide with the object on the ground.
+        initial_position = [0.0, np.deg2rad(-70), np.deg2rad(-130)] * 3
+
+        self.simfinger = SimFinger(0.001, visualization, "trifingerone")
+
+        # set fingers to initial pose
+        self.simfinger.reset_finger(initial_position)
+
+        if initial_object_pose is None:
+            initial_object_pose = move_cube.sample_goal(difficulty=-1)
+        self.cube = collision_objects.Block(*initial_object_pose)
 
         self.tricamera = camera.TriFingerCameras()
 
@@ -72,7 +90,7 @@ class TriFingerPlatform:
         cube_state = self.cube.get_state()
         pose = ObjectPose()
         pose.position = np.asarray(cube_state[0])
-        pose.position = np.asarray(cube_state[0])
+        pose.orientation = np.asarray(cube_state[1])
         pose.timestamp = self.get_timestamp_ms(t) * 1000.0
         pose.confidence = 1.0
 
