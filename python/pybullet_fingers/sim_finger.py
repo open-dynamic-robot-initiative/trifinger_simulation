@@ -16,22 +16,6 @@ class SimFinger(BaseFinger):
     A simulation environment for the single and the tri-finger robots.
     This environment is based on PyBullet, the official Python wrapper around
     the Bullet-C API.
-
-    Attributes:
-
-        position_gains (array): The kp gains for the pd control of the
-            finger(s). Note, this depends on the simulation step size
-            and has been set for a simulation rate of 250 Hz.
-        velocity_gains (array):The kd gains for the pd control of the
-            finger(s). Note, this depends on the simulation step size
-            and has been set for a simulation rate of 250 Hz.
-        safety_kd (array): The kd gains used for damping the joint motor
-            velocities during the safety torque check on the joint motors.
-        max_motor_torque (float): The maximum allowable torque that can
-            be applied to each motor.
-        _t (int): "Time index" of the current time step.  Incremented each time
-            an action is applied.
-
     """
 
     def __init__(
@@ -44,8 +28,11 @@ class SimFinger(BaseFinger):
             time_step (float): Time (in seconds) between two simulation steps.
                 Don't set this to be larger than 1/60.  The gains etc. are set
                 according to a time_step of 0.004 s.
-            enable_visualization (bool): See BaseFinger.
-            finger_type: See BaseFinger.
+            enable_visualization (bool): Set this to 'True' for a GUI interface
+                to the simulation.
+            finger_type (string): Name of the finger type.  Use
+                :meth:`get_valid_finger_types` to get a list of all supported
+                types.
         """
         # Always enable the simulation for the simulated robot :)
         self.enable_simulation = True
@@ -53,13 +40,26 @@ class SimFinger(BaseFinger):
         super().__init__(finger_type, enable_visualization)
 
         self.time_step_s = time_step
+
+        #: The kp gains for the pd control of the finger(s). Note, this depends
+        #: on the simulation step size and has been set for a simulation rate
+        #: of 250 Hz.
         self.position_gains = np.array(
             [10.0, 10.0, 10.0] * self.number_of_fingers
         )
+
+        #: The kd gains for the pd control of the finger(s). Note, this depends
+        #: on the simulation step size and has been set for a simulation rate
+        #: of 250 Hz.
         self.velocity_gains = np.array(
             [0.1, 0.3, 0.001] * self.number_of_fingers
         )
+
+        #: The kd gains used for damping the joint motor velocities during the
+        #: safety torque check on the joint motors.
         self.safety_kd = np.array([0.08, 0.08, 0.04] * self.number_of_fingers)
+
+        #: The maximum allowable torque that can be applied to each motor.
         self.max_motor_torque = 0.36
 
         self._t = -1
@@ -75,15 +75,20 @@ class SimFinger(BaseFinger):
 
     def Action(self, torque=None, position=None):
         """
-        Fill in the fields of the action structure
+        Fill in the fields of the action structure.
+
+        This is a factory go create an :class:`~pybullet_fingers.action.Action`
+        instance with proper default values, depending on the finger type.
 
         Args:
-            torque (array): The torques to apply to the motors
-            position (array): The absolute angular position to which
-                the motors have to be rotated.
+            torque (array): Torques to apply to the joints.  Defaults to
+                zero.
+            position (array): Angular target positions for the joints.  If set
+                to NaN for a joint, no position control is run for this joint.
+                Defaults to all NaN.
 
         Returns:
-            the_action (Action): the action to be applied to the motors
+            ~action.Action: the action to be applied to the motors
         """
         if torque is None:
             torque = np.array([0.0] * 3 * self.number_of_fingers)
@@ -223,7 +228,7 @@ class SimFinger(BaseFinger):
 
         Returns:
             applied_action:  The action that is actually applied after
-                performing the safety checks.
+            performing the safety checks.
         """
         # copy the action in a way that works for both Action and
         # robot_interfaces.(tri)finger.Action.  Note that a simple
@@ -270,10 +275,10 @@ class SimFinger(BaseFinger):
         will be performed and then the action will be applied to the motors.
 
         Args:
-            action (Action): Joint positions or torques or both
+            action (~action.Action): Joint positions or torques or both
 
         Returns:
-            (int): The current time index t at which the action is applied.
+            int: The current time index t at which the action is applied.
         """
         # copy the action in a way that works for both Action and
         # robot_interfaces.(tri)finger.Action.  Note that a simple
@@ -306,10 +311,13 @@ class SimFinger(BaseFinger):
         Args:
             t: Index of the time step.  The only valid value is the index of
                 the current step (return value of the last call of
-                append_desired_action()).
+                :meth:`~append_desired_action`).
 
         Returns:
             The desired action of time step t.
+
+        Raises:
+            ValueError: If invalid time index ``t`` is passed.
         """
         self._validate_time_index(t)
         return self._desired_action_t
@@ -324,10 +332,13 @@ class SimFinger(BaseFinger):
         Args:
             t: Index of the time step.  The only valid value is the index of
                 the current step (return value of the last call of
-                append_desired_action()).
+                :meth:`~append_desired_action`).
 
         Returns:
             The applied action of time step t.
+
+        Raises:
+            ValueError: If invalid time index ``t`` is passed.
         """
         self._validate_time_index(t)
         return self._applied_action_t
@@ -338,12 +349,15 @@ class SimFinger(BaseFinger):
         Args:
             t: Index of the time step.  The only valid value is the index of
                 the current step (return value of the last call of
-                append_desired_action()).
+                :meth:`~append_desired_action`).
 
         Returns:
             Timestamp in milliseconds.  The timestamp starts at zero when
             initializing and is increased with every simulation step according
             to the configured time step.
+
+        Raises:
+            ValueError: If invalid time index ``t`` is passed.
         """
         self._validate_time_index(t)
         return self.time_step_s * 1000 * self._t
@@ -357,7 +371,7 @@ class SimFinger(BaseFinger):
 
         Returns:
             observation (Observation): the joint positions, velocities, and
-                torques of the joints.
+            torques of the joints.
         """
         observation = Observation()
         current_joint_states = pybullet.getJointStates(
@@ -401,17 +415,15 @@ class SimFinger(BaseFinger):
         This method steps the simulation!
 
         Args:
-            t (int): the time index at which the observation is needed. This
-                can only be the current time index (self._t) or current
-                time index + 1.
+            t: Index of the time step.  The only valid value is the index of
+                the current step (return value of the last call of
+                :meth:`~append_desired_action`).
 
         Returns:
-            observation (Observation): the joint positions, velocities, and
-                torques of the joints.
+            Observation: Observation of the robot state
 
         Raises:
-            Exception if the observation at any other time index than the one
-            at which the action is applied, is queried for.
+            ValueError: If invalid time index ``t`` is passed.
         """
         if t == self._t:
             # observation from before action_t was applied
@@ -485,7 +497,7 @@ class SimFinger(BaseFinger):
 
         Returns:
             joint_pos (list of floats): The angular positions to be applid at
-                the joints to reach the desired_tip_position
+            the joints to reach the desired_tip_position
         """
         at_target_threshold = 0.0001
 
@@ -558,7 +570,7 @@ class SimFinger(BaseFinger):
 
         Returns:
             applied_torques (list of floats): The torques that can be actually
-                applied to the motors (and will be applied)
+            applied to the motors (and will be applied)
         """
         applied_torques = np.clip(
             np.asarray(desired_torques),

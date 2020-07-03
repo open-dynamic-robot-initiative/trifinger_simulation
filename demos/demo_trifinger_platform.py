@@ -23,11 +23,13 @@ def main():
         )
         finger_action = platform.Action(position=goal)
 
+        # apply action for a few steps, so the fingers can move to the target
+        # position and stay there for a while
         for _ in range(250):
             t = platform.append_desired_action(finger_action)
             time.sleep(0.001)
 
-        # print the latest observations
+        # show the latest observations
         robot_observation = platform.get_robot_observation(t)
         print("Finger0 Position: %s" % robot_observation.position[:3])
 
@@ -36,7 +38,11 @@ def main():
 
         camera_observation = platform.get_camera_observation(t)
         for i, name in enumerate(("camera60", "camera180", "camera300")):
-            cv2.imshow(name, camera_observation.cameras[i].image)
+            # simulation provides images in RGB but OpenCV expects BGR
+            img = cv2.cvtColor(
+                camera_observation.cameras[i].image, cv2.COLOR_RGB2BGR
+            )
+            cv2.imshow(name, img)
         cv2.waitKey(1)
 
         print()
