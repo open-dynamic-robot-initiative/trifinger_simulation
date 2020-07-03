@@ -152,7 +152,7 @@ class SimFinger(BaseFinger):
                 self.robot_properties_path, "meshes", "stl", filename
             )
 
-        if self.finger_type in ["fingerone", "single"]:
+        if self.finger_type in ["fingerone", "single", "fingeredu"]:
             collision_objects.import_mesh(
                 mesh_path("Stage_simplified.stl"),
                 position=[0, 0, 0],
