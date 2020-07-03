@@ -63,6 +63,8 @@ API Documentation
 
    .. automethod:: get_camera_observation
 
+   .. automethod:: store_action_log
+
 ------------------------------------------------------------------------------
 
 .. autoclass:: pybullet_fingers.ObjectPose
