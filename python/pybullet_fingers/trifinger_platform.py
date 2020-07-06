@@ -1,3 +1,4 @@
+import json
 import numpy as np
 
 from .tasks import move_cube
@@ -80,16 +81,44 @@ class TriFingerPlatform:
             initial_object_pose = move_cube.sample_goal(difficulty=-1)
         self.cube = collision_objects.Block(*initial_object_pose)
 
+        self._action_log = {
+            "initial_robot_position": initial_position,
+            "initial_object_pose": {
+                "position": initial_object_pose[0].tolist(),
+                "orientation": initial_object_pose[1].tolist(),
+            },
+            "actions": []
+        }
+
         self.tricamera = camera.TriFingerCameras()
 
         # forward "RobotFrontend" methods directly to simfinger
         self.Action = self.simfinger.Action
-        self.append_desired_action = self.simfinger.append_desired_action
         self.get_desired_action = self.simfinger.get_desired_action
         self.get_applied_action = self.simfinger.get_applied_action
         self.get_timestamp_ms = self.simfinger.get_timestamp_ms
         self.get_current_timeindex = self.simfinger.get_current_timeindex
         self.get_robot_observation = self.simfinger.get_observation
+
+    def append_desired_action(self, action):
+        """
+        Call :meth:`pybullet.SimFinger.append_desired_action` and add the
+        action to the action log.
+
+        Arguments/return value are the same as for
+        :meth:`pybullet.SimFinger.append_desired_action`.
+        """
+        t = self.simfinger.append_desired_action(action)
+
+        self._action_log["actions"].append({
+            "t": t,
+            "torque": action.torque.tolist(),
+            "position": action.position.tolist(),
+            "position_kp": action.position_kp.tolist(),
+            "position_kd": action.position_kd.tolist(),
+        })
+
+        return t
 
     def get_object_pose(self, t):
         """Get object pose at time step t.
@@ -144,3 +173,24 @@ class TriFingerPlatform:
             observation.cameras[i].timestamp = timestamp
 
         return observation
+
+    def store_action_log(self, filename):
+        """Store the action log to a JSON file.
+
+        Args:
+            filename (str):  Path to the JSON file to which the log shall be
+                written.  If the file exists already, it will be overwritten.
+        """
+
+        # TODO should the log also contain intermediate observations (object
+        # and finger) for verification?
+
+        t = self.simfinger.get_current_timeindex()
+        object_pose = self.get_object_pose(t)
+        self._action_log["final_object_pose"] = {
+            "position": object_pose.position.tolist(),
+            "orientation": object_pose.orientation.tolist(),
+        }
+
+        with open(filename, "w") as fh:
+            json.dump(self._action_log, fh)

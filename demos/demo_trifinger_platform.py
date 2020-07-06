@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Simple demo on how to use the TriFingerPlatform interface."""
+import argparse
 import time
 
 import cv2
@@ -9,11 +10,26 @@ from pybullet_fingers import trifinger_platform, sample
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--iterations",
+        type=int,
+        default=100,
+        help="Number of motions that are performed.",
+    )
+    parser.add_argument(
+        "--save-action-log",
+        type=str,
+        metavar="FILENAME",
+        help="If set, save the action log to the specified file.",
+    )
+    args = parser.parse_args()
+
     platform = trifinger_platform.TriFingerPlatform(visualization=True)
 
     # Move the fingers to random positions so that the cube is kicked around
     # (and thus it's position changes).
-    while True:
+    for _ in range(args.iterations):
         goal = np.array(
             sample.random_joint_positions(
                 number_of_fingers=3,
@@ -46,6 +62,9 @@ def main():
         cv2.waitKey(1)
 
         print()
+
+    if args.save_action_log:
+        platform.store_action_log(args.save_action_log)
 
 
 if __name__ == "__main__":
