@@ -1,4 +1,5 @@
 import pybullet
+from scipy.spatial.transform import Rotation
 
 
 class Camera(object):
@@ -26,22 +27,15 @@ class Camera(object):
         self._pybullet_client = pybullet_client
         self._width = image_size[0]
         self._height = image_size[1]
-        x = camera_orientation[0]
-        y = camera_orientation[1]
-        z = camera_orientation[2]
-        w = camera_orientation[3]
+
+        camera_rot = Rotation.from_quat(camera_orientation)
+        target_position = camera_rot.apply([0, 0, 1])
+        camera_up_vector = camera_rot.apply([0, -1, 0])
+
         self._view_matrix = self._pybullet_client.computeViewMatrix(
             cameraEyePosition=camera_position,
-            cameraTargetPosition=[
-                2 * (x * z + w * y),
-                2 * (y * z - w * x),
-                1 - 2 * (x * x + y * y),
-            ],
-            cameraUpVector=[
-                2 * (x * y - w * z),
-                1 - 2 * (x * x + z * z),
-                2 * (y * z + w * x),
-            ],
+            cameraTargetPosition=target_position,
+            cameraUpVector=camera_up_vector,
         )
 
         self._proj_matrix = self._pybullet_client.computeProjectionMatrixFOV(
