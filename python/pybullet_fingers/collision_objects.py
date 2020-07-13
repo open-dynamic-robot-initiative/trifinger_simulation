@@ -79,6 +79,18 @@ class Block:
             baseMass=mass,
         )
 
+        # set dynamics of the block
+        lateral_friction = 1
+        spinning_friction = 0.001
+        restitution = 0
+        pybullet.changeDynamics(
+            bodyUniqueId=self.block,
+            linkIndex=-1,
+            lateralFriction=lateral_friction,
+            spinningFriction=spinning_friction,
+            restitution=restitution,
+        )
+
     def set_state(self, position, orientation):
         """
         Resets the block state to the provided position and
