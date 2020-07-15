@@ -21,19 +21,19 @@ class RealFinger(BaseFinger):
     """
 
     def __init__(
-        self, enable_visualization, finger_type, finger_config_suffix,
+        self, finger_type, finger_config_suffix, enable_visualization=False,
     ):
         """
         Constructor, initializes the physical world we will work in.
 
         Args:
+            finger_type: See BaseFinger.
+            finger_config_suffix (int): ID of the finger that is used. Has to
+                be one of [0, 120, 240]. This ignored if finger_type = "tri".
             enable_visualization (bool): Set to 'True' to run a GUI for
                 visualization.  This uses pyBullet but only for visualization,
                 i.e. the state of the simulation is constantly set to match the
                 one of the real robot.
-            finger_type: See BaseFinger.
-            finger_config_suffix (int): ID of the finger that is used. Has to
-                be one of [0, 120, 240]. This ignored if finger_type = "tri".
         """
         # Simulation is only used for visualization, so only run it when needed
         self.enable_simulation = enable_visualization

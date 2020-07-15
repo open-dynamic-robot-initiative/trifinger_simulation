@@ -71,9 +71,9 @@ class FingerPush(gym.Env):
         )
 
         self.finger = SimFinger(
+            finger_type=finger_type,
             time_step=simulation_rate_s,
             enable_visualization=enable_visualization,
-            finger_type=finger_type,
         )
 
         gym.Env.__init__(self)

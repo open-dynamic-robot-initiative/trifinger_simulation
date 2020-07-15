@@ -10,7 +10,6 @@ import argparse
 import numpy as np
 
 import robot_interfaces
-import robot_fingers
 import pybullet_fingers.drivers
 
 

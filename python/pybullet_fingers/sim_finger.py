@@ -19,20 +19,20 @@ class SimFinger(BaseFinger):
     """
 
     def __init__(
-        self, time_step, enable_visualization, finger_type,
+        self, finger_type, time_step=0.004, enable_visualization=False,
     ):
         """
         Constructor, initializes the physical world we will work in.
 
         Args:
+            finger_type (string): Name of the finger type.  Use
+                :meth:`get_valid_finger_types` to get a list of all supported
+                types.
             time_step (float): Time (in seconds) between two simulation steps.
                 Don't set this to be larger than 1/60.  The gains etc. are set
                 according to a time_step of 0.004 s.
             enable_visualization (bool): Set this to 'True' for a GUI interface
                 to the simulation.
-            finger_type (string): Name of the finger type.  Use
-                :meth:`get_valid_finger_types` to get a list of all supported
-                types.
         """
         # Always enable the simulation for the simulated robot :)
         self.enable_simulation = True

@@ -22,8 +22,6 @@ class TestLoadingURDFs(unittest.TestCase):
         for key in finger_type_data.keys():
             try:
                 SimFinger(
-                    time_step=0.004,
-                    enable_visualization=False,
                     finger_type=key,
                 )
 
@@ -45,8 +43,6 @@ class TestLoadingURDFs(unittest.TestCase):
             try:
                 os.environ["ROS_PACKAGE_PATH"] = " "
                 SimFinger(
-                    time_step=0.004,
-                    enable_visualization=False,
                     finger_type=key,
                 )
             except pybullet.error as e:

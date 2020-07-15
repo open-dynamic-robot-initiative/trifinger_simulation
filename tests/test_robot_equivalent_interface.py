@@ -13,7 +13,9 @@ class TestRobotEquivalentInterface(unittest.TestCase):
 
     def setUp(self):
         self.finger = SimFinger(
-            time_step=0.001, enable_visualization=False, finger_type="single",
+            finger_type="single",
+            time_step=0.001,
+            enable_visualization=False,
         )
 
         start_position = [0, -0.7, -1.5]
