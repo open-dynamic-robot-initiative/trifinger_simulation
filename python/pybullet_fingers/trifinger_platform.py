@@ -113,6 +113,8 @@ class TriFingerPlatform:
         Arguments/return value are the same as for
         :meth:`pybullet.SimFinger.append_desired_action`.
         """
+        self._object_pose_t = self._get_current_object_pose()
+
         t = self.simfinger.append_desired_action(action)
 
         self._action_log["actions"].append({
@@ -124,6 +126,19 @@ class TriFingerPlatform:
         })
 
         return t
+
+    def _get_current_object_pose(self):
+        cube_state = self.cube.get_state()
+        pose = ObjectPose()
+        pose.position = np.asarray(cube_state[0])
+        pose.orientation = np.asarray(cube_state[1])
+        pose.confidence = 1.0
+        # NOTE: The timestamp can only be set correctly after time step t is
+        # actually reached.  Therefore, this is set to None here and filled
+        # with the proper value later in get_object_pose().
+        pose.timestamp = None
+
+        return pose
 
     def get_object_pose(self, t):
         """Get object pose at time step t.
@@ -141,15 +156,8 @@ class TriFingerPlatform:
             ValueError: If invalid time index ``t`` is passed.
         """
         self.simfinger._validate_time_index(t)
-
-        cube_state = self.cube.get_state()
-        pose = ObjectPose()
-        pose.position = np.asarray(cube_state[0])
-        pose.orientation = np.asarray(cube_state[1])
-        pose.timestamp = self.get_timestamp_ms(t) * 1000.0
-        pose.confidence = 1.0
-
-        return pose
+        self._object_pose_t.timestamp = self.get_timestamp_ms(t) * 1000.0
+        return self._object_pose_t
 
     def get_camera_observation(self, t):
         """Get camera observation at time step t.
