@@ -1,8 +1,8 @@
 # import some important classes to the main module
-from .sim_finger import SimFinger
-from .action import Action
-from .observation import Observation
-from .trifinger_platform import (
+from .sim_finger import SimFinger  # noqa
+from .action import Action  # noqa
+from .observation import Observation  # noqa
+from .trifinger_platform import (  # noqa
     TriFingerPlatform,
     ObjectPose,
     CameraObservation,
