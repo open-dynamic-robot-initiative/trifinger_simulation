@@ -29,7 +29,10 @@ def main():
     args = argparser.parse_args()
     time_step = 0.004
 
-    finger = sim_finger.SimFinger(time_step, True, args.finger_type)
+    finger = sim_finger.SimFinger(
+        finger_type=args.finger_type,
+        time_step=time_step,
+        enable_visualization=True,)
     num_fingers = finger.number_of_fingers
 
     if args.control_mode == "position":

@@ -22,7 +22,7 @@ class TestSimulationDeterminisim(unittest.TestCase):
         observations should be equal.
         """
         finger = SimFinger(
-            time_step=0.004, enable_visualization=False, finger_type="single",
+            finger_type="single",
         )
 
         start_position = [0.5, -0.7, -1.5]

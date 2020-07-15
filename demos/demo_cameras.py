@@ -8,7 +8,11 @@ from pybullet_fingers import sim_finger, sample, camera
 
 def main():
     time_step = 0.004
-    finger = sim_finger.SimFinger(time_step, True, "trifingerone")
+    finger = sim_finger.SimFinger(
+        finger_type="trifingerone",
+        time_step=time_step,
+        enable_visualization=True,
+        )
 
     # Important: The cameras need the be created _after_ the simulation is
     # initialized.

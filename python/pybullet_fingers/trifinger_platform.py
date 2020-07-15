@@ -72,7 +72,10 @@ class TriFingerPlatform:
         # collide with the object on the ground.
         initial_position = [0.0, np.deg2rad(-70), np.deg2rad(-130)] * 3
 
-        self.simfinger = SimFinger(0.001, visualization, "trifingerone")
+        self.simfinger = SimFinger(
+            finger_type="trifingerone",
+            time_step=0.001,
+            enable_visualization=visualization)
 
         # set fingers to initial pose
         self.simfinger.reset_finger(initial_position)

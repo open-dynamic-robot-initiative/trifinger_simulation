@@ -121,16 +121,16 @@ class FingerReach(gym.Env):
             from pybullet_fingers.real_finger import RealFinger
 
             self.finger = RealFinger(
-                enable_visualization=enable_visualization,
                 finger_type=finger_type,
                 finger_config_suffix=finger_config_suffix,
+                enable_visualization=enable_visualization,
             )
 
         else:
             self.finger = SimFinger(
+                finger_type=finger_type,
                 time_step=simulation_rate_s,
                 enable_visualization=enable_visualization,
-                finger_type=finger_type,
             )
 
         gym.Env.__init__(self)

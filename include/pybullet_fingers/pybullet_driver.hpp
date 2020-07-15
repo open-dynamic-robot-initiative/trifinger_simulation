@@ -190,7 +190,7 @@ public:
 
         py::module sim_finger =
             py::module::import("pybullet_fingers.sim_finger");
-        sim_finger_ = sim_finger.attr("SimFinger")(0.001, visualize_, "single");
+        sim_finger_ = sim_finger.attr("SimFinger")("single", 0.001, visualize_);
 
         JointVector initial_position;
         initial_position << 0, -0.7, -1.5;

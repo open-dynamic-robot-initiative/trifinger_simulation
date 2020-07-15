@@ -21,8 +21,6 @@ class TestResetJoints(unittest.TestCase):
         of the fingers and assert they exactly reach these states.
         """
         finger = SimFinger(
-            time_step=0.004,
-            enable_visualization=False,
             finger_type="single",
         )
 
