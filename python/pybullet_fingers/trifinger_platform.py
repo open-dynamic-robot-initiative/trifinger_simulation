@@ -156,7 +156,7 @@ class TriFingerPlatform:
             ValueError: If invalid time index ``t`` is passed.
         """
         self.simfinger._validate_time_index(t)
-        self._object_pose_t.timestamp = self.get_timestamp_ms(t) * 1000.0
+        self._object_pose_t.timestamp = self.get_timestamp_ms(t) / 1000.0
         return self._object_pose_t
 
     def get_camera_observation(self, t):
@@ -178,7 +178,7 @@ class TriFingerPlatform:
         self.simfinger._validate_time_index(t)
 
         images = self.tricamera.get_images()
-        timestamp = self.get_timestamp_ms(t) * 1000.0
+        timestamp = self.get_timestamp_ms(t) / 1000.0
 
         observation = TriCameraObservation()
         for i, image in enumerate(images):
