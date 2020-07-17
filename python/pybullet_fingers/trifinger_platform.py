@@ -58,7 +58,12 @@ class TriFingerPlatform:
 
     """
 
-    def __init__(self, visualization=False, initial_object_pose=None):
+    def __init__(
+        self,
+        visualization=False,
+        initial_object_pose=None,
+        enable_cameras=False,
+    ):
         """Initialize.
 
         Args:
@@ -67,24 +72,44 @@ class TriFingerPlatform:
                 Can be any object with attributes ``position`` (x, y, z) and
                 ``orientation`` (x, y, z, w).  This is optional, if not set, a
                 random pose will be sampled.
+            enable_cameras (bool):  Set to true to enable camera observations.
+                By default this is disabled as rendering of images takes a lot
+                of computational power.  Therefore the cameras should only be
+                enabled if the images are actually used.
         """
+        #: Camera rate in frames per second.  Observations of camera and
+        #: object pose will only be updated with this rate.
+        self.camera_rate_fps = 30
+
+        #: Set to true to render camera observations
+        self.enable_cameras = enable_cameras
+
+        #: Simulation time step
+        # FIXME change to 0.004
+        self._time_step = 0.001
+
+        # start with large negative number, so we get the first update in the
+        # first step
+        self._last_camera_timeindex = -999999
+
         # Initially move the fingers to a pose where they are guaranteed to not
         # collide with the object on the ground.
         initial_position = [0.0, np.deg2rad(-70), np.deg2rad(-130)] * 3
 
-        # FIXME change to 0.004
         self.simfinger = SimFinger(
             finger_type="trifingerone",
-            time_step=0.001,
-            enable_visualization=visualization)
+            time_step=self._time_step,
+            enable_visualization=visualization,
+        )
 
         # set fingers to initial pose
         self.simfinger.reset_finger(initial_position)
 
         if initial_object_pose is None:
             initial_object_pose = move_cube.sample_goal(difficulty=-1)
-        self.cube = collision_objects.Block(initial_object_pose.position,
-                                            initial_object_pose.orientation)
+        self.cube = collision_objects.Block(
+            initial_object_pose.position, initial_object_pose.orientation
+        )
 
         self._action_log = {
             "initial_robot_position": initial_position,
@@ -92,7 +117,7 @@ class TriFingerPlatform:
                 "position": initial_object_pose.position.tolist(),
                 "orientation": initial_object_pose.orientation.tolist(),
             },
-            "actions": []
+            "actions": [],
         }
 
         self.tricamera = camera.TriFingerCameras()
@@ -113,17 +138,46 @@ class TriFingerPlatform:
         Arguments/return value are the same as for
         :meth:`pybullet.SimFinger.append_desired_action`.
         """
-        self._object_pose_t = self._get_current_object_pose()
+        # update camera and object observations only with the rate of the
+        # cameras
+        camera_update_step_interval = (
+            1.0 / self.camera_rate_fps
+        ) / self._time_step
+        next_t = self.get_current_timeindex() + 1
+        has_camera_update = False
+        if next_t > self._last_camera_timeindex + camera_update_step_interval:
+            has_camera_update = True
+            self._last_camera_timeindex = next_t
+
+            self._object_pose_t = self._get_current_object_pose()
+            if self.enable_cameras:
+                self._camera_observation_t = (
+                    self._get_current_camera_observation()
+                )
 
         t = self.simfinger.append_desired_action(action)
 
-        self._action_log["actions"].append({
-            "t": t,
-            "torque": action.torque.tolist(),
-            "position": action.position.tolist(),
-            "position_kp": action.position_kp.tolist(),
-            "position_kd": action.position_kd.tolist(),
-        })
+        # The correct timestamp can only be acquired now that t is given.
+        # Update it accordingly in the object and camera observations
+        if has_camera_update:
+            camera_timestamp_s = self.get_timestamp_ms(t) / 1000
+            self._object_pose_t.timestamp = camera_timestamp_s
+            if self.enable_cameras:
+                for i in range(len(self._camera_observation_t.cameras)):
+                    self._camera_observation_t.cameras[
+                        i
+                    ].timestamp = camera_timestamp_s
+
+        # write the desired action to the log
+        self._action_log["actions"].append(
+            {
+                "t": t,
+                "torque": action.torque.tolist(),
+                "position": action.position.tolist(),
+                "position_kp": action.position_kp.tolist(),
+                "position_kd": action.position_kd.tolist(),
+            }
+        )
 
         return t
 
@@ -135,7 +189,7 @@ class TriFingerPlatform:
         pose.confidence = 1.0
         # NOTE: The timestamp can only be set correctly after time step t is
         # actually reached.  Therefore, this is set to None here and filled
-        # with the proper value later in get_object_pose().
+        # with the proper value later.
         pose.timestamp = None
 
         return pose
@@ -156,8 +210,19 @@ class TriFingerPlatform:
             ValueError: If invalid time index ``t`` is passed.
         """
         self.simfinger._validate_time_index(t)
-        self._object_pose_t.timestamp = self.get_timestamp_ms(t) / 1000.0
         return self._object_pose_t
+
+    def _get_current_camera_observation(self):
+        images = self.tricamera.get_images()
+        observation = TriCameraObservation()
+        for i, image in enumerate(images):
+            observation.cameras[i].image = image
+            # NOTE: The timestamp can only be set correctly after time step t
+            # is actually reached.  Therefore, this is set to None here and
+            # filled with the proper value later.
+            observation.cameras[i].timestamp = None
+
+        return observation
 
     def get_camera_observation(self, t):
         """Get camera observation at time step t.
@@ -175,17 +240,15 @@ class TriFingerPlatform:
         Raises:
             ValueError: If invalid time index ``t`` is passed.
         """
+        if not self.enable_cameras:
+            raise RuntimeError(
+                "Cameras are not enabled.  Create `TriFingerPlatform` with"
+                " `enable_cameras=True` if you want to use camera"
+                " observations."
+            )
+
         self.simfinger._validate_time_index(t)
-
-        images = self.tricamera.get_images()
-        timestamp = self.get_timestamp_ms(t) / 1000.0
-
-        observation = TriCameraObservation()
-        for i, image in enumerate(images):
-            observation.cameras[i].image = image
-            observation.cameras[i].timestamp = timestamp
-
-        return observation
+        return self._camera_observation_t
 
     def store_action_log(self, filename):
         """Store the action log to a JSON file.
