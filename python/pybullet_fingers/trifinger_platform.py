@@ -63,15 +63,16 @@ class TriFingerPlatform:
 
         Args:
             visualization (bool):  Set to true to run visualization.
-            initial_object_pose:  Initial position for the manipulation object.
-                Tuple with position (x, y, z) and orientation quaternion
-                (x, y, z, w).  This is optional, if not set, a random pose will
-                be sampled.
+            initial_object_pose:  Initial pose for the manipulation object.
+                Can be any object with attributes ``position`` (x, y, z) and
+                ``orientation`` (x, y, z, w).  This is optional, if not set, a
+                random pose will be sampled.
         """
         # Initially move the fingers to a pose where they are guaranteed to not
         # collide with the object on the ground.
         initial_position = [0.0, np.deg2rad(-70), np.deg2rad(-130)] * 3
 
+        # FIXME change to 0.004
         self.simfinger = SimFinger(
             finger_type="trifingerone",
             time_step=0.001,
@@ -82,13 +83,14 @@ class TriFingerPlatform:
 
         if initial_object_pose is None:
             initial_object_pose = move_cube.sample_goal(difficulty=-1)
-        self.cube = collision_objects.Block(*initial_object_pose)
+        self.cube = collision_objects.Block(initial_object_pose.position,
+                                            initial_object_pose.orientation)
 
         self._action_log = {
             "initial_robot_position": initial_position,
             "initial_object_pose": {
-                "position": initial_object_pose[0].tolist(),
-                "orientation": initial_object_pose[1].tolist(),
+                "position": initial_object_pose.position.tolist(),
+                "orientation": initial_object_pose.orientation.tolist(),
             },
             "actions": []
         }
