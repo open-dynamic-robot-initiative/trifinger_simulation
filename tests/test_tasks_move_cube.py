@@ -440,8 +440,4 @@ class TestMoveCube(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    import rosunit
-
-    rosunit.unitrun(
-        "pybullet_fingers", "test_tasks_move_cube", TestMoveCube,
-    )
+    unittest.main()

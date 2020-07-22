@@ -191,10 +191,4 @@ class TestRobotEquivalentInterface(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    import rosunit
-
-    rosunit.unitrun(
-        "pybullet_fingers",
-        "test_robot_equivalent_interface",
-        TestRobotEquivalentInterface,
-    )
+    unittest.main()

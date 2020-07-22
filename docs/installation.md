@@ -10,7 +10,6 @@ In general, Option 1 should be preferred, ideally using Singularity to avoid any
 dependency issues.  Only fall back to Option 2 if 1 does not work for some
 reason.
 
-
 Build using catkin
 ------------------
 
@@ -24,7 +23,6 @@ replace `BLMC_EI` with `BLMC_EI_SIM` in the `treep --clone` command:
 
 After building the workspace, sourcing it's `setup.bash` is enough to setup
 
-
 Install as Python package in a conda environment
 ------------------------------------------------
 
@@ -32,7 +30,6 @@ Install as Python package in a conda environment
 you installed the package using the following instructions and later want to
 switch to catkin, you need to remove the package first, otherwise it can infer
 with the environment of the catkin workspace.
-
 
 1. Clone this repo and then create it's conda environment to install all
    dependencies:
@@ -45,3 +42,9 @@ with the environment of the catkin workspace.
 
        conda activate pybullet_fingers
        (pybullet_fingers) python -m pip install .
+
+3. You should check that you all tests in `tests/` are successful:
+
+       python -m unittest discover tests/non_catkin
+
+Note that `unittest discover` doesn't search recursively and hence the tests in `tests/catkin` won't get executed.

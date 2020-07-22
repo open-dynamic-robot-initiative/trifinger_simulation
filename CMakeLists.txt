@@ -48,7 +48,7 @@ if (CATKIN_ENABLE_TESTING)
     macro(create_unittest test_name)
         # create the executable
         catkin_add_gtest(${test_name}
-          tests/${test_name}.cpp
+          tests/catkin/${test_name}.cpp
         )
         if(TARGET ${test_name})
             # link the dependencies to it
