@@ -46,8 +46,4 @@ class TestSample(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    import rosunit
-
-    rosunit.unitrun(
-        "pybullet_fingers", "test_sample", TestSample,
-    )
+    unittest.main()

@@ -3,7 +3,7 @@
 import time
 import numpy as np
 
-from robot_fingers.tasks import move_cube
+from pybullet_fingers.tasks import move_cube
 from pybullet_fingers import trifinger_platform, sample
 
 
