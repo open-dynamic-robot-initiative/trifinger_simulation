@@ -1,14 +1,9 @@
 import os
-import typing
 import warnings
 
 import pybullet
 from pybullet_fingers import pinocchio_utils
-
-
-class FingerTypeData(typing.NamedTuple):
-    urdf_file: str
-    number_of_fingers: int
+from pybullet_fingers import finger_types_data
 
 
 class BaseFinger:
@@ -16,26 +11,6 @@ class BaseFinger:
     The SimFinger and RealFinger environments derive from this base
     class, which implements some common core functions.
     """
-
-    finger_type_data = {
-        "fingerone": FingerTypeData("finger.urdf", 1),
-        # for backward compatibility
-        "single": FingerTypeData("finger.urdf", 1),
-        "trifingerone": FingerTypeData("trifinger.urdf", 3),
-        # for backward compatibility
-        "tri": FingerTypeData("trifinger.urdf", 3),
-        "fingeredu": FingerTypeData("edu/fingeredu.urdf", 1),
-        "trifingeredu": FingerTypeData("edu/trifingeredu.urdf", 3),
-    }
-
-    @classmethod
-    def get_valid_finger_types(cls):
-        """Get list of supported finger types.
-
-        Returns:
-            List of supported finger types.
-        """
-        return cls.finger_type_data.keys()
 
     def __init__(
         self, finger_type, enable_visualization,
@@ -51,7 +26,7 @@ class BaseFinger:
                 to the simulation.
         """
         self.enable_visualization = enable_visualization
-        self.finger_type = finger_type
+        self.finger_type = finger_types_data.check_finger_type(finger_type)
 
         self.set_finger_type_dependency()
         self.init_joint_lists()
@@ -116,17 +91,12 @@ class BaseFinger:
                 " Use 'fingerone' and 'trifingerone' instead."
             )
 
-        if self.finger_type in self.finger_type_data:
-            data = self.finger_type_data[self.finger_type]
-            self.finger_urdf_path = os.path.join(
-                self.robot_properties_path, "urdf", data.urdf_file
-            )
-            self.number_of_fingers = data.number_of_fingers
-        else:
-            raise ValueError(
-                "Invalid finger type '%s'.  Valid types are %s"
-                % (self.finger_type, self.finger_type_data.keys())
-            )
+        urdf_file = finger_types_data.get_finger_urdf(self.finger_type)
+        self.finger_urdf_path = os.path.join(
+            self.robot_properties_path, "urdf", urdf_file
+        )
+        self.number_of_fingers = finger_types_data.get_number_of_fingers(
+            self.finger_type)
 
     def init_joint_lists(self):
         """

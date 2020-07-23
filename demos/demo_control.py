@@ -9,6 +9,7 @@ import numpy as np
 import random
 import time
 from pybullet_fingers import sim_finger, visual_objects, sample
+from pybullet_fingers import finger_types_data
 
 
 def main():
@@ -23,7 +24,7 @@ def main():
     argparser.add_argument(
         "--finger-type",
         default="tri",
-        choices=sim_finger.SimFinger.get_valid_finger_types(),
+        choices=finger_types_data.get_valid_finger_types(),
         help="Specify type of finger as single or tri.",
     )
     args = argparser.parse_args()

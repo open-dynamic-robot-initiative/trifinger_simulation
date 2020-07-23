@@ -2,8 +2,8 @@ import unittest
 import os
 
 import pybullet
-from pybullet_fingers.base_finger import BaseFinger
 from pybullet_fingers.sim_finger import SimFinger
+from pybullet_fingers import finger_types_data
 
 
 class TestLoadingURDFs(unittest.TestCase):
@@ -18,8 +18,8 @@ class TestLoadingURDFs(unittest.TestCase):
         from BaseFinger and try importing their corresponding
         URDFs.
         """
-        finger_type_data = BaseFinger.finger_type_data
-        for key in finger_type_data.keys():
+        finger_data = finger_types_data.finger_types_data
+        for key in finger_data.keys():
             try:
                 SimFinger(
                     finger_type=key,
@@ -38,8 +38,8 @@ class TestLoadingURDFs(unittest.TestCase):
         from BaseFinger and try importing their corresponding
         URDFs.
         """
-        finger_type_data = BaseFinger.finger_type_data
-        for key in finger_type_data.keys():
+        finger_data = finger_types_data.finger_types_data
+        for key in finger_data.keys():
             try:
                 os.environ["ROS_PACKAGE_PATH"] = " "
                 SimFinger(
