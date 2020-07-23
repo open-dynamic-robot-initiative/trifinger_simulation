@@ -28,23 +28,25 @@ Install as Python package in a conda environment
 
 **Note:** Only do this if you cannot use the catkin approach (see above).  If
 you installed the package using the following instructions and later want to
-switch to catkin, you need to remove the package first, otherwise it can infer
+switch to catkin, you need to remove the package first, otherwise it can interfere
 with the environment of the catkin workspace.
 
-1. Clone this repo and then create it's conda environment to install all
-   dependencies:
+1. Clone this repo,
 
        git clone git@gitlab.is.tue.mpg.de:robotics/pybullet_fingers.git
-       cd pybullet_fingers
-       conda env create -f environment.yml
 
-2. Install the pybullet_fingers package inside the (pybullet_fingers) conda env:
+2. Then run the installation script in interactive mode *with appropriate modifications depending on your shell type*. The installation script sets up a conda env (based on Python 3.6.9) and installs the `pybullet_fingers` package within it.
+
+For bash,
+
+       bash -i bash_setup_env.sh
+
+3. Then activate the env,
 
        conda activate pybullet_fingers
-       (pybullet_fingers) python -m pip install .
 
-3. You should check that you all tests in `tests/` are successful:
+4. You should check that you the tests in `tests/` (which wouldn't include the tests in `tests/catkin`) are successful:
 
-       python -m unittest discover tests/non_catkin
+       python -m unittest discover tests/
 
 Note that `unittest discover` doesn't search recursively and hence the tests in `tests/catkin` won't get executed.
