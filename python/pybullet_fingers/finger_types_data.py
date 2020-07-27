@@ -20,6 +20,7 @@ finger_types_data = {
         "tri": FingerTypesDataFormat("trifinger.urdf", 3),
         "fingeredu": FingerTypesDataFormat("edu/fingeredu.urdf", 1),
         "trifingeredu": FingerTypesDataFormat("edu/trifingeredu.urdf", 3),
+        "trifingerpro": FingerTypesDataFormat("pro/trifingerpro.urdf", 3),
     }
 
 

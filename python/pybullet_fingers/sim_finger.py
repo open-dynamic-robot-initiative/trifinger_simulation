@@ -164,7 +164,7 @@ class SimFinger(BaseFinger):
                 is_concave=True,
             )
 
-        elif self.finger_type in ["trifingerone", "tri"]:
+        elif self.finger_type in ["trifingerone", "tri", "trifingerpro"]:
             table_colour = (0.31, 0.27, 0.25, 1.0)
             high_border_colour = (0.95, 0.95, 0.95, 1.0)
             if high_border:
