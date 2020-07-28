@@ -19,7 +19,13 @@
     </inertial>
   </link>
   <!-- Define the upper holder -->
-  <link name="trifinger_base_link"/>
+  <link name="trifinger_base_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="1"/>
+      <inertia ixx="4.16666666667e-06" ixy="0" ixz="0" iyy="4.16666666667e-06" iyz="0" izz="4.16666666667e-06"/>
+    </inertial>
+  </link>
   <joint name="base_to_trifinger_base_joint" type="fixed">
     <parent link="base_link"/>
     <child link="trifinger_base_link"/>
