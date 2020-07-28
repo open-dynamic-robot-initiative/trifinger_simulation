@@ -5,19 +5,23 @@
 # https://docs.google.com/document/d/10sXEhzFRSnvFcl3XxNGhnD4N2SedqwdAvK3dsihxVUA/edit#
 # among other scattered sources.
 # -------------------------------------------------------------------------------------------------
+import os
+import rospkg
+
 import pybullet
 import pybullet_data
 
 import robot_interfaces
-import blmc_robots
-
+import robot_fingers
 from pybullet_fingers.base_finger import BaseFinger
+from pybullet_fingers import finger_types_data
 
 
 class RealFinger(BaseFinger):
     """
-    For interacting with the physical (real) finger and robot
-    in the same way as with its simulated counterpart.
+    The RealFinger class provides an interface to the real robot. Any script
+    that creates an instance of the :class:`.SimFinger` can create an instance
+    of this class and use it in the same way.
     """
 
     def __init__(
@@ -27,13 +31,16 @@ class RealFinger(BaseFinger):
         Constructor, initializes the physical world we will work in.
 
         Args:
-            finger_type: See BaseFinger.
+            finger_type (string): Name of the finger type.  In order to get
+                a dictionary of the valid finger types, call
+                :meth:`get_valid_finger_types` from finger_types_data
             finger_config_suffix (int): ID of the finger that is used. Has to
-                be one of [0, 120, 240]. This ignored if finger_type = "tri".
-            enable_visualization (bool): Set to 'True' to run a GUI for
-                visualization.  This uses pyBullet but only for visualization,
-                i.e. the state of the simulation is constantly set to match the
-                one of the real robot.
+                be one of [0, 120, 240]. This is only if a single finger is to
+                be used on any of the robots, and is ignored otherwise.
+            enable_visualization (bool, optional): Set to 'True' to run a GUI
+                for visualization.  This uses pyBullet but only for
+                visualization, i.e. the state of the simulation is constantly
+                set to match the one of the real robot.
         """
         # Simulation is only used for visualization, so only run it when needed
         self.enable_simulation = enable_visualization
@@ -43,28 +50,56 @@ class RealFinger(BaseFinger):
         if self.enable_simulation:
             self.make_physical_world()
 
-        if finger_type == "tri":
-            self.robot = blmc_robots.Robot(
-                robot_interfaces.trifinger,
-                blmc_robots.create_trifinger_backend,
-                "trifinger.yml",
-            )
-        elif finger_type == "single":
-            self.robot = blmc_robots.Robot(
-                robot_interfaces.finger,
-                blmc_robots.create_real_finger_backend,
-                "finger_%s.yml" % finger_config_suffix,
-            )
-        else:
-            raise ValueError("Invalid finger type")
+        number_of_fingers = finger_types_data.get_number_of_fingers(
+            finger_type)
 
-        self.robot.initialize()
-        self.Action = self.robot.Action
+        if number_of_fingers == 1:
+            if finger_type in ["single", "fingerone"]:
+                config_file_path = os.path.join(
+                    rospkg.RosPack().get_path("robot_fingers"),
+                    "config",
+                    "finger_%s.yml" % finger_config_suffix,
+                )
+            elif finger_type == "fingeredu":
+                config_file_path = os.path.join(
+                    rospkg.RosPack().get_path("robot_fingers"),
+                    "config",
+                    "fingeredu_%s.yml" % finger_config_suffix,
+                )
+            finger_data = robot_interfaces.finger.SingleProcessData()
+            self.real_finger_backend = \
+                robot_fingers.create_real_finger_backend(
+                    finger_data, config_file_path
+                    )
+            self.robot = robot_interfaces.finger.Frontend(finger_data)
+            self.Action = robot_interfaces.finger.Action
+        elif number_of_fingers == 3:
+            if finger_type in ["tri", "trifingerone"]:
+                config_file_path = os.path.join(
+                    rospkg.RosPack().get_path("robot_fingers"),
+                    "config",
+                    "trifinger.yml",
+                )
+            elif finger_type == "trifingeredu":
+                config_file_path = os.path.join(
+                    rospkg.RosPack().get_path("robot_fingers"),
+                    "config",
+                    "trifingeredu.yml",
+                )
+            finger_data = robot_interfaces.trifinger.SingleProcessData()
+            self.real_finger_backend = \
+                robot_fingers.create_trifinger_backend(
+                    finger_data, config_file_path
+                    )
+            self.robot = robot_interfaces.trifinger.Frontend(finger_data)
+            self.Action = robot_interfaces.trifinger.Action
+
+        self.real_finger_backend.initialize()
 
     def make_physical_world(self):
         """
         Set the physical parameters of the world in which the simulation
-        will run, and import the models to be simulated
+        will run, and import the models to be simulated.
         """
         pybullet.setAdditionalSearchPath(pybullet_data.getDataPath())
         pybullet.setGravity(0, 0, -9.81)
@@ -84,7 +119,7 @@ class RealFinger(BaseFinger):
             self.action_index (int): The current time-index at which the action
                 was applied.
         """
-        return self.robot.frontend.append_desired_action(action)
+        return self.robot.append_desired_action(action)
 
     def get_observation(self, time_index):
         """
@@ -96,7 +131,7 @@ class RealFinger(BaseFinger):
         Returns:
             observation (robot.Observation): the corresponding observation
         """
-        observation = self.robot.frontend.get_observation(time_index)
+        observation = self.robot.get_observation(time_index)
 
         if self.enable_simulation:
             for i, joint_id in enumerate(self.revolute_joint_ids):
