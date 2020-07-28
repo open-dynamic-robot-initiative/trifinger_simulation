@@ -30,6 +30,11 @@ class TestRobotEquivalentInterface(unittest.TestCase):
 
         self.initial_position = obs.position
 
+    def tearDown(self):
+        # destroy the simulation to ensure that the next test starts with a
+        # clean state
+        del self.finger
+
     def test_timing_action_t_vs_observation_t(self):
         """Verify that observation_t is really not affected by action_t."""
         # Apply a max torque action for one step
