@@ -12,6 +12,12 @@ from pybullet_fingers import trifinger_platform, sample
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
+        "--enable-cameras",
+        "-c",
+        action="store_true",
+        help="Enable camera observations.",
+    )
+    parser.add_argument(
         "--iterations",
         type=int,
         default=100,
@@ -25,7 +31,9 @@ def main():
     )
     args = parser.parse_args()
 
-    platform = trifinger_platform.TriFingerPlatform(visualization=True)
+    platform = trifinger_platform.TriFingerPlatform(
+        visualization=True, enable_cameras=args.enable_cameras
+    )
 
     # Move the fingers to random positions so that the cube is kicked around
     # (and thus it's position changes).
@@ -52,14 +60,15 @@ def main():
         cube_pose = platform.get_object_pose(t)
         print("Cube Position: %s" % cube_pose.position)
 
-        camera_observation = platform.get_camera_observation(t)
-        for i, name in enumerate(("camera60", "camera180", "camera300")):
-            # simulation provides images in RGB but OpenCV expects BGR
-            img = cv2.cvtColor(
-                camera_observation.cameras[i].image, cv2.COLOR_RGB2BGR
-            )
-            cv2.imshow(name, img)
-        cv2.waitKey(1)
+        if platform.enable_cameras:
+            camera_observation = platform.get_camera_observation(t)
+            for i, name in enumerate(("camera60", "camera180", "camera300")):
+                # simulation provides images in RGB but OpenCV expects BGR
+                img = cv2.cvtColor(
+                    camera_observation.cameras[i].image, cv2.COLOR_RGB2BGR
+                )
+                cv2.imshow(name, img)
+            cv2.waitKey(1)
 
         print()
 
