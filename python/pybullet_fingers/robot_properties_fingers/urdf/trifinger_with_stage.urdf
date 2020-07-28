@@ -22,7 +22,13 @@
     </inertial>
   </link>
   <!-- Define the upper holder -->
-  <link name="upper_holder_link"/>
+  <link name="upper_holder_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="1"/>
+      <inertia ixx="4.16666666667e-06" ixy="0" ixz="0" iyy="4.16666666667e-06" iyz="0" izz="4.16666666667e-06"/>
+    </inertial>
+  </link>
   <joint name="base_to_upper_holder_joint" type="fixed">
     <parent link="base_link"/>
     <child link="upper_holder_link"/>
