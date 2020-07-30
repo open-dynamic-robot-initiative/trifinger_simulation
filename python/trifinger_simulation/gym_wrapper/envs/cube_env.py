@@ -150,9 +150,8 @@ class CubeEnv(gym.GoalEnv):
         object_state_space = gym.spaces.Dict(
             {
                 "position": gym.spaces.Box(
-                    # TODO what is the real size of the arena (height, upper radius)?
-                    low=np.array([-0.4, -0.4, 0], dtype=np.float32),
-                    high=np.array([0.4, 0.4, 0.3], dtype=np.float32),
+                    low=np.array([-0.3, -0.3, 0], dtype=np.float32),
+                    high=np.array([0.3, 0.3, 0.3], dtype=np.float32),
                 ),
                 "orientation": gym.spaces.Box(
                     low=-np.ones(4, dtype=np.float32),
