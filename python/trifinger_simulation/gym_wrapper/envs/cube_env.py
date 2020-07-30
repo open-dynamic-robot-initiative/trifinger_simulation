@@ -130,7 +130,7 @@ class CubeEnv(gym.GoalEnv):
         n_joints = 9
         n_fingers = 3
         max_torque_Nm = 0.36
-        max_velocity_radps = 20
+        max_velocity_radps = 10
 
         torque_space = gym.spaces.Box(
             low=np.full(n_joints, -max_torque_Nm, dtype=np.float32),
