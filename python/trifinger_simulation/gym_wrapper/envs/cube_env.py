@@ -130,7 +130,7 @@ class CubeEnv(gym.GoalEnv):
         n_joints = 9
         n_fingers = 3
         max_torque_Nm = 0.36
-        max_velocity_radps = 20  # FIXME does this value make sense?
+        max_velocity_radps = 20
 
         torque_space = gym.spaces.Box(
             low=np.full(n_joints, -max_torque_Nm, dtype=np.float32),
@@ -139,7 +139,7 @@ class CubeEnv(gym.GoalEnv):
 
         position_space = gym.spaces.Box(
             low=np.array([-0.9, -1.57, -2.7] * n_fingers, dtype=np.float32),
-            high=np.array([1.4, 1.57, 2.7] * n_fingers, dtype=np.float32),
+            high=np.array([1.4, 1.57, 0.0] * n_fingers, dtype=np.float32),
         )
 
         velocity_space = gym.spaces.Box(
