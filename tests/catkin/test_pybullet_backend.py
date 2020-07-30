@@ -28,7 +28,9 @@ class TestPyBulletBackend(unittest.TestCase):
             )
         else:
             finger_types = robot_interfaces.trifinger
-            create_backend = trifinger_simulation.drivers.create_trifinger_backend
+            create_backend = (
+                trifinger_simulation.drivers.create_trifinger_backend
+            )
 
         robot_data = finger_types.SingleProcessData()
 

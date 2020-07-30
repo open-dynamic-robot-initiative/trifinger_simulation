@@ -47,7 +47,9 @@ def main():
     if args.finger_type == "single":
         num_fingers = 1
         finger_types = robot_interfaces.finger
-        create_backend = trifinger_simulation.drivers.create_single_finger_backend
+        create_backend = (
+            trifinger_simulation.drivers.create_single_finger_backend
+        )
     else:
         num_fingers = 3
         finger_types = robot_interfaces.trifinger

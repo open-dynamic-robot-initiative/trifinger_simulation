@@ -7,21 +7,22 @@ class FingerTypesDataFormat(typing.NamedTuple):
     comprising of the corresponding urdf, and the
     number of fingers.
     """
+
     urdf_file: str
     number_of_fingers: int
 
 
 finger_types_data = {
-        "fingerone": FingerTypesDataFormat("finger.urdf", 1),
-        # for backward compatibility
-        "single": FingerTypesDataFormat("finger.urdf", 1),
-        "trifingerone": FingerTypesDataFormat("trifinger.urdf", 3),
-        # for backward compatibility
-        "tri": FingerTypesDataFormat("trifinger.urdf", 3),
-        "fingeredu": FingerTypesDataFormat("edu/fingeredu.urdf", 1),
-        "trifingeredu": FingerTypesDataFormat("edu/trifingeredu.urdf", 3),
-        "trifingerpro": FingerTypesDataFormat("pro/trifingerpro.urdf", 3),
-    }
+    "fingerone": FingerTypesDataFormat("finger.urdf", 1),
+    # for backward compatibility
+    "single": FingerTypesDataFormat("finger.urdf", 1),
+    "trifingerone": FingerTypesDataFormat("trifinger.urdf", 3),
+    # for backward compatibility
+    "tri": FingerTypesDataFormat("trifinger.urdf", 3),
+    "fingeredu": FingerTypesDataFormat("edu/fingeredu.urdf", 1),
+    "trifingeredu": FingerTypesDataFormat("edu/trifingeredu.urdf", 3),
+    "trifingerpro": FingerTypesDataFormat("pro/trifingerpro.urdf", 3),
+}
 
 
 def get_valid_finger_types():

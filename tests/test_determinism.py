@@ -21,9 +21,7 @@ class TestSimulationDeterminisim(unittest.TestCase):
         run is compared.  If the simulation behaves deterministically, the
         observations should be equal.
         """
-        finger = SimFinger(
-            finger_type="single",
-        )
+        finger = SimFinger(finger_type="single",)
 
         start_position = [0.5, -0.7, -1.5]
         action = finger.Action(torque=[0.3, 0.3, 0.3])

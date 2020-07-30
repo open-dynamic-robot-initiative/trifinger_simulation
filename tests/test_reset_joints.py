@@ -20,25 +20,27 @@ class TestResetJoints(unittest.TestCase):
         Send hundred states (positions + velocities) to all the 1DOF joints
         of the fingers and assert they exactly reach these states.
         """
-        finger = SimFinger(
-            finger_type="single",
-        )
+        finger = SimFinger(finger_type="single",)
 
         for _ in range(100):
             state_positions = sample.random_joint_positions(
-                finger.number_of_fingers)
+                finger.number_of_fingers
+            )
             state_velocities = [pos * 10 for pos in state_positions]
 
             reset_state = finger.reset_finger(
-                state_positions, state_velocities)
+                state_positions, state_velocities
+            )
 
             reset_positions = reset_state.position
             reset_velocities = reset_state.velocity
 
             np.testing.assert_array_equal(
-                reset_positions, state_positions, verbose=True)
+                reset_positions, state_positions, verbose=True
+            )
             np.testing.assert_array_equal(
-                reset_velocities, state_velocities, verbose=True)
+                reset_velocities, state_velocities, verbose=True
+            )
 
 
 if __name__ == "__main__":

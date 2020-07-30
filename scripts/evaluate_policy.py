@@ -41,7 +41,9 @@ def main():
     goal_pose = move_cube.Pose.from_json(goal_pose_json)
 
     # create a FixedInitializer with the given values
-    initializer = cube_env.FixedInitializer(difficulty, initial_pose, goal_pose)
+    initializer = cube_env.FixedInitializer(
+        difficulty, initial_pose, goal_pose
+    )
 
     # TODO: Replace with your environment if you used a custom one.
     env = gym.make(

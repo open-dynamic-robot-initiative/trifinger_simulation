@@ -12,7 +12,7 @@ def main():
         finger_type="trifingerone",
         time_step=time_step,
         enable_visualization=True,
-        )
+    )
 
     # Important: The cameras need the be created _after_ the simulation is
     # initialized.

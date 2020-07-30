@@ -48,7 +48,9 @@ def validate_json_pose(json_str):
         if key not in pose:
             raise ValueError("Does not contain key '%s'." % key)
     if type(pose["position"]) != list or len(pose["position"]) != 3:
-        raise ValueError("'position' needs to be a list of three values [x, y, z].")
+        raise ValueError(
+            "'position' needs to be a list of three values [x, y, z]."
+        )
     if type(pose["orientation"]) != list or len(pose["orientation"]) != 4:
         raise ValueError("'orientation' needs to be a quaternion [x, y, z, w]")
 
@@ -57,7 +59,8 @@ def validate_json_pose(json_str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--difficulty",

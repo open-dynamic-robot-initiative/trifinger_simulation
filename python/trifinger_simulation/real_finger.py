@@ -51,7 +51,8 @@ class RealFinger(BaseFinger):
             self.make_physical_world()
 
         number_of_fingers = finger_types_data.get_number_of_fingers(
-            finger_type)
+            finger_type
+        )
 
         if number_of_fingers == 1:
             if finger_type in ["single", "fingerone"]:
@@ -67,10 +68,9 @@ class RealFinger(BaseFinger):
                     "fingeredu_%s.yml" % finger_config_suffix,
                 )
             finger_data = robot_interfaces.finger.SingleProcessData()
-            self.real_finger_backend = \
-                robot_fingers.create_real_finger_backend(
-                    finger_data, config_file_path
-                    )
+            self.real_finger_backend = robot_fingers.create_real_finger_backend(
+                finger_data, config_file_path
+            )
             self.robot = robot_interfaces.finger.Frontend(finger_data)
             self.Action = robot_interfaces.finger.Action
         elif number_of_fingers == 3:
@@ -87,10 +87,9 @@ class RealFinger(BaseFinger):
                     "trifingeredu.yml",
                 )
             finger_data = robot_interfaces.trifinger.SingleProcessData()
-            self.real_finger_backend = \
-                robot_fingers.create_trifinger_backend(
-                    finger_data, config_file_path
-                    )
+            self.real_finger_backend = robot_fingers.create_trifinger_backend(
+                finger_data, config_file_path
+            )
             self.robot = robot_interfaces.trifinger.Frontend(finger_data)
             self.Action = robot_interfaces.trifinger.Action
 

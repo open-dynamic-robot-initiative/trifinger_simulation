@@ -76,5 +76,7 @@ if __name__ == "__main__":
     import rosunit
 
     rosunit.unitrun(
-        "trifinger_simulation", "test_trifinger_platform", TestTriFingerPlatform,
+        "trifinger_simulation",
+        "test_trifinger_platform",
+        TestTriFingerPlatform,
     )

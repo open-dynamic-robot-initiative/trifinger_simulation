@@ -33,7 +33,8 @@ def main():
     finger = sim_finger.SimFinger(
         finger_type=args.finger_type,
         time_step=time_step,
-        enable_visualization=True,)
+        enable_visualization=True,
+    )
     num_fingers = finger.number_of_fingers
 
     if args.control_mode == "position":
@@ -57,7 +58,7 @@ def main():
             finger_action = finger.Action(torque=desired_joint_torques)
 
         # pursue this goal for one second
-        for _ in range(int(1/time_step)):
+        for _ in range(int(1 / time_step)):
             t = finger.append_desired_action(finger_action)
             finger.get_observation(t)
             time.sleep(time_step)
