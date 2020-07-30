@@ -359,8 +359,13 @@ class SimFinger(BaseFinger):
         Raises:
             ValueError: If invalid time index ``t`` is passed.
         """
-        self._validate_time_index(t)
-        return self.time_step_s * 1000 * self._t
+        if t == self._t or t == self._t + 1:
+            return self.time_step_s * 1000 * t
+        else:
+            raise ValueError(
+                "Given time index t has to match with index of the current"
+                " step or the next one."
+            )
 
     def get_current_timeindex(self):
         """Get the current time index."""

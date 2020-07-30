@@ -2,38 +2,84 @@
 """Replay actions for a given logfile and verify final object pose.
 
 The log file is a JSON file as produced by
-:meth:`pybullet_fingers.TriFingerPlatform.store_action_log` which contains the
+`pybullet_fingers.TriFingerPlatform.store_action_log()` which contains the
 initial state, a list of all applied actions and the final state of the object.
 
-The simulation is initialised according to the logged values and the actions
-are applied one by one.  In the end, it is verified if the final object state
-in the simulation matches the one in the log file.
+The simulation is initialised according to the given initial pose and the
+actions are applied one by one.  In the end, it is verified if the final object
+pose in the simulation matches the one in the log file.
+
+The accumulated reward is computed based on the given goal pose and printed in
+the end.
+
+Both initial and goal pose are given as JSON strings with keys "position" and
+"orientation" (as quaternion).  Example:
+
+    {"position": [-0.03, 0.07, 0.05], "orientation": [0.0, 0.0, 0.68, -0.73]}
+
 """
 import argparse
 import json
 import numpy as np
 
 from pybullet_fingers import trifinger_platform
+from pybullet_fingers.tasks import move_cube
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("logfile", type=str, help="Path to the log file.")
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--logfile",
+        "-l",
+        required=True,
+        type=str,
+        help="Path to the log file.",
+    )
+    parser.add_argument(
+        "--difficulty",
+        "-d",
+        required=True,
+        type=int,
+        help="The difficulty level of the goal (for reward computation).",
+    )
+    parser.add_argument(
+        "--initial-pose",
+        "-i",
+        required=True,
+        type=str,
+        metavar="JSON",
+        help="Initial pose of the cube as JSON string.",
+    )
+    parser.add_argument(
+        "--goal-pose",
+        "-g",
+        required=True,
+        type=str,
+        metavar="JSON",
+        help="Goal pose of the cube as JSON string.",
+    )
     args = parser.parse_args()
 
     with open(args.logfile, "r") as fh:
         log = json.load(fh)
 
-    initial_object_pose = (
-        np.asarray(log["initial_object_pose"]["position"]),
-        np.asarray(log["initial_object_pose"]["orientation"]),
-    )
+    initial_object_pose = move_cube.Pose.from_json(args.initial_pose)
+    goal_pose = move_cube.Pose.from_json(args.goal_pose)
+
     platform = trifinger_platform.TriFingerPlatform(
         visualization=False, initial_object_pose=initial_object_pose
     )
 
-    # TODO verify initial finger pose
+    # verify that the number of logged actions matches with the episode length
+    n_actions = len(log["actions"])
+    assert (
+        n_actions == move_cube.episode_length
+    ), "Number of actions in log does not match with expected episode length."
 
+    accumulated_reward = 0
     for logged_action in log["actions"]:
         action = platform.Action()
         action.torque = np.array(logged_action["torque"])
@@ -43,18 +89,26 @@ def main():
 
         t = platform.append_desired_action(action)
 
+        cube_pose = platform.get_object_pose(t)
+        reward = -move_cube.evaluate_state(
+            goal_pose, cube_pose, args.difficulty
+        )
+        accumulated_reward += reward
+
         assert logged_action["t"] == t
 
     cube_pose = platform.get_object_pose(t)
     final_pose = log["final_object_pose"]
 
-    # print("Expected object pose: {} / {}".format(final_pose["position"],
-    #                                             final_pose["orientation"]))
-    # print("Actual object pose:   {} / {}".format(cube_pose.position,
-    #                                             cube_pose.orientation))
+    print("Accumulated Reward:", accumulated_reward)
 
-    np.testing.assert_array_equal(cube_pose.position, final_pose["position"])
-    np.testing.assert_array_equal(cube_pose.orientation, final_pose["orientation"])
+    # verify that actual and logged final object pose match
+    np.testing.assert_array_almost_equal(
+        cube_pose.position, final_pose["position"]
+    )
+    np.testing.assert_array_almost_equal(
+        cube_pose.orientation, final_pose["orientation"]
+    )
 
     print("Passed.")
 

@@ -51,7 +51,7 @@ def main():
         # position and stay there for a while
         for _ in range(250):
             t = platform.append_desired_action(finger_action)
-            time.sleep(0.001)
+            time.sleep(platform.get_time_step())
 
         # show the latest observations
         robot_observation = platform.get_robot_observation(t)

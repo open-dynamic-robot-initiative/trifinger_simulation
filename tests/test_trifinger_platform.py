@@ -28,6 +28,21 @@ class TestTriFingerPlatform(unittest.TestCase):
         self.assertEqual(first_stamp_ms, camera_obs.cameras[1].timestamp)
         self.assertEqual(first_stamp_ms, camera_obs.cameras[2].timestamp)
 
+        # Test time stamps of observations t+1
+        object_pose_next = platform.get_object_pose(t + 1)
+        camera_obs_next = platform.get_camera_observation(t + 1)
+        next_stamp_ms = first_stamp_ms + time_step_ms
+        self.assertEqual(next_stamp_ms, object_pose_next.timestamp)
+        self.assertEqual(next_stamp_ms, camera_obs_next.cameras[0].timestamp)
+        self.assertEqual(next_stamp_ms, camera_obs_next.cameras[1].timestamp)
+        self.assertEqual(next_stamp_ms, camera_obs_next.cameras[2].timestamp)
+
+        # XXX ===============================================================
+        # The following part of the test is disabled as currently everything is
+        # updated in each step (i.e. no lower update rate for camera and
+        # object).
+        return
+
         # Second time step
         t = platform.append_desired_action(action)
         second_stamp_ms = platform.get_timestamp_ms(t)

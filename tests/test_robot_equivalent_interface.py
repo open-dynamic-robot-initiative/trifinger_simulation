@@ -190,6 +190,24 @@ class TestRobotEquivalentInterface(unittest.TestCase):
         # be 1 ms.
         self.assertEqual(second_stamp - first_stamp, 1)
 
+    def test_get_timestamp_ms_tplus1_001(self):
+        t = self.finger.append_desired_action(self.finger.Action())
+        stamp_t = self.finger.get_timestamp_ms(t)
+        stamp_tp1 = self.finger.get_timestamp_ms(t + 1)
+
+        # time step is set to 0.001, so the difference between two steps should
+        # be 1 ms.
+        self.assertEqual(stamp_tp1 - stamp_t, 1)
+
+    def test_get_timestamp_ms_invalid_t(self):
+        t = self.finger.append_desired_action(self.finger.Action())
+
+        with self.assertRaises(ValueError):
+            self.finger.get_timestamp_ms(t - 1)
+
+        with self.assertRaises(ValueError):
+            self.finger.get_timestamp_ms(t + 2)
+
     def test_get_current_timeindex(self):
         t = self.finger.append_desired_action(self.finger.Action())
         self.assertEqual(self.finger.get_current_timeindex(), t)
