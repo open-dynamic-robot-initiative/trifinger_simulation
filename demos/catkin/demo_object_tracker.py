@@ -38,7 +38,8 @@ def main():
     finger = sim_finger.SimFinger(
         finger_type="trifingerone",
         time_step=time_step,
-        enable_visualizartion=True,)
+        enable_visualizartion=True,
+    )
 
     # Object and Object Tracker Interface
     # ===================================

@@ -21,9 +21,7 @@ class TestLoadingURDFs(unittest.TestCase):
         finger_data = finger_types_data.finger_types_data
         for key in finger_data.keys():
             try:
-                SimFinger(
-                    finger_type=key,
-                )
+                SimFinger(finger_type=key,)
 
             except pybullet.error as e:
                 self.fail(
@@ -42,9 +40,7 @@ class TestLoadingURDFs(unittest.TestCase):
         for key in finger_data.keys():
             try:
                 os.environ["ROS_PACKAGE_PATH"] = " "
-                SimFinger(
-                    finger_type=key,
-                )
+                SimFinger(finger_type=key,)
             except pybullet.error as e:
                 self.fail(
                     "Failed to import the local copies of the urdf for"

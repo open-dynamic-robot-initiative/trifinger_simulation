@@ -197,7 +197,9 @@ class CubeEnv(gym.GoalEnv):
             raise RuntimeError("Call `reset()` before starting to step.")
 
         if not self.action_space.contains(action):
-            raise ValueError("Given action is not contained in the action space.")
+            raise ValueError(
+                "Given action is not contained in the action space."
+            )
 
         num_steps = self.frameskip
 
@@ -248,7 +250,9 @@ class CubeEnv(gym.GoalEnv):
             }
 
             reward += self.compute_reward(
-                observation["achieved_goal"], observation["desired_goal"], self.info
+                observation["achieved_goal"],
+                observation["desired_goal"],
+                self.info,
             )
 
         is_done = self.step_count == move_cube.episode_length
@@ -265,7 +269,10 @@ class CubeEnv(gym.GoalEnv):
         )
 
         goal = self.initializer.get_goal()
-        self.goal = {"position": goal.position, "orientation": goal.orientation}
+        self.goal = {
+            "position": goal.position,
+            "orientation": goal.orientation,
+        }
         self.info = {"difficulty": self.initializer.difficulty}
 
         self.step_count = 0

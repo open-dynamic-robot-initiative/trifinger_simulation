@@ -96,7 +96,8 @@ class BaseFinger:
             self.robot_properties_path, "urdf", urdf_file
         )
         self.number_of_fingers = finger_types_data.get_number_of_fingers(
-            self.finger_type)
+            self.finger_type
+        )
 
     def init_joint_lists(self):
         """

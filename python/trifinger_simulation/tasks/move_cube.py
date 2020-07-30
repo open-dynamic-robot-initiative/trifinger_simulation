@@ -233,6 +233,7 @@ def evaluate_state(goal_pose, actual_pose, difficulty):
         Cost of the actual pose w.r.t. to the goal pose.  Lower value means
         that the actual pose is closer to the goal.  Zero if actual == goal.
     """
+
     def weighted_position_error():
         range_xy_dist = _ARENA_RADIUS * 2
         range_z_dist = _max_height

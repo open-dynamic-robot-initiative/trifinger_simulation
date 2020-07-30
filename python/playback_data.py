@@ -18,9 +18,7 @@ from trifinger_simulation import finger_types_data
 
 def main_finger(finger_type, data_file):
     finger = SimFinger(
-        time_step=0.004,
-        enable_visualization=True,
-        finger_type=finger_type
+        time_step=0.004, enable_visualization=True, finger_type=finger_type
     )
     goal_marker = visual_objects.Marker(number_of_goals=1)
 
@@ -64,9 +62,7 @@ def main_finger(finger_type, data_file):
             reset_finger(position)
 
 
-def trifinger_goal_space_transforms(
-        finger_type,
-        data):
+def trifinger_goal_space_transforms(finger_type, data):
 
     rot_z_120 = tf.euler_matrix(0, 0, np.deg2rad(-120))[:3, :3]
 
@@ -76,9 +72,8 @@ def trifinger_goal_space_transforms(
             goals = [
                 (data[0][i]["tip_goal"][0] + y_shift),
                 rot_z_120 @ (data[1][i]["tip_goal"][0] + y_shift),
-                rot_z_120 @ rot_z_120 @ (
-                    data[2][i]["tip_goal"][0] + y_shift),
-                ]
+                rot_z_120 @ rot_z_120 @ (data[2][i]["tip_goal"][0] + y_shift),
+            ]
 
     elif finger_type == "trifingeredu":
         rot_z_90 = tf.euler_matrix(0, 0, np.deg2rad(-90))[:3, :3]
@@ -87,22 +82,19 @@ def trifinger_goal_space_transforms(
             goals = [
                 (rot_z_90 @ data[0][i]["tip_goal"][0] - x_shift),
                 rot_z_120 @ rot_z_90 @ (data[1][i]["tip_goal"][0] - x_shift),
-                rot_z_120 @ rot_z_120 @ rot_z_90 @ (
-                    data[2][i]["tip_goal"][0] - x_shift),
-                ]
+                rot_z_120
+                @ rot_z_120
+                @ rot_z_90
+                @ (data[2][i]["tip_goal"][0] - x_shift),
+            ]
     return goals
 
 
-def main_trifinger(
-        finger_type,
-        data_file_0,
-        data_file_120,
-        data_file_240):
+def main_trifinger(finger_type, data_file_0, data_file_120, data_file_240):
 
     finger = SimFinger(
-        time_step=0.004,
-        enable_visualization=True,
-        finger_type=finger_type)
+        time_step=0.004, enable_visualization=True, finger_type=finger_type
+    )
     goal_marker = visual_objects.Marker(number_of_goals=3)
 
     def reset_finger(joint_position):
@@ -177,7 +169,7 @@ def main_trifinger(
             )
 
             slice_start = finger_idx * 3
-            current_pos[slice_start: slice_start + 3] = position
+            current_pos[slice_start : slice_start + 3] = position
 
             reset_finger(current_pos)
 
@@ -187,8 +179,7 @@ def main():
     parser.add_argument("finger_type")
     args = parser.parse_args(sys.argv[1:2])
 
-    finger_type = finger_types_data.check_finger_type(
-        args.finger_type)
+    finger_type = finger_types_data.check_finger_type(args.finger_type)
     num_fingers = finger_types_data.get_number_of_fingers(finger_type)
 
     parser = argparse.ArgumentParser(description=__doc__)
@@ -205,13 +196,10 @@ def main():
             finger_type,
             args.data_file_0,
             args.data_file_120,
-            args.data_file_240
-            )
-    else:
-        main_finger(
-            finger_type,
-            args.data_file
+            args.data_file_240,
         )
+    else:
+        main_finger(finger_type, args.data_file)
 
 
 if __name__ == "__main__":

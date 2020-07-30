@@ -162,9 +162,7 @@ class TriFingerPlatform:
         has_camera_update = True
         self._object_pose_t = self._get_current_object_pose()
         if self.enable_cameras:
-            self._camera_observation_t = (
-                self._get_current_camera_observation()
-            )
+            self._camera_observation_t = self._get_current_camera_observation()
 
         t = self.simfinger.append_desired_action(action)
 
