@@ -2,7 +2,7 @@
 """Replay actions for a given logfile and verify final object pose.
 
 The log file is a JSON file as produced by
-`pybullet_fingers.TriFingerPlatform.store_action_log()` which contains the
+`trifinger_simulation.TriFingerPlatform.store_action_log()` which contains the
 initial state, a list of all applied actions and the final state of the object.
 
 The simulation is initialised according to the given initial pose and the
@@ -22,8 +22,8 @@ import argparse
 import json
 import numpy as np
 
-from pybullet_fingers import trifinger_platform
-from pybullet_fingers.tasks import move_cube
+from trifinger_simulation import trifinger_platform
+from trifinger_simulation.tasks import move_cube
 
 
 def main():

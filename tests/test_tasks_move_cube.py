@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-from pybullet_fingers.tasks import move_cube
+from trifinger_simulation.tasks import move_cube
 
 
 class TestMoveCube(unittest.TestCase):

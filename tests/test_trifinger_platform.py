@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 
-from pybullet_fingers import TriFingerPlatform
+from trifinger_simulation import TriFingerPlatform
 
 
 class TestTriFingerPlatform(unittest.TestCase):
@@ -76,5 +76,5 @@ if __name__ == "__main__":
     import rosunit
 
     rosunit.unitrun(
-        "pybullet_fingers", "test_trifinger_platform", TestTriFingerPlatform,
+        "trifinger_simulation", "test_trifinger_platform", TestTriFingerPlatform,
     )

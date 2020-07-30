@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>pybullet_fingers</name>
+  <name>trifinger_simulation</name>
   <version>0.0.1</version>
   <description>
       pyBullet simulation for the Finger, TriFinger and related robots.

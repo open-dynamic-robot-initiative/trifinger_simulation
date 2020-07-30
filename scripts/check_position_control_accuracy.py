@@ -7,7 +7,7 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pybullet_fingers import sim_finger, sample
+from trifinger_simulation import sim_finger, sample
 
 
 if __name__ == "__main__":

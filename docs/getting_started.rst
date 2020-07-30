@@ -129,9 +129,9 @@ To create a TriFinger backend using simulation:
 
 .. code-block:: python
 
-    import pybullet_fingers.drivers
+    import trifinger_simulation.drivers
 
-    backend = pybullet_fingers.drivers.create_trifinger_backend(
+    backend = trifinger_simulation.drivers.create_trifinger_backend(
         robot_data, real_time_mode=True, visualize=True
     )
 

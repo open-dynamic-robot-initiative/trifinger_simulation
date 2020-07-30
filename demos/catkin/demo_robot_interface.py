@@ -10,7 +10,7 @@ import argparse
 import numpy as np
 
 import robot_interfaces
-import pybullet_fingers.drivers
+import trifinger_simulation.drivers
 
 
 def get_random_position(num_fingers=1):
@@ -47,11 +47,11 @@ def main():
     if args.finger_type == "single":
         num_fingers = 1
         finger_types = robot_interfaces.finger
-        create_backend = pybullet_fingers.drivers.create_single_finger_backend
+        create_backend = trifinger_simulation.drivers.create_single_finger_backend
     else:
         num_fingers = 3
         finger_types = robot_interfaces.trifinger
-        create_backend = pybullet_fingers.drivers.create_trifinger_backend
+        create_backend = trifinger_simulation.drivers.create_trifinger_backend
 
     robot_data = finger_types.SingleProcessData()
 

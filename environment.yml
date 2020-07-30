@@ -1,4 +1,4 @@
-name: pybullet_fingers
+name: trifinger_simulation
 channels:
 - anaconda
 - conda-forge

@@ -2,8 +2,8 @@ import os
 import warnings
 
 import pybullet
-from pybullet_fingers import pinocchio_utils
-from pybullet_fingers import finger_types_data
+from trifinger_simulation import pinocchio_utils
+from trifinger_simulation import finger_types_data
 
 
 class BaseFinger:

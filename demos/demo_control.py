@@ -8,8 +8,8 @@ import argparse
 import numpy as np
 import random
 import time
-from pybullet_fingers import sim_finger, visual_objects, sample
-from pybullet_fingers import finger_types_data
+from trifinger_simulation import sim_finger, visual_objects, sample
+from trifinger_simulation import finger_types_data
 
 
 def main():

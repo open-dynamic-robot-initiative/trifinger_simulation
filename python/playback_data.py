@@ -10,10 +10,10 @@ import copy
 import transformations as tf
 import pybullet
 
-from pybullet_fingers.sim_finger import SimFinger
-from pybullet_fingers import visual_objects
-from pybullet_fingers.gym_wrapper import utils
-from pybullet_fingers import finger_types_data
+from trifinger_simulation.sim_finger import SimFinger
+from trifinger_simulation import visual_objects
+from trifinger_simulation.gym_wrapper import utils
+from trifinger_simulation import finger_types_data
 
 
 def main_finger(finger_type, data_file):

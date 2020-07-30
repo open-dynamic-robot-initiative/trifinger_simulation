@@ -2,7 +2,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl_bind.h>
 
-#include <pybullet_fingers/pybullet_driver.hpp>
+#include <trifinger_simulation/pybullet_driver.hpp>
 #include <robot_interfaces/finger_types.hpp>
 
 using namespace pybind11::literals;
@@ -10,9 +10,9 @@ using namespace pybind11::literals;
 PYBIND11_MODULE(drivers, m)
 {
     m.def("create_single_finger_backend",
-          &pybullet_fingers::create_finger_backend<
+          &trifinger_simulation::create_finger_backend<
               robot_interfaces::MonoFingerTypes,
-              pybullet_fingers::PyBulletSingleFingerDriver>,
+              trifinger_simulation::PyBulletSingleFingerDriver>,
           "robot_data"_a,
           "real_time_mode"_a,
           "visualize"_a,
@@ -41,9 +41,9 @@ PYBIND11_MODULE(drivers, m)
 )XXX");
 
     m.def("create_trifinger_backend",
-          &pybullet_fingers::create_finger_backend<
+          &trifinger_simulation::create_finger_backend<
               robot_interfaces::TriFingerTypes,
-              pybullet_fingers::PyBulletTriFingerDriver>,
+              trifinger_simulation::PyBulletTriFingerDriver>,
           "robot_data"_a,
           "real_time_mode"_a,
           "visualize"_a,

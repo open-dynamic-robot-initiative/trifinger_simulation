@@ -3,7 +3,7 @@
 import numpy as np
 import cv2
 
-from pybullet_fingers import sim_finger, sample, camera
+from trifinger_simulation import sim_finger, sample, camera
 
 
 def main():

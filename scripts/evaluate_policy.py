@@ -15,8 +15,8 @@ import sys
 
 import gym
 
-from pybullet_fingers.gym_wrapper.envs import cube_env
-from pybullet_fingers.tasks import move_cube
+from trifinger_simulation.gym_wrapper.envs import cube_env
+from trifinger_simulation.tasks import move_cube
 
 
 class RandomPolicy:
@@ -45,7 +45,7 @@ def main():
 
     # TODO: Replace with your environment if you used a custom one.
     env = gym.make(
-        "pybullet_fingers.gym_wrapper:real_robot_challenge_phase_1-v1",
+        "trifinger_simulation.gym_wrapper:real_robot_challenge_phase_1-v1",
         initializer=initializer,
         action_type=cube_env.ActionType.POSITION,
         visualization=False,

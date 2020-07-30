@@ -4,7 +4,7 @@
 This demo creates a CubeEnv environment and runs one episode with random
 initialization using a dummy policy which uses random actions.
 """
-from pybullet_fingers.gym_wrapper.envs import cube_env
+from trifinger_simulation.gym_wrapper.envs import cube_env
 
 
 class RandomPolicy:

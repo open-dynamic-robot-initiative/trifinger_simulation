@@ -6,7 +6,7 @@ import time
 import cv2
 import numpy as np
 
-from pybullet_fingers import trifinger_platform, sample
+from trifinger_simulation import trifinger_platform, sample
 
 
 def main():

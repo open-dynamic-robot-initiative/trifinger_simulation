@@ -3,7 +3,7 @@
 import time
 import numpy as np
 
-from pybullet_fingers import sim_finger
+from trifinger_simulation import sim_finger
 
 
 if __name__ == "__main__":
