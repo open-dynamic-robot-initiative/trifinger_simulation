@@ -132,7 +132,7 @@ class SimFinger(BaseFinger):
             pybullet.changeDynamics(
                 bodyUniqueId=self.finger_id,
                 linkIndex=link_id,
-                maxJointVelocity=1e3,
+                maxJointVelocity=10,
                 restitution=0.8,
                 jointDamping=0.0,
                 lateralFriction=0.1,
