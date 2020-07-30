@@ -13,8 +13,8 @@ import pybullet_data
 
 import robot_interfaces
 import robot_fingers
-from pybullet_fingers.base_finger import BaseFinger
-from pybullet_fingers import finger_types_data
+from trifinger_simulation.base_finger import BaseFinger
+from trifinger_simulation import finger_types_data
 
 
 class RealFinger(BaseFinger):

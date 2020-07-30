@@ -16,7 +16,7 @@ def main():
 
     if args.env_name == "push":
         env = gym.make(
-            "pybullet_fingers.gym_wrapper:push-v0",
+            "trifinger_simulation.gym_wrapper:push-v0",
             control_rate_s=0.02,
             finger_type="single",
             enable_visualization=True,
@@ -31,7 +31,7 @@ def main():
             "stop_after": 5.0 / 7.0,
         }
         env = gym.make(
-            "pybullet_fingers.gym_wrapper:reach-v0",
+            "trifinger_simulation.gym_wrapper:reach-v0",
             control_rate_s=0.02,
             finger_type="single",
             smoothing_params=smoothing_params,

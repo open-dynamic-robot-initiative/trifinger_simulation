@@ -5,10 +5,10 @@ import numpy as np
 import pybullet
 import pybullet_data
 
-from pybullet_fingers.action import Action
-from pybullet_fingers.observation import Observation
-from pybullet_fingers.base_finger import BaseFinger
-from pybullet_fingers import collision_objects
+from trifinger_simulation.action import Action
+from trifinger_simulation.observation import Observation
+from trifinger_simulation.base_finger import BaseFinger
+from trifinger_simulation import collision_objects
 
 
 class SimFinger(BaseFinger):
@@ -77,7 +77,7 @@ class SimFinger(BaseFinger):
         """
         Fill in the fields of the action structure.
 
-        This is a factory go create an :class:`~pybullet_fingers.action.Action`
+        This is a factory go create an :class:`~trifinger_simulation.action.Action`
         instance with proper default values, depending on the finger type.
 
         Args:

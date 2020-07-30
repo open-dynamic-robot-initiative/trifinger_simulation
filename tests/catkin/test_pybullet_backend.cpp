@@ -6,7 +6,7 @@
 
 #include <memory>
 
-#include <pybullet_fingers/pybullet_driver.hpp>
+#include <trifinger_simulation/pybullet_driver.hpp>
 #include <robot_interfaces/finger_types.hpp>
 #include <robot_interfaces/robot_frontend.hpp>
 
@@ -21,9 +21,9 @@ TEST(TestPyBulletDriver, monofingerone)
     auto robot_data = std::make_shared<
         robot_interfaces::MonoFingerTypes::SingleProcessData>();
 
-    auto backend = pybullet_fingers::create_finger_backend<
+    auto backend = trifinger_simulation::create_finger_backend<
         robot_interfaces::MonoFingerTypes,
-        pybullet_fingers::PyBulletSingleFingerDriver>(
+        trifinger_simulation::PyBulletSingleFingerDriver>(
         robot_data, VISUALIZE, VISUALIZE);
 
     auto frontend = robot_interfaces::MonoFingerTypes::Frontend(robot_data);
@@ -63,9 +63,9 @@ TEST(TestPyBulletDriver, trifinger)
     auto robot_data =
         std::make_shared<robot_interfaces::TriFingerTypes::SingleProcessData>();
 
-    auto backend = pybullet_fingers::create_finger_backend<
+    auto backend = trifinger_simulation::create_finger_backend<
         robot_interfaces::TriFingerTypes,
-        pybullet_fingers::PyBulletTriFingerDriver>(
+        trifinger_simulation::PyBulletTriFingerDriver>(
         robot_data, VISUALIZE, VISUALIZE);
 
     auto frontend = robot_interfaces::TriFingerTypes::Frontend(robot_data);

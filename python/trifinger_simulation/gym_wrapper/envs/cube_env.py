@@ -4,8 +4,8 @@ import enum
 import numpy as np
 import gym
 
-import pybullet_fingers
-from pybullet_fingers.tasks import move_cube
+import trifinger_simulation
+from trifinger_simulation.tasks import move_cube
 
 
 class RandomInitializer:
@@ -260,7 +260,7 @@ class CubeEnv(gym.GoalEnv):
         # reset simulation
         # TODO use pybullet.resetSimulation() instead of recreating everything
         del self.platform
-        self.platform = pybullet_fingers.TriFingerPlatform(
+        self.platform = trifinger_simulation.TriFingerPlatform(
             visualization=self.visualization,
             initial_object_pose=self.initializer.get_initial_state(),
         )

@@ -2,7 +2,7 @@
 import unittest
 import numpy as np
 
-from pybullet_fingers.sim_finger import SimFinger
+from trifinger_simulation.sim_finger import SimFinger
 
 
 class TestRobotEquivalentInterface(unittest.TestCase):

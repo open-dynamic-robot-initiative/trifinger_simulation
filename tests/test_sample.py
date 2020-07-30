@@ -3,7 +3,7 @@ import unittest
 from numpy.testing.utils import assert_array_compare
 import operator
 
-from pybullet_fingers import sample
+from trifinger_simulation import sample
 
 
 def assert_array_less_equal(x, y, err_msg="", verbose=True):

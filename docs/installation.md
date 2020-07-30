@@ -33,9 +33,9 @@ with the environment of the catkin workspace.
 
 1. Clone this repo,
 
-       git clone git@gitlab.is.tue.mpg.de:robotics/pybullet_fingers.git
+       git clone git@gitlab.is.tue.mpg.de:robotics/trifinger_simulation.git
 
-2. Then run the installation script in interactive mode *with appropriate modifications depending on your shell type*. The installation script sets up a conda env (based on Python 3.6.9) and installs the `pybullet_fingers` package within it.
+2. Then run the installation script in interactive mode *with appropriate modifications depending on your shell type*. The installation script sets up a conda env (based on Python 3.6.9) and installs the `trifinger_simulation` package within it.
 
 For bash,
 
@@ -43,7 +43,7 @@ For bash,
 
 3. Then activate the env,
 
-       conda activate pybullet_fingers
+       conda activate trifinger_simulation
 
 4. You should check that you the tests in `tests/` (which wouldn't include the tests in `tests/catkin`) are successful:
 

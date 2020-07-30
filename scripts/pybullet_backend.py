@@ -4,7 +4,7 @@ import argparse
 import math
 
 import robot_interfaces
-from pybullet_fingers import collision_objects, drivers, camera
+from trifinger_simulation import collision_objects, drivers, camera
 
 
 def main():

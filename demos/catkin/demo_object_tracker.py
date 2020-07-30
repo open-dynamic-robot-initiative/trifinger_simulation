@@ -5,7 +5,7 @@ import numpy as np
 import time
 
 import trifinger_object_tracking.py_object_tracker as object_tracker
-from pybullet_fingers import sim_finger, collision_objects, sample
+from trifinger_simulation import sim_finger, collision_objects, sample
 
 
 def main():

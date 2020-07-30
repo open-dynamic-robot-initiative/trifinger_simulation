@@ -13,7 +13,7 @@
 
 #include <robot_interfaces/finger_types.hpp>
 
-namespace pybullet_fingers
+namespace trifinger_simulation
 {
 namespace py = pybind11;
 
@@ -189,7 +189,7 @@ public:
         py::module::import("robot_interfaces.py_finger_types");
 
         py::module sim_finger =
-            py::module::import("pybullet_fingers.sim_finger");
+            py::module::import("trifinger_simulation.sim_finger");
         sim_finger_ =
             sim_finger.attr("SimFinger")("fingerone", 0.001, visualize_);
 
@@ -220,7 +220,7 @@ public:
         py::module::import("robot_interfaces.py_trifinger_types");
 
         py::module sim_finger =
-            py::module::import("pybullet_fingers.sim_finger");
+            py::module::import("trifinger_simulation.sim_finger");
         sim_finger_ =
             sim_finger.attr("SimFinger")("trifingerone", 0.001, visualize_);
 
@@ -230,4 +230,4 @@ public:
     }
 };
 
-}  // namespace pybullet_fingers
+}  // namespace trifinger_simulation

@@ -26,7 +26,7 @@ import os
 import subprocess
 import sys
 
-from pybullet_fingers.tasks import move_cube
+from trifinger_simulation.tasks import move_cube
 
 
 def validate_json_pose(json_str):

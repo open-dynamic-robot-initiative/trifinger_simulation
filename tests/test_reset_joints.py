@@ -2,8 +2,8 @@
 import unittest
 import numpy as np
 
-from pybullet_fingers.sim_finger import SimFinger
-from pybullet_fingers import sample
+from trifinger_simulation.sim_finger import SimFinger
+from trifinger_simulation import sample
 
 
 class TestResetJoints(unittest.TestCase):

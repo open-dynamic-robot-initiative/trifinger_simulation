@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(pybullet_fingers)
+project(trifinger_simulation)
 
 # Specify C++ Standard
 set(CMAKE_CXX_STANDARD 14)

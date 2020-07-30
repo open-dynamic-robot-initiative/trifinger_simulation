@@ -2,8 +2,8 @@ import unittest
 import os
 
 import pybullet
-from pybullet_fingers.sim_finger import SimFinger
-from pybullet_fingers import finger_types_data
+from trifinger_simulation.sim_finger import SimFinger
+from trifinger_simulation import finger_types_data
 
 
 class TestLoadingURDFs(unittest.TestCase):

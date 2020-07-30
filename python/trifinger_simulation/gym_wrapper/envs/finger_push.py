@@ -3,11 +3,11 @@ import time
 
 import gym
 
-from pybullet_fingers.sim_finger import SimFinger
-from pybullet_fingers.gym_wrapper.data_logger import DataLogger
-from pybullet_fingers.gym_wrapper.finger_spaces import FingerSpaces
-from pybullet_fingers.gym_wrapper import utils
-from pybullet_fingers import (
+from trifinger_simulation.sim_finger import SimFinger
+from trifinger_simulation.gym_wrapper.data_logger import DataLogger
+from trifinger_simulation.gym_wrapper.finger_spaces import FingerSpaces
+from trifinger_simulation.gym_wrapper import utils
+from trifinger_simulation import (
     collision_objects,
     visual_objects,
     sample,

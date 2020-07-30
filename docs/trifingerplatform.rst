@@ -5,11 +5,11 @@ TriFingerPlatform Simulation
 .. contents::
 
 
-The :class:`~pybullet_fingers.TriFingerPlatform` class
+The :class:`~trifinger_simulation.TriFingerPlatform` class
 provides access to the simulation of the TriFinger platform using the same
 interface as ``robot_interfaces::TriFingerPlatformFrontend`` for the real robot.
 
-It is basically a wrapper around :class:`~pybullet_fingers.SimFinger` which
+It is basically a wrapper around :class:`~trifinger_simulation.SimFinger` which
 takes care of initializing the environment, exposes the relevant methods to
 control the robot and adds the ones for getting the object and camera
 observations.
@@ -25,39 +25,39 @@ API Documentation
 =================
 
 
-.. autoclass:: pybullet_fingers.TriFingerPlatform
+.. autoclass:: trifinger_simulation.TriFingerPlatform
    :special-members:
 
    .. automethod:: __init__
 
    .. method:: Action(torque=None, position=None)
 
-      See :meth:`pybullet_fingers.SimFinger.Action`.
+      See :meth:`trifinger_simulation.SimFinger.Action`.
 
    .. method:: append_desired_action(action)
 
-      See :meth:`pybullet_fingers.SimFinger.append_desired_action`.
+      See :meth:`trifinger_simulation.SimFinger.append_desired_action`.
 
    .. method:: get_current_timeindex
 
-      See :meth:`pybullet_fingers.SimFinger.get_current_timeindex`.
+      See :meth:`trifinger_simulation.SimFinger.get_current_timeindex`.
 
    .. method:: get_timestamp_ms(t)
 
-      See :meth:`pybullet_fingers.SimFinger.get_timestamp_ms`.
+      See :meth:`trifinger_simulation.SimFinger.get_timestamp_ms`.
 
    .. method:: get_desired_action(t)
 
-      See :meth:`pybullet_fingers.SimFinger.get_desired_action`.
+      See :meth:`trifinger_simulation.SimFinger.get_desired_action`.
 
    .. method:: get_applied_action(t)
 
-      See :meth:`pybullet_fingers.SimFinger.get_applied_action`.
+      See :meth:`trifinger_simulation.SimFinger.get_applied_action`.
 
    .. method:: get_robot_observation(t)
 
       Get observation of the robot state (joint angles, torques, etc.).
-      See :meth:`pybullet_fingers.SimFinger.get_observation`.
+      See :meth:`trifinger_simulation.SimFinger.get_observation`.
 
    .. automethod:: get_object_pose
 
@@ -67,15 +67,15 @@ API Documentation
 
 ------------------------------------------------------------------------------
 
-.. autoclass:: pybullet_fingers.ObjectPose
+.. autoclass:: trifinger_simulation.ObjectPose
    :members:
 
 ------------------------------------------------------------------------------
 
-.. autoclass:: pybullet_fingers.CameraObservation
+.. autoclass:: trifinger_simulation.CameraObservation
    :members:
 
 ------------------------------------------------------------------------------
 
-.. autoclass:: pybullet_fingers.TriCameraObservation
+.. autoclass:: trifinger_simulation.TriCameraObservation
    :members:

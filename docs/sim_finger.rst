@@ -5,10 +5,10 @@ Finger Robot Simulation
 .. contents::
 
 
-The :class:`~pybullet_fingers.SimFinger` class provides a simulation
+The :class:`~trifinger_simulation.SimFinger` class provides a simulation
 environment for the "Finger Robots", i.e. FingerOne, TriFingerOne,
 TriFingerEdu, etc.  See
-:meth:`~pybullet_fingers.SimFinger.get_valid_finger_types` for a list of all
+:meth:`~trifinger_simulation.SimFinger.get_valid_finger_types` for a list of all
 supported robots.
 
 The interface for controlling the robot in the simulation is equivalent to the
@@ -46,7 +46,7 @@ API Documentation
 =================
 
 
-.. autoclass:: pybullet_fingers.SimFinger
+.. autoclass:: trifinger_simulation.SimFinger
 
    .. automethod:: __init__
 
@@ -68,9 +68,9 @@ API Documentation
 
 ------------------------------------------------------------------------------
 
-.. autoclass:: pybullet_fingers.Action
+.. autoclass:: trifinger_simulation.Action
 
 ------------------------------------------------------------------------------
 
-.. autoclass:: pybullet_fingers.Observation
+.. autoclass:: trifinger_simulation.Observation
 

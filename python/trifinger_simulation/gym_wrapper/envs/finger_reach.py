@@ -5,11 +5,11 @@ import datetime
 
 import gym
 
-from pybullet_fingers.sim_finger import SimFinger
-from pybullet_fingers.gym_wrapper.data_logger import DataLogger
-from pybullet_fingers.gym_wrapper.finger_spaces import FingerSpaces
-from pybullet_fingers.gym_wrapper import utils
-from pybullet_fingers import visual_objects, sample
+from trifinger_simulation.sim_finger import SimFinger
+from trifinger_simulation.gym_wrapper.data_logger import DataLogger
+from trifinger_simulation.gym_wrapper.finger_spaces import FingerSpaces
+from trifinger_simulation.gym_wrapper import utils
+from trifinger_simulation import visual_objects, sample
 
 
 class FingerReach(gym.Env):
@@ -118,7 +118,7 @@ class FingerReach(gym.Env):
         )
 
         if use_real_robot:
-            from pybullet_fingers.real_finger import RealFinger
+            from trifinger_simulation.real_finger import RealFinger
 
             self.finger = RealFinger(
                 finger_type=finger_type,
