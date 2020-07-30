@@ -79,25 +79,24 @@ class TriFingerPlatform:
         """
         #: Camera rate in frames per second.  Observations of camera and
         #: object pose will only be updated with this rate.
+        #: NOTE: This is currently not used!
         self.camera_rate_fps = 30
 
         #: Set to true to render camera observations
         self.enable_cameras = enable_cameras
 
         #: Simulation time step
-        # FIXME change to 0.004
-        self._time_step = 0.001
+        self._time_step = 0.004
 
-        # start with large negative number, so we get the first update in the
-        # first step
-        self._last_camera_timeindex = -999999
+        # first camera update in the first step
+        self._next_camera_update_step = 0
 
         # Initially move the fingers to a pose where they are guaranteed to not
         # collide with the object on the ground.
         initial_position = [0.0, np.deg2rad(-70), np.deg2rad(-130)] * 3
 
         self.simfinger = SimFinger(
-            finger_type="trifingerone",
+            finger_type="trifingerpro",
             time_step=self._time_step,
             enable_visualization=visualization,
         )
@@ -130,6 +129,13 @@ class TriFingerPlatform:
         self.get_current_timeindex = self.simfinger.get_current_timeindex
         self.get_robot_observation = self.simfinger.get_observation
 
+    def get_time_step(self):
+        """Get simulation time step in seconds."""
+        return self._time_step
+
+    def _compute_camera_update_step_interval(self):
+        return (1.0 / self.camera_rate_fps) / self._time_step
+
     def append_desired_action(self, action):
         """
         Call :meth:`pybullet.SimFinger.append_desired_action` and add the
@@ -140,20 +146,25 @@ class TriFingerPlatform:
         """
         # update camera and object observations only with the rate of the
         # cameras
-        camera_update_step_interval = (
-            1.0 / self.camera_rate_fps
-        ) / self._time_step
-        next_t = self.get_current_timeindex() + 1
-        has_camera_update = False
-        if next_t > self._last_camera_timeindex + camera_update_step_interval:
-            has_camera_update = True
-            self._last_camera_timeindex = next_t
+        # next_t = self.get_current_timeindex() + 1
+        # has_camera_update = next_t >= self._next_camera_update_step
+        # if has_camera_update:
+        #     self._next_camera_update_step += (
+        #         self._compute_camera_update_step_interval()
+        #     )
 
-            self._object_pose_t = self._get_current_object_pose()
-            if self.enable_cameras:
-                self._camera_observation_t = (
-                    self._get_current_camera_observation()
-                )
+        #     self._object_pose_t = self._get_current_object_pose()
+        #     if self.enable_cameras:
+        #         self._camera_observation_t = (
+        #             self._get_current_camera_observation()
+        #         )
+
+        has_camera_update = True
+        self._object_pose_t = self._get_current_object_pose()
+        if self.enable_cameras:
+            self._camera_observation_t = (
+                self._get_current_camera_observation()
+            )
 
         t = self.simfinger.append_desired_action(action)
 
@@ -181,7 +192,7 @@ class TriFingerPlatform:
 
         return t
 
-    def _get_current_object_pose(self):
+    def _get_current_object_pose(self, t=None):
         cube_state = self.cube.get_state()
         pose = ObjectPose()
         pose.position = np.asarray(cube_state[0])
@@ -190,7 +201,10 @@ class TriFingerPlatform:
         # NOTE: The timestamp can only be set correctly after time step t is
         # actually reached.  Therefore, this is set to None here and filled
         # with the proper value later.
-        pose.timestamp = None
+        if t is None:
+            pose.timestamp = None
+        else:
+            pose.timestamp = self.get_timestamp_ms(t)
 
         return pose
 
@@ -209,18 +223,32 @@ class TriFingerPlatform:
         Raises:
             ValueError: If invalid time index ``t`` is passed.
         """
-        self.simfinger._validate_time_index(t)
-        return self._object_pose_t
+        current_t = self.get_current_timeindex()
 
-    def _get_current_camera_observation(self):
+        if t == current_t:
+            return self._object_pose_t
+        elif t == current_t + 1:
+            return self._get_current_object_pose(t)
+        else:
+            raise ValueError(
+                "Given time index t has to match with index of the current"
+                " step or the next one."
+            )
+
+    def _get_current_camera_observation(self, t=None):
         images = self.tricamera.get_images()
         observation = TriCameraObservation()
+        # NOTE: The timestamp can only be set correctly after time step t
+        # is actually reached.  Therefore, this is set to None here and
+        # filled with the proper value later.
+        if t is None:
+            timestamp = None
+        else:
+            timestamp = self.get_timestamp_ms(t)
+
         for i, image in enumerate(images):
             observation.cameras[i].image = image
-            # NOTE: The timestamp can only be set correctly after time step t
-            # is actually reached.  Therefore, this is set to None here and
-            # filled with the proper value later.
-            observation.cameras[i].timestamp = None
+            observation.cameras[i].timestamp = timestamp
 
         return observation
 
@@ -247,8 +275,17 @@ class TriFingerPlatform:
                 " observations."
             )
 
-        self.simfinger._validate_time_index(t)
-        return self._camera_observation_t
+        current_t = self.get_current_timeindex()
+
+        if t == current_t:
+            return self._camera_observation_t
+        elif t == current_t + 1:
+            return self._get_current_camera_observation(t)
+        else:
+            raise ValueError(
+                "Given time index t has to match with index of the current"
+                " step or the next one."
+            )
 
     def store_action_log(self, filename):
         """Store the action log to a JSON file.

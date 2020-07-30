@@ -1,13 +1,17 @@
 """Functions for sampling, validating and evaluating "move cube" goals."""
 import json
-import random
 
 import numpy as np
 from scipy.spatial.transform import Rotation
 
 
-# Number of time steps in one episode
-episode_length = 5000  # TODO set actual value
+#: Random number generator.  Replace with a seeded version for deterministic
+#: samples.
+random = np.random.RandomState()
+
+
+#: Number of time steps in one episode (3750 steps per 0.004s = 15s)
+episode_length = 3750
 
 
 _CUBE_WIDTH = 0.065
@@ -17,7 +21,7 @@ _cube_3d_radius = _CUBE_WIDTH * np.sqrt(3) / 2
 _max_cube_com_distance_to_center = _ARENA_RADIUS - _cube_3d_radius
 
 _min_height = _CUBE_WIDTH / 2
-_max_height = 0.1  # TODO
+_max_height = 0.1
 
 
 _cube_corners = np.array(
@@ -49,10 +53,35 @@ class Pose:
     def __init__(
         self, position=np.array([0, 0, 0]), orientation=np.array([0, 0, 0, 1])
     ):
+        """Initialize.
+
+        Args:
+            position (numpy.ndarray): Position (x, y, z)
+            orientation (numpy.ndarray): Orientation as quaternion (x, y, z, w)
+
+        """
         #: Position (x, y, z).
         self.position = position
         #: Orientation as quaternion (x, y, z, w)
         self.orientation = orientation
+
+    def to_dict(self):
+        """Convert to dictionary."""
+        return {"position": self.positions, "orientation": self.orientation}
+
+    def to_json(self):
+        """Convert to JSON string."""
+        return goal_to_json(self)
+
+    @classmethod
+    def from_dict(cls, dict):
+        """Create Pose instance from dictionary."""
+        return cls(dict["position"], dict["orientation"])
+
+    @classmethod
+    def from_json(cls, json_str):
+        """Create Pose instance from JSON string."""
+        return goal_from_json(json_str)
 
 
 def get_cube_corner_positions(pose):
@@ -71,28 +100,23 @@ def get_cube_corner_positions(pose):
     return rotation.apply(_cube_corners) + translation
 
 
-def sample_goal(difficulty, current_pose=None):
+def sample_goal(difficulty):
     """Sample a goal pose for the cube.
 
     Args:
         difficulty (int):  Difficulty level.  The higher, the more difficult is
             the goal.  Possible levels are:
 
-            - 1: Goal position on the table, no orientation.
-            - 2: Lifting to a certain height.  No x,y-position, no orientation.
-            - 3: Goal position in the air, no orientation.
-            - 4: Goal pose in the air, including orientation.
-
-        current_pose (Pose):  Current pose of the cube.  If set, it is
-            considered while sampling the goal orientation.  If not set, it is
-            assumed that the cube is currently at the origin and aligned with
-            the axes of the world frame.  This is relevant for some difficulty
-            levels to ensure that the goal orientation only differs from the
-            current one by what is specified for that difficulty level (e.g.
-            only rotation around z-axes for level 1).
+            - 1: Random goal position on the table, no orientation.
+            - 2: Fixed goal position in the air with x,y = 0.  No orientation.
+            - 3: Random goal position in the air, no orientation.
+            - 4: Random goal pose in the air, including orientation.
 
     Returns:
-        (Pose): Goal pose of the cube relative to the world frame.
+        (Pose): Goal pose of the cube relative to the world frame.  Note that
+            the pose always contains an orientation.  For difficulty levels
+            where the orientation is not considered, this is set to
+            ``[0, 0, 0, 1]`` and will be ignored when computing the reward.
     """
     # difficulty -1 is for initialization
 
@@ -109,14 +133,7 @@ def sample_goal(difficulty, current_pose=None):
 
     def random_yaw_orientation():
         yaw = random.uniform(0, 2 * np.pi)
-
-        # make goal orientation relative to current orientation if given
         orientation = Rotation.from_euler("z", yaw)
-        if current_pose is not None:
-            orientation = orientation * Rotation.from_quat(
-                current_pose.orientation
-            )
-
         return orientation.as_quat()
 
     if difficulty == -1:  # for initialization
@@ -131,11 +148,9 @@ def sample_goal(difficulty, current_pose=None):
         orientation = np.array([0, 0, 0, 1])
 
     elif difficulty == 2:
-        # FIXME set x,y to zero or to current position of cube?
         x = 0.0
         y = 0.0
-        # FIXME use random or fixed height?
-        z = 0.05
+        z = _min_height + 0.05
         orientation = np.array([0, 0, 0, 1])
 
     elif difficulty == 3:
@@ -145,9 +160,10 @@ def sample_goal(difficulty, current_pose=None):
 
     elif difficulty == 4:
         x, y = random_xy()
-        z = random.uniform(_min_height, _max_height)
-        # FIXME: only yaw rotation or completely arbitrary?
-        orientation = random_yaw_orientation()
+        # Set minimum height such that the cube does not intersect with the
+        # ground in any orientation
+        z = random.uniform(_cube_3d_radius, _max_height)
+        orientation = Rotation.random(random_state=random).as_quat()
 
     else:
         raise ValueError("Invalid difficulty %d" % difficulty)
@@ -217,17 +233,42 @@ def evaluate_state(goal_pose, actual_pose, difficulty):
         Cost of the actual pose w.r.t. to the goal pose.  Lower value means
         that the actual pose is closer to the goal.  Zero if actual == goal.
     """
+    def weighted_position_error():
+        range_xy_dist = _ARENA_RADIUS * 2
+        range_z_dist = _max_height
+
+        xy_dist = np.linalg.norm(
+            goal_pose.position[:2] - actual_pose.position[:2]
+        )
+        z_dist = abs(goal_pose.position[2] - actual_pose.position[2])
+
+        # weight xy- and z-parts by their expected range
+        return (xy_dist / range_xy_dist + z_dist / range_z_dist) / 2
+
     if difficulty in (1, 2, 3):
         # consider only 3d position
-        return np.linalg.norm(goal_pose.position - actual_pose.position)
+        return weighted_position_error()
     elif difficulty == 4:
         # consider whole pose
-        # Use DISP distance (max. displacement of the corners)
-        goal_corners = get_cube_corner_positions(goal_pose)
-        actual_corners = get_cube_corner_positions(actual_pose)
+        scaled_position_error = weighted_position_error()
 
-        disp = max(np.linalg.norm(goal_corners - actual_corners, axis=1))
-        return disp
+        # https://stackoverflow.com/a/21905553
+        goal_rot = Rotation.from_quat(goal_pose.orientation)
+        actual_rot = Rotation.from_quat(actual_pose.orientation)
+        error_rot = goal_rot.inv() * actual_rot
+        orientation_error = error_rot.magnitude()
+
+        # scale both position and orientation error to be within [0, 1] for
+        # their expected ranges
+        scaled_orientation_error = orientation_error / np.pi
+
+        scaled_error = (scaled_position_error + scaled_orientation_error) / 2
+        return scaled_error
+
+        # Use DISP distance (max. displacement of the corners)
+        # goal_corners = get_cube_corner_positions(goal_pose)
+        # actual_corners = get_cube_corner_positions(actual_pose)
+        # disp = max(np.linalg.norm(goal_corners - actual_corners, axis=1))
     else:
         raise ValueError("Invalid difficulty %d" % difficulty)
 
