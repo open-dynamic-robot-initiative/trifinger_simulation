@@ -165,8 +165,8 @@ class SimFinger(BaseFinger):
             )
 
         elif self.finger_type in ["trifingerone", "tri", "trifingerpro"]:
-            table_colour = (0.31, 0.27, 0.25, 1.0)
-            high_border_colour = (0.95, 0.95, 0.95, 1.0)
+            table_colour = (0.18, 0.15, 0.19, 1.0)
+            high_border_colour = (0.73, 0.68, 0.72, 1.0)
             if high_border:
                 collision_objects.import_mesh(
                     mesh_path("trifinger_table_without_border.stl"),
