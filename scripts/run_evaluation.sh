@@ -1,25 +1,30 @@
 #!/bin/sh
 # This script illustrates how final submissions will be evaluated.
+#
+# Note that for the actual evaluation, "run_evaluate_policy_all_levels.py" will
+# be executed in the Singularity image provided by the participants while
+# "run_replay_all_levels.py" will be executed in the original challenge image
+# provided by us, without any modifications by the participants.
+# If the participants do not submit a custom Singularity image along with their
+# code, the original image will be used for both steps.
 
 # abort if any command returns an error
 set -e
 
-# arguments are difficulty, initial pose, goal pose
-./evaluate_policy.py \
-    1 \
-    '{"position": [-0.0779, -0.0238, 0.0325], "orientation": [0.0, 0.0, 0.9984469480724629, -0.05571078786720278]}' \
-    '{"position": [-0.0681, -0.0979, 0.0325], "orientation": [0, 0, 0, 1]}' \
-    /tmp/action_log.json
+# create temporary directory to store generated files
+tmpdir=$(mktemp -dt run_evaluation_XXXXXXXXX)
+echo "Storing generated files in ${tmpdir}"
+
+echo
+echo Run Policy on Random Goals
+echo ==========================
+echo
+
+./run_evaluate_policy_all_levels.py ${tmpdir}
 
 echo
 echo Replay Action Log
 echo =================
 echo
 
-# the above script writes a file "action_log.json".  Based on this, the result is
-# verified by replaying the logged actions in the simulation.
-./replay_action_log.py \
-    --logfile=/tmp/action_log.json \
-    --difficulty=1 \
-    --initial-pose='{"position": [-0.0779, -0.0238, 0.0325], "orientation": [0.0, 0.0, 0.9984469480724629, -0.05571078786720278]}' \
-    --goal-pose='{"position": [-0.0681, -0.0979, 0.0325], "orientation": [0, 0, 0, 1]}'
+./run_replay_all_levels.py ${tmpdir}
