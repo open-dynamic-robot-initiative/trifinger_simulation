@@ -1,4 +1,24 @@
 #!/usr/bin/env python3
+"""Run `evaluate_policy.py` with random goals for all difficulty levels
+
+Creates a dataset of multiple pairs of random initial state and goal for the
+cube for each difficulty level.  Then executes `evaluate_policy.py` on each of
+these samples and collects the log files in the specified output directory.
+
+The `evaluate_policy.py` script is expected to be located in the current
+working directory.  Replace the dummy policy there with your actual policy to
+evaluate it.
+
+This is used for the evaluation of the submissions of this phase of the first
+phase of the real robot challenge.  Make sure this script runs with your
+`evaluate_policy.py` script without any errors before submitting your code.
+"""
+
+# IMPORTANT:  DO NOT MODIFY THIS FILE!
+# Submissions will be evaluate on our side with a similar script but not
+# exactly this one.  To make sure that your code is compatible with our
+# evaluation script, make sure it runs with this one without any modifications.
+
 import argparse
 import os
 import pickle
@@ -18,8 +38,22 @@ class TestSample(typing.NamedTuple):
 
 
 def generate_test_set(
-    levels: list, samples_per_level: int, logfile_tmpl: str
-) -> list:
+    levels: typing.List[int], samples_per_level: int, logfile_tmpl: str
+) -> typing.List[TestSample]:
+    """Generate random test set for policy evaluation.
+
+    For each difficulty level a list of samples, consisting of randomized
+    initial pose and goal pose, is generated.
+
+    Args:
+        levels:  List of difficulty levels.
+        samples_per_level:  How many samples are generated per level.
+        logfile_tmpl:  Format string for the log file associated with this
+            sample.  Needs to contain placeholders "{level}" and "{iteration}".
+
+    Returns:
+        List of ``len(levels) * samples_per_level`` test samples.
+    """
     samples = []
     for level in levels:
         for i in range(samples_per_level):
@@ -35,6 +69,12 @@ def generate_test_set(
 
 
 def run_evaluate_policy(sample: TestSample):
+    """Run evaluate_policy.py with the given sample.
+
+    Args:
+        sample (TestSample): Contains all required information to run the
+            evaluation script.
+    """
     cmd = [
         "./evaluate_policy.py",  # TODO: make path configurable?
         str(sample.difficulty),
@@ -46,7 +86,10 @@ def run_evaluate_policy(sample: TestSample):
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument(
         "output_directory",
         type=str,
