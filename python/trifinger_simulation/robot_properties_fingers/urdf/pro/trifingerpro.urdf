@@ -13,6 +13,18 @@
     In zero-configuration the origin of the base link is exactly above the
     finger tip which should make it easy to place the finger in the world.
     -->
+  <material name="finger_0_material">
+    <color rgba="0.6 0.0 0.0 1.0"/>
+  </material>
+  <material name="finger_120_material">
+    <color rgba="0.0 0.6 0.0 1.0"/>
+  </material>
+  <material name="finger_240_material">
+    <color rgba="0.0 0.0 0.6 1.0"/>
+  </material>
+  <material name="real_finger_material">
+    <color rgba="0.83 0.79 0.82 1.0"/>
+  </material>
   <!-- Define the global base_link and place all other objects relative to it. -->
   <link name="base_link">
     <inertial>
@@ -28,7 +40,7 @@
       <geometry>
         <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Center.stl" scale="1.0 1.0 1.0"/>
       </geometry>
-      <material name="finger_material"/>
+      <material name="real_finger_material"/>
     </visual>
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -41,15 +53,6 @@
     <child link="upper_holder_link"/>
     <origin xyz="0 0 0.29"/>
   </joint>
-  <material name="finger_0_material">
-    <color rgba="0.6 0.0 0.0 1.0"/>
-  </material>
-  <material name="finger_120_material">
-    <color rgba="0.0 0.6 0.0 1.0"/>
-  </material>
-  <material name="finger_240_material">
-    <color rgba="0.0 0.0 0.6 1.0"/>
-  </material>
   <!--
         Fixed links for the finger base (parts where the upper link is mounted).
         Note: Link Frames already coincide with the joint location
@@ -60,7 +63,7 @@
       <geometry>
         <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Base.stl" scale="1.0 1.0 1.0"/>
       </geometry>
-      <material name="finger_0_material"/>
+      <material name="real_finger_material"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0.23295 0"/>
@@ -80,7 +83,7 @@
       <geometry>
         <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Proximal.stl" scale="1.0 1.0 1.0"/>
       </geometry>
-      <material name="finger_0_material"/>
+      <material name="real_finger_material"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0.0235 0"/>
@@ -100,7 +103,7 @@
       <geometry>
         <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Intermediate.stl" scale="1.0 1.0 1.0"/>
       </geometry>
-      <material name="finger_0_material"/>
+      <material name="real_finger_material"/>
     </visual>
     <collision>
       <origin rpy="1.57079632679 0 0" xyz="0 0 0"/>
@@ -120,7 +123,7 @@
       <geometry>
         <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Tip.stl" scale="1.0 1.0 1.0"/>
       </geometry>
-      <material name="finger_0_material"/>
+      <material name="real_finger_material"/>
     </visual>
     <collision>
       <origin rpy="1.57079632679 0 0" xyz="0 0 0"/>
@@ -138,14 +141,14 @@
   <link name="finger_tip_link_0">
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
-      <mass value="0.02"/>
-      <inertia ixx="3.33333333333e-07" ixy="0" ixz="0" iyy="3.33333333333e-07" iyz="0" izz="3.33333333333e-07"/>
+      <mass value="0"/>
+      <inertia ixx="0.0" ixy="0" ixz="0" iyy="0.0" iyz="0" izz="0.0"/>
     </inertial>
   </link>
   <joint name="finger_lower_to_tip_joint_0" type="fixed">
     <parent link="finger_lower_link_0"/>
     <child link="finger_tip_link_0"/>
-    <origin xyz="0.0185 0 -0.16"/>
+    <origin xyz="0.0185 0 -0.1626"/>
   </joint>
   <!-- kinematics -->
   <!-- NOTE: Joint limits are set according to soft limits in the
@@ -168,7 +171,7 @@
   <joint name="finger_middle_to_lower_joint_0" type="revolute">
     <parent link="finger_middle_link_0"/>
     <child link="finger_lower_link_0"/>
-    <limit effort="1000" lower="-2.7" upper="2.7" velocity="1000"/>
+    <limit effort="1000" lower="-2.7" upper="0.0" velocity="1000"/>
     <axis xyz="1 0 0"/>
     <origin rpy="0 0 0" xyz="0.04922 0 -0.16"/>
   </joint>
@@ -182,7 +185,7 @@
       <geometry>
         <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Base.stl" scale="1.0 1.0 1.0"/>
       </geometry>
-      <material name="finger_120_material"/>
+      <material name="real_finger_material"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0.23295 0"/>
@@ -202,7 +205,7 @@
       <geometry>
         <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Proximal.stl" scale="1.0 1.0 1.0"/>
       </geometry>
-      <material name="finger_120_material"/>
+      <material name="real_finger_material"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0.0235 0"/>
@@ -222,7 +225,7 @@
       <geometry>
         <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Intermediate.stl" scale="1.0 1.0 1.0"/>
       </geometry>
-      <material name="finger_120_material"/>
+      <material name="real_finger_material"/>
     </visual>
     <collision>
       <origin rpy="1.57079632679 0 0" xyz="0 0 0"/>
@@ -242,7 +245,7 @@
       <geometry>
         <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Tip.stl" scale="1.0 1.0 1.0"/>
       </geometry>
-      <material name="finger_120_material"/>
+      <material name="real_finger_material"/>
     </visual>
     <collision>
       <origin rpy="1.57079632679 0 0" xyz="0 0 0"/>
@@ -260,14 +263,14 @@
   <link name="finger_tip_link_120">
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
-      <mass value="0.02"/>
-      <inertia ixx="3.33333333333e-07" ixy="0" ixz="0" iyy="3.33333333333e-07" iyz="0" izz="3.33333333333e-07"/>
+      <mass value="0"/>
+      <inertia ixx="0.0" ixy="0" ixz="0" iyy="0.0" iyz="0" izz="0.0"/>
     </inertial>
   </link>
   <joint name="finger_lower_to_tip_joint_120" type="fixed">
     <parent link="finger_lower_link_120"/>
     <child link="finger_tip_link_120"/>
-    <origin xyz="0.0185 0 -0.16"/>
+    <origin xyz="0.0185 0 -0.1626"/>
   </joint>
   <!-- kinematics -->
   <!-- NOTE: Joint limits are set according to soft limits in the
@@ -290,7 +293,7 @@
   <joint name="finger_middle_to_lower_joint_120" type="revolute">
     <parent link="finger_middle_link_120"/>
     <child link="finger_lower_link_120"/>
-    <limit effort="1000" lower="-2.7" upper="2.7" velocity="1000"/>
+    <limit effort="1000" lower="-2.7" upper="0.0" velocity="1000"/>
     <axis xyz="1 0 0"/>
     <origin rpy="0 0 0" xyz="0.04922 0 -0.16"/>
   </joint>
@@ -304,7 +307,7 @@
       <geometry>
         <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Base.stl" scale="1.0 1.0 1.0"/>
       </geometry>
-      <material name="finger_240_material"/>
+      <material name="real_finger_material"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0.23295 0"/>
@@ -324,7 +327,7 @@
       <geometry>
         <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Proximal.stl" scale="1.0 1.0 1.0"/>
       </geometry>
-      <material name="finger_240_material"/>
+      <material name="real_finger_material"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0.0235 0"/>
@@ -344,7 +347,7 @@
       <geometry>
         <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Intermediate.stl" scale="1.0 1.0 1.0"/>
       </geometry>
-      <material name="finger_240_material"/>
+      <material name="real_finger_material"/>
     </visual>
     <collision>
       <origin rpy="1.57079632679 0 0" xyz="0 0 0"/>
@@ -364,7 +367,7 @@
       <geometry>
         <mesh filename="package://robot_properties_fingers/meshes/stl/pro/SIM__BL-Finger_Tip.stl" scale="1.0 1.0 1.0"/>
       </geometry>
-      <material name="finger_240_material"/>
+      <material name="real_finger_material"/>
     </visual>
     <collision>
       <origin rpy="1.57079632679 0 0" xyz="0 0 0"/>
@@ -382,14 +385,14 @@
   <link name="finger_tip_link_240">
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
-      <mass value="0.02"/>
-      <inertia ixx="3.33333333333e-07" ixy="0" ixz="0" iyy="3.33333333333e-07" iyz="0" izz="3.33333333333e-07"/>
+      <mass value="0"/>
+      <inertia ixx="0.0" ixy="0" ixz="0" iyy="0.0" iyz="0" izz="0.0"/>
     </inertial>
   </link>
   <joint name="finger_lower_to_tip_joint_240" type="fixed">
     <parent link="finger_lower_link_240"/>
     <child link="finger_tip_link_240"/>
-    <origin xyz="0.0185 0 -0.16"/>
+    <origin xyz="0.0185 0 -0.1626"/>
   </joint>
   <!-- kinematics -->
   <!-- NOTE: Joint limits are set according to soft limits in the
@@ -412,7 +415,7 @@
   <joint name="finger_middle_to_lower_joint_240" type="revolute">
     <parent link="finger_middle_link_240"/>
     <child link="finger_lower_link_240"/>
-    <limit effort="1000" lower="-2.7" upper="2.7" velocity="1000"/>
+    <limit effort="1000" lower="-2.7" upper="0.0" velocity="1000"/>
     <axis xyz="1 0 0"/>
     <origin rpy="0 0 0" xyz="0.04922 0 -0.16"/>
   </joint>
