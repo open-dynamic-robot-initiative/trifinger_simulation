@@ -35,6 +35,7 @@ def main():
     difficulty = int(sys.argv[1])
     initial_pose_json = sys.argv[2]
     goal_pose_json = sys.argv[3]
+    output_file = sys.argv[4]
 
     # the poses are passes as JSON strings, so they need to be converted first
     initial_pose = move_cube.Pose.from_json(initial_pose_json)
@@ -68,7 +69,7 @@ def main():
     print("Accumulated reward: {}".format(accumulated_reward))
 
     # store the log for evaluation
-    env.platform.store_action_log("action_log.json")
+    env.platform.store_action_log(output_file)
 
 
 if __name__ == "__main__":
