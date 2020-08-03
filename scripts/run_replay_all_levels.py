@@ -39,8 +39,10 @@ def run_replay(sample: TestSample) -> float:
     Returns:
         The accumulated reward of the replay.
     """
+    thisdir = os.path.dirname(__file__)
+    replay_exe = os.path.join(thisdir, "replay_action_log.py")
     cmd = [
-        "./replay_action_log.py",
+        replay_exe,
         "--difficulty",
         str(sample.difficulty),
         "--initial-pose",
