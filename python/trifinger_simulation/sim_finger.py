@@ -36,18 +36,9 @@ class SimFinger:
                 to the simulation.
         """        
         self.finger_type = finger_types_data.check_finger_type(finger_type)
-
-        self.__set_finger_type_dependency()
-        self.__init_joint_lists()
-        self.__connect_to_simulation(enable_visualization)
-        self.pinocchio_utils = pinocchio_utils.PinocchioUtils(
-            self.finger_urdf_path, self.tip_link_names)
+        self.number_of_fingers = \
+            finger_types_data.get_number_of_fingers(self.finger_type)
         
-        
-        
-        
-        # Always enable the simulation for the simulated robot :)
-
         self.time_step_s = time_step
 
         #: The kp gains for the pd control of the finger(s). Note, this depends
@@ -76,10 +67,13 @@ class SimFinger:
         
         
 
-
-
-
-        self.__setup_pybullet()
+        self.__create_link_lists()
+        self.__set_urdf_path()
+        self.__connect_to_pybullet(enable_visualization)
+        self.__setup_pybullet_simulation()
+        
+        self.pinocchio_utils = pinocchio_utils.PinocchioUtils(
+        self.finger_urdf_path, self.tip_link_names)
         
         
 
@@ -115,7 +109,7 @@ class SimFinger:
 
         return action
 
-    def __setup_pybullet(self):
+    def __setup_pybullet_simulation(self):
         """
         Set the physical parameters of the world in which the simulation
         will run, and import the models to be simulated
@@ -125,17 +119,17 @@ class SimFinger:
         pybullet.setTimeStep(self.time_step_s)
 
         pybullet.loadURDF("plane_transparent.urdf", [0, 0, 0])
-        self._load_robot_urdf()
+        self.__load_robot_urdf()
         self.__set_pybullet_params()
         self.__load_stage()
         self.__disable_pybullet_velocity_control()
 
     def __del__(self):
         """Clean up."""
-        self._disconnect_from_simulation()
+        self._disconnect_from_pybullet()
 
     @staticmethod
-    def __connect_to_simulation(enable_visualization):
+    def __connect_to_pybullet(enable_visualization):
         """
         Connect to the Pybullet client via either GUI (visual rendering
         enabled) or DIRECT (no visual rendering) physics servers.
@@ -148,17 +142,16 @@ class SimFinger:
         else:
             pybullet.connect(pybullet.DIRECT)
             
-    def _disconnect_from_simulation(self):
+    def _disconnect_from_pybullet(self):
         """Disconnect from the simulation.
 
         Disconnects from the simulation and sets simulation to disabled to
         avoid any further function calls to it.
         """
-        
         if pybullet.isConnected():
             pybullet.disconnect()
 
-    def __set_finger_type_dependency(self):
+    def __set_urdf_path(self):
         """
         Sets the paths for the URDFs to use depending upon the finger type
         """
@@ -187,11 +180,9 @@ class SimFinger:
         self.finger_urdf_path = os.path.join(
             self.robot_properties_path, "urdf", urdf_file
         )
-        self.number_of_fingers = finger_types_data.get_number_of_fingers(
-            self.finger_type
-        )
 
-    def __init_joint_lists(self):
+
+    def __create_link_lists(self):
         """
         Initialize lists of link/joint names depending on which robot is used.
         """
@@ -220,7 +211,7 @@ class SimFinger:
                 "finger_tip_link_240",
             ]
 
-    def _load_robot_urdf(self):
+    def __load_robot_urdf(self):
         """
         Load the single/trifinger model from the corresponding urdf
         """
