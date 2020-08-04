@@ -1,15 +1,26 @@
 #!/usr/bin/env python3
-"""Evaluate a policy with the given goal.
+"""Example evaluation script to evaluate a policy.
 
-Takes difficulty level (for reward computation), initial pose of the object and
-goal pose of the object as arguments and uses them to test a dummy "random
-policy".
+This is an example evaluation script for evaluating a "RandomPolicy".  Use this
+as a base for your own script to evaluate your policy.  All you need to do is
+to replace the `RandomPolicy` and potentially the Gym environment with your own
+ones (see the TODOs in the code below).
 
-The accumulated reward is computed and in the end the action log is written to
-a file, for later verification.
+This script will be executed in an automated procedure.  For this to work, make
+sure you do not change the overall structure of the script!
 
-You may use this as evaluation script for your final policy.  Simply replace
-the `RandomPolicy` and potentially the Gym environment below (see the TODOs).
+This script expects the following arguments in the given order:
+ - Difficulty level (needed for reward computation)
+ - initial pose of the cube (as JSON string)
+ - goal pose of the cube (as JSON string)
+ - file to which the action log is written
+
+It is then expected to initialize the environment with the given initial pose
+and execute exactly one episode with the policy that is to be evaluated.
+
+When finished, the action log, which is created by the TriFingerPlatform class,
+is written to the specified file.  This log file is crucial as it is used to
+evaluate the actual performance of the policy.
 """
 import sys
 
@@ -30,12 +41,19 @@ class RandomPolicy:
 
 
 def main():
-    # Difficulty level, initial pose and goal pose of the cube are passed as
-    # arguments
-    difficulty = int(sys.argv[1])
-    initial_pose_json = sys.argv[2]
-    goal_pose_json = sys.argv[3]
-    output_file = sys.argv[4]
+    try:
+        difficulty = int(sys.argv[1])
+        initial_pose_json = sys.argv[2]
+        goal_pose_json = sys.argv[3]
+        output_file = sys.argv[4]
+    except IndexError:
+        print("Incorrect number of arguments.")
+        print(
+            "Usage:\n"
+            "\tevaluate_policy.py <difficulty_level> <initial_pose>"
+            " <goal_pose> <output_file>"
+        )
+        sys.exit(1)
 
     # the poses are passes as JSON strings, so they need to be converted first
     initial_pose = move_cube.Pose.from_json(initial_pose_json)
@@ -57,7 +75,10 @@ def main():
     # TODO: Replace this with your model
     policy = RandomPolicy(env.action_space)
 
-    # execute one episode
+    # Execute one episode.  Make sure that the number of simulation steps
+    # matches with the episode length of the task.  When using the default Gym
+    # environment, this is the case when looping until is_done == True.  Make
+    # sure to adjust this in case your custom environment behaves differently!
     is_done = False
     observation = env.reset()
     accumulated_reward = 0
