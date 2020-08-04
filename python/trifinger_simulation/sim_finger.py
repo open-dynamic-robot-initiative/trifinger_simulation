@@ -7,7 +7,6 @@ import pybullet_data
 
 from trifinger_simulation.action import Action
 from trifinger_simulation.observation import Observation
-from trifinger_simulation.base_finger import BaseFinger
 from trifinger_simulation import collision_objects
 from trifinger_simulation import pinocchio_utils
 from trifinger_simulation import finger_types_data
