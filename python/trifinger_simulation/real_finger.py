@@ -45,9 +45,11 @@ class RealFinger:
         # Simulation is only used for visualization, so only run it when needed
         self.simulator = None
         if enable_visualization:
-            self.simulator = SimFinger(finger_type=finger_type, 
-                                       time_step=0.001, # todo: not sure if this is correct
-                                       enable_visualization=True)
+            self.simulator = SimFinger(
+                finger_type=finger_type,
+                time_step=0.001,  # todo: not sure if this is correct
+                enable_visualization=True,
+            )
 
         number_of_fingers = finger_types_data.get_number_of_fingers(
             finger_type
@@ -119,10 +121,11 @@ class RealFinger:
             observation (robot.Observation): the corresponding observation
         """
         observation = self.robot.get_observation(time_index)
-        
+
         if self.simulator is not None:
             self.simulator.reset_finger_positions_and_velocities(
-                joint_positions=observation.position)
+                joint_positions=observation.position
+            )
 
         return observation
 
@@ -137,4 +140,3 @@ class RealFinger:
             t = self.append_desired_action(action)
             observation = self.get_observation(t)
         return observation
-

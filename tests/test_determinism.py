@@ -71,7 +71,9 @@ class TestSimulationDeterminisim(unittest.TestCase):
             rewards = []
 
             for i in range(num_samples):
-                env.finger.reset_finger_positions_and_velocities(start_position)
+                env.finger.reset_finger_positions_and_velocities(
+                    start_position
+                )
                 for t in range(horizon):
                     state, reward, _, _ = env.step(plans[t, i])
                     states.append(state)

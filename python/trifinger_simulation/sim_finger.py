@@ -37,8 +37,9 @@ class SimFinger:
                 to the simulation.
         """
         self.finger_type = finger_types_data.check_finger_type(finger_type)
-        self.number_of_fingers = \
-            finger_types_data.get_number_of_fingers(self.finger_type)
+        self.number_of_fingers = finger_types_data.get_number_of_fingers(
+            self.finger_type
+        )
 
         self.time_step_s = time_step
 
@@ -71,7 +72,8 @@ class SimFinger:
         self.__setup_pybullet_simulation()
 
         self.pinocchio_utils = pinocchio_utils.PinocchioUtils(
-            self.finger_urdf_path, self.tip_link_names)
+            self.finger_urdf_path, self.tip_link_names
+        )
 
     def Action(self, torque=None, position=None):
         """
@@ -229,7 +231,9 @@ class SimFinger:
         """Get the current time index."""
         return self._t
 
-    def reset_finger_positions_and_velocities(self, joint_positions, joint_velocities=None):
+    def reset_finger_positions_and_velocities(
+        self, joint_positions, joint_velocities=None
+    ):
         """
         Reset the finger(s) to have the desired joint positions (required)
         and joint velocities (defaults to all zero) "instantaneously", that
@@ -335,7 +339,8 @@ class SimFinger:
             )
 
         applied_action.torque = self.__safety_check_torques(
-            torque_command.tolist())
+            torque_command.tolist()
+        )
 
         self.__set_pybullet_motor_torques(applied_action.torque)
 
@@ -561,6 +566,7 @@ class SimFinger:
         """
         try:
             import rospkg
+
             self.robot_properties_path = rospkg.RosPack().get_path(
                 "robot_properties_fingers"
             )
