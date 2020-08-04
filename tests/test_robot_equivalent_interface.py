@@ -17,7 +17,7 @@ class TestRobotEquivalentInterface(unittest.TestCase):
         )
 
         start_position = [0, -0.7, -1.5]
-        self.finger.reset_finger(start_position)
+        self.finger.reset_finger_positions_and_velocities(start_position)
 
         # Run position control for several iterations to make sure the target
         # position is reached

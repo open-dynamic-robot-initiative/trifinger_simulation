@@ -311,7 +311,7 @@ class FingerReach(gym.Env):
         action = sample.feasible_random_joint_positions_for_reaching(
             self.finger, self.spaces.action_bounds
         )
-        observation = self.finger.reset_finger(action)
+        observation = self.finger.reset_finger_positions_and_velocities(action)
 
         target_joint_config = np.asarray(
             sample.feasible_random_joint_positions_for_reaching(

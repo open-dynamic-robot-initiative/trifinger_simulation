@@ -27,7 +27,7 @@ class TestSimulationDeterminisim(unittest.TestCase):
         action = finger.Action(torque=[0.3, 0.3, 0.3])
 
         def run():
-            finger.reset_finger(start_position)
+            finger.reset_finger_positions_and_velocities(start_position)
             for i in range(30):
                 finger._set_desired_action(action)
                 finger._step_simulation()
@@ -62,8 +62,6 @@ class TestSimulationDeterminisim(unittest.TestCase):
             smoothing_params=smoothing_params,
         )
 
-        env.finger.set_real_time_sim(0)
-
         start_position = [0.5, -0.7, -1.5]
 
         plans = -1.0 + 2.0 * np.random.rand(horizon, num_samples, 3)
@@ -73,7 +71,7 @@ class TestSimulationDeterminisim(unittest.TestCase):
             rewards = []
 
             for i in range(num_samples):
-                env.finger.reset_finger(start_position)
+                env.finger.reset_finger_positions_and_velocities(start_position)
                 for t in range(horizon):
                     state, reward, _, _ = env.step(plans[t, i])
                     states.append(state)

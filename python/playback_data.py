@@ -23,7 +23,7 @@ def main_finger(finger_type, data_file):
     goal_marker = visual_objects.Marker(number_of_goals=1)
 
     def reset_finger(joint_position):
-        for i, joint_id in enumerate(finger.revolute_joint_ids):
+        for i, joint_id in enumerate(finger.pybullet_joint_indices):
             pybullet.resetJointState(
                 finger.finger_id, joint_id, joint_position[i]
             )
@@ -98,7 +98,7 @@ def main_trifinger(finger_type, data_file_0, data_file_120, data_file_240):
     goal_marker = visual_objects.Marker(number_of_goals=3)
 
     def reset_finger(joint_position):
-        for i, joint_id in enumerate(finger.revolute_joint_ids):
+        for i, joint_id in enumerate(finger.pybullet_joint_indices):
             pybullet.resetJointState(
                 finger.finger_id, joint_id, joint_position[i]
             )

@@ -117,7 +117,7 @@ public:
     void shutdown() override
     {
         py::gil_scoped_acquire acquire;
-        sim_finger_.attr("disconnect_from_simulation")();
+        sim_finger_.attr("_disconnect_from_simulation")();
     }
 };
 
@@ -195,7 +195,7 @@ public:
 
         JointVector initial_position;
         initial_position << 0, -0.7, -1.5;
-        sim_finger_.attr("reset_finger")(initial_position);
+        sim_finger_.attr("reset_finger_positions_and_velocities")(initial_position);
     }
 };
 
@@ -226,7 +226,7 @@ public:
 
         JointVector initial_position;
         initial_position << 0, -0.7, -1.5, 0, -0.7, -1.5, 0, -0.7, -1.5;
-        sim_finger_.attr("reset_finger")(initial_position);
+        sim_finger_.attr("reset_finger_positions_and_velocities")(initial_position);
     }
 };
 
