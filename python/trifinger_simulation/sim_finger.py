@@ -77,11 +77,7 @@ class SimFinger:
         
         
 
-        # enable force sensor on tips
-        for joint_index in self.pybullet_tip_link_indices:
-            pybullet.enableJointForceTorqueSensor(
-                self.finger_id, joint_index, enableSensor=True
-            )
+
 
     def Action(self, torque=None, position=None):
         """
@@ -123,6 +119,12 @@ class SimFinger:
         self.__set_pybullet_params()
         self.__load_stage()
         self.__disable_pybullet_velocity_control()
+        
+        # enable force sensor on tips
+        for joint_index in self.pybullet_tip_link_indices:
+            pybullet.enableJointForceTorqueSensor(
+                self.finger_id, joint_index, enableSensor=True
+            )
 
     def __del__(self):
         """Clean up."""
