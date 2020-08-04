@@ -1,27 +1,22 @@
-# %%
-from trifinger_simulation.sim_finger import SimFinger
-from trifinger_simulation import camera, collision_objects
+#!/usr/bin/env python3
+import cProfile
+import pstats
 
 import numpy as np
 
-import time
-
-import cProfile
-import re
-import pstats
-# %%
+from trifinger_simulation.sim_finger import SimFinger
+from trifinger_simulation import collision_objects
 
 
 finger_names = ["trifingerone", "trifingeredu", "trifingerpro"]
 
 
-def execute_random_motion(*,
-                          finger_name,
-                          nb_timesteps,
-                          enable_visualization):
-    finger = SimFinger(finger_type=finger_name,
-                       time_step=0.004,
-                       enable_visualization=enable_visualization)
+def execute_random_motion(*, finger_name, nb_timesteps, enable_visualization):
+    finger = SimFinger(
+        finger_type=finger_name,
+        time_step=0.004,
+        enable_visualization=enable_visualization,
+    )
     cube = collision_objects.Block()
 
     for t in range(nb_timesteps):
@@ -33,27 +28,32 @@ def execute_random_motion(*,
 
 
 if __name__ == "__main__":
+
     def get_filename(*, finger_name, enable_visualization):
-        return 'stats_' + finger_name + '_vis-' + str(enable_visualization)
+        return "stats_" + finger_name + "_vis-" + str(enable_visualization)
 
     for enable_visualization in [False, True]:
         for finger_name in finger_names:
+
             def execute_random_motion_finger():
-                execute_random_motion(finger_name=finger_name,
-                                      nb_timesteps=1000,
-                                      enable_visualization=enable_visualization)
+                execute_random_motion(
+                    finger_name=finger_name,
+                    nb_timesteps=1000,
+                    enable_visualization=enable_visualization,
+                )
 
-            filename = get_filename(finger_name=finger_name,
-                                    enable_visualization=enable_visualization)
-            cProfile.run('execute_random_motion_finger()', filename=filename)
+            filename = get_filename(
+                finger_name=finger_name,
+                enable_visualization=enable_visualization,
+            )
+            cProfile.run("execute_random_motion_finger()", filename=filename)
 
     for enable_visualization in [False, True]:
         for finger_name in finger_names:
-            filename = get_filename(finger_name=finger_name,
-                                    enable_visualization=enable_visualization)
+            filename = get_filename(
+                finger_name=finger_name,
+                enable_visualization=enable_visualization,
+            )
             p = pstats.Stats(filename)
-            print(filename, '==============================================')
-            p.strip_dirs().sort_stats('tottime').print_stats(3)
-
-
-# %%
+            print(filename, "==============================================")
+            p.strip_dirs().sort_stats("tottime").print_stats(3)
