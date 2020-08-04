@@ -64,11 +64,10 @@ class SimFinger(BaseFinger):
 
         self._t = -1
 
-        self.make_physical_world()
-        self.disable_velocity_control()
+        self.__setup_pybullet()
 
         # enable force sensor on tips
-        for joint_index in self.finger_tip_ids:
+        for joint_index in self.pybullet_tip_link_indices:
             pybullet.enableJointForceTorqueSensor(
                 self.finger_id, joint_index, enableSensor=True
             )
@@ -99,17 +98,7 @@ class SimFinger(BaseFinger):
 
         return action
 
-    def set_real_time_sim(self, switch=0):
-        """
-        Choose to simulate in real-time or use a desired simulation rate
-        Defaults to non-real time
-
-        Args:
-            switch (int, 0/1): 1 to set the simulation in real-time.
-        """
-        pybullet.setRealTimeSimulation(switch)
-
-    def make_physical_world(self):
+    def __setup_pybullet(self):
         """
         Set the physical parameters of the world in which the simulation
         will run, and import the models to be simulated
@@ -119,16 +108,18 @@ class SimFinger(BaseFinger):
         pybullet.setTimeStep(self.time_step_s)
 
         pybullet.loadURDF("plane_transparent.urdf", [0, 0, 0])
-        self.import_finger_model()
-        self.set_dynamics_properties()
-        self.create_stage()
+        self._load_robot_urdf()
+        self.__set_pybullet_params()
+        self.__load_stage()
+        self.__disable_pybullet_velocity_control()
 
-    def set_dynamics_properties(self):
+
+    def __set_pybullet_params(self):
         """
         To change properties of the robot such as its mass, friction, damping,
         maximum joint velocities etc.
         """
-        for link_id in self.finger_link_ids:
+        for link_id in self.pybullet_link_indices:
             pybullet.changeDynamics(
                 bodyUniqueId=self.finger_id,
                 linkIndex=link_id,
@@ -144,7 +135,7 @@ class SimFinger(BaseFinger):
                 contactDamping=0.05,
             )
 
-    def create_stage(self, high_border=True):
+    def __load_stage(self, high_border=True):
         """Create the stage (table and boundary).
 
         Args:
@@ -205,7 +196,7 @@ class SimFinger(BaseFinger):
         else:
             raise ValueError("Invalid finger type '%s'" % self.finger_type)
 
-    def disable_velocity_control(self):
+    def __disable_pybullet_velocity_control(self):
         """
         To disable the high friction velocity motors created by
         default at all revolute and prismatic joints while loading them from
@@ -214,10 +205,10 @@ class SimFinger(BaseFinger):
 
         pybullet.setJointMotorControlArray(
             bodyUniqueId=self.finger_id,
-            jointIndices=self.revolute_joint_ids,
+            jointIndices=self.pybullet_joint_indices,
             controlMode=pybullet.VELOCITY_CONTROL,
-            targetVelocities=[0] * len(self.revolute_joint_ids),
-            forces=[0] * len(self.revolute_joint_ids),
+            targetVelocities=[0] * len(self.pybullet_joint_indices),
+            forces=[0] * len(self.pybullet_joint_indices),
         )
 
     def _set_desired_action(self, desired_action):
@@ -256,16 +247,16 @@ class SimFinger(BaseFinger):
         torque_command = np.asarray(copy.copy(desired_action.torque))
         if not np.isnan(desired_action.position).all():
             torque_command += np.array(
-                self.compute_pd_control_torques(
+                self.__compute_pd_control_torques(
                     desired_action.position,
                     applied_action.position_kp,
                     applied_action.position_kd,
                 )
             )
 
-        applied_action.torque = self._set_motor_torques(
-            torque_command.tolist()
-        )
+        applied_action.torque = self.__safety_check_torques(torque_command.tolist())
+        
+        self.__set_pybullet_motor_torques(applied_action.torque)
 
         return applied_action
 
@@ -297,7 +288,7 @@ class SimFinger(BaseFinger):
         self._t += 1
         return self._t
 
-    def _validate_time_index(self, t):
+    def __validate_time_index(self, t):
         """Raise error if t does not match with self._t."""
         if t != self._t:
             raise ValueError(
@@ -319,7 +310,7 @@ class SimFinger(BaseFinger):
         Raises:
             ValueError: If invalid time index ``t`` is passed.
         """
-        self._validate_time_index(t)
+        self.__validate_time_index(t)
         return self._desired_action_t
 
     def get_applied_action(self, t):
@@ -340,7 +331,7 @@ class SimFinger(BaseFinger):
         Raises:
             ValueError: If invalid time index ``t`` is passed.
         """
-        self._validate_time_index(t)
+        self.__validate_time_index(t)
         return self._applied_action_t
 
     def get_timestamp_ms(self, t):
@@ -380,7 +371,7 @@ class SimFinger(BaseFinger):
         """
         observation = Observation()
         current_joint_states = pybullet.getJointStates(
-            self.finger_id, self.revolute_joint_ids
+            self.finger_id, self.pybullet_joint_indices
         )
 
         observation.position = np.array(
@@ -394,7 +385,7 @@ class SimFinger(BaseFinger):
         )
 
         finger_tip_states = pybullet.getJointStates(
-            self.finger_id, self.finger_tip_ids
+            self.finger_id, self.pybullet_tip_link_indices
         )
         observation.tip_force = np.array(
             [np.linalg.norm(tip[2][:3]) for tip in finger_tip_states]
@@ -446,7 +437,7 @@ class SimFinger(BaseFinger):
 
         return observation
 
-    def compute_pd_control_torques(self, joint_positions, kp=None, kd=None):
+    def __compute_pd_control_torques(self, joint_positions, kp=None, kd=None):
         """
         Compute torque command to reach given target position using a PD
         controller.
@@ -466,7 +457,7 @@ class SimFinger(BaseFinger):
             kd = self.velocity_gains
 
         current_joint_states = pybullet.getJointStates(
-            self.finger_id, self.revolute_joint_ids
+            self.finger_id, self.pybullet_joint_indices
         )
         current_position = np.array(
             [joint[0] for joint in current_joint_states]
@@ -488,83 +479,18 @@ class SimFinger(BaseFinger):
 
         return joint_torques.tolist()
 
-    def pybullet_inverse_kinematics(self, desired_tip_positions):
-        """
-        Compute the joint angular positions needed to get to reach the block.
 
-        WARNING: pybullet's inverse kinematics seem to be very inaccurate! (or
-        we are somehow using it wrongly...)
-
-        Args:
-            finger (SimFinger): a SimFinger object
-            desired_tip_position (list of floats): xyz target position for
-                each finger tip.
-
-        Returns:
-            joint_pos (list of floats): The angular positions to be applid at
-            the joints to reach the desired_tip_position
-        """
-        at_target_threshold = 0.0001
-
-        # joint_pos = list(
-        #    pybullet.calculateInverseKinematics2(
-        #        bodyUniqueId=self.finger_id,
-        #        endEffectorLinkIndices=self.finger_tip_ids,
-        #        targetPositions=desired_tip_positions,
-        #        residualThreshold=at_target_threshold))
-
-        # For some reason calculateInverseKinematics2 above is not working
-        # properly (only gives proper results for the joints of the first
-        # finger).  As a workaround for now, call calculateInverseKinematics
-        # for a single end-effector for each finger and always pick only the
-        # joint positions for that finger.
-
-        joint_pos = [None] * len(self.revolute_joint_ids)
-        for i, (tip_index, desired_tip_position) in enumerate(
-            zip(self.finger_tip_ids, desired_tip_positions)
-        ):
-
-            q = list(
-                pybullet.calculateInverseKinematics(
-                    bodyUniqueId=self.finger_id,
-                    endEffectorLinkIndex=tip_index,
-                    targetPosition=desired_tip_position,
-                    residualThreshold=at_target_threshold,
-                    maxNumIterations=100000,
-                )
-            )
-            range_start = i * 3
-            range_end = range_start + 3
-            joint_pos[range_start:range_end] = q[range_start:range_end]
-
-        return joint_pos
-
-    def _set_motor_torques(self, desired_torque_commands):
-        """
-        Send torque commands to the motors.
-
-        Args:
-            desired_torque_commands (list of floats): The desired torques to be
-                applied to the motors.  The torques that are actually applied
-                may differ as some safety checks are applied.  See return
-                value.
-
-        Returns:
-            List of torques that is actually set after applying safety checks.
-
-        """
-        torque_commands = self._safety_torque_check(desired_torque_commands)
+    def __set_pybullet_motor_torques(self, motor_torques):
 
         pybullet.setJointMotorControlArray(
             bodyUniqueId=self.finger_id,
-            jointIndices=self.revolute_joint_ids,
+            jointIndices=self.pybullet_joint_indices,
             controlMode=pybullet.TORQUE_CONTROL,
-            forces=torque_commands,
+            forces=motor_torques,
         )
 
-        return torque_commands
 
-    def _safety_torque_check(self, desired_torques):
+    def __safety_check_torques(self, desired_torques):
         """
         Perform a check on the torques being sent to be applied to
         the motors so that they do not exceed the safety torque limit
@@ -584,7 +510,7 @@ class SimFinger(BaseFinger):
         )
 
         current_joint_states = pybullet.getJointStates(
-            self.finger_id, self.revolute_joint_ids
+            self.finger_id, self.pybullet_joint_indices
         )
         current_velocity = np.array(
             [joint[1] for joint in current_joint_states]
@@ -607,7 +533,7 @@ class SimFinger(BaseFinger):
         """
         pybullet.stepSimulation()
 
-    def reset_finger(self, joint_positions, joint_velocities=None):
+    def reset_finger_positions_and_velocities(self, joint_positions, joint_velocities=None):
         """
         Reset the finger(s) to have the desired joint positions (required)
         and joint velocities (defaults to all zero) "instantaneously", that
@@ -621,7 +547,7 @@ class SimFinger(BaseFinger):
         if joint_velocities is None:
             joint_velocities = [0] * self.number_of_fingers * 3
 
-        for i, joint_id in enumerate(self.revolute_joint_ids):
+        for i, joint_id in enumerate(self.pybullet_joint_indices):
             pybullet.resetJointState(
                 self.finger_id,
                 joint_id,

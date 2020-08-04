@@ -48,7 +48,7 @@ class RealFinger(BaseFinger):
         super().__init__(finger_type, enable_visualization)
 
         if self.enable_simulation:
-            self.make_physical_world()
+            self.__setup_pybullet()
 
         number_of_fingers = finger_types_data.get_number_of_fingers(
             finger_type
@@ -95,7 +95,7 @@ class RealFinger(BaseFinger):
 
         self.real_finger_backend.initialize()
 
-    def make_physical_world(self):
+    def __setup_pybullet(self):
         """
         Set the physical parameters of the world in which the simulation
         will run, and import the models to be simulated.
@@ -104,7 +104,7 @@ class RealFinger(BaseFinger):
         pybullet.setGravity(0, 0, -9.81)
 
         pybullet.loadURDF("plane_transparent.urdf", [0, 0, 0])
-        self.import_finger_model()
+        self._load_robot_urdf()
 
     def append_desired_action(self, action):
         """
@@ -133,7 +133,7 @@ class RealFinger(BaseFinger):
         observation = self.robot.get_observation(time_index)
 
         if self.enable_simulation:
-            for i, joint_id in enumerate(self.revolute_joint_ids):
+            for i, joint_id in enumerate(self.pybullet_joint_indices):
                 pybullet.resetJointState(
                     self.finger_id, joint_id, observation.position[i]
                 )
@@ -152,7 +152,3 @@ class RealFinger(BaseFinger):
             observation = self.get_observation(t)
         return observation
 
-    # dummy functions for compatible API
-    # (refer to the SimFinger class for details)
-    def set_real_time_sim(self, *args):
-        pass

@@ -102,7 +102,7 @@ class TriFingerPlatform:
         )
 
         # set fingers to initial pose
-        self.simfinger.reset_finger(initial_position)
+        self.simfinger.reset_finger_positions_and_velocities(initial_position)
 
         if initial_object_pose is None:
             initial_object_pose = move_cube.sample_goal(difficulty=-1)

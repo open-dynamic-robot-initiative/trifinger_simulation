@@ -24,7 +24,7 @@ if __name__ == "__main__":
         finger_type="fingerone",
     )
     # set the finger to a reasonable start position
-    finger.reset_finger([0, -0.7, -1.5])
+    finger.reset_finger_positions_and_velocities([0, -0.7, -1.5])
 
     errors = []
     for _ in range(100):

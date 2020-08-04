@@ -28,18 +28,18 @@ class BaseFinger:
         self.enable_visualization = enable_visualization
         self.finger_type = finger_types_data.check_finger_type(finger_type)
 
-        self.set_finger_type_dependency()
-        self.init_joint_lists()
-        self.connect_to_simulation()
+        self.__set_finger_type_dependency()
+        self.__init_joint_lists()
+        self.__connect_to_simulation()
         self.pinocchio_utils = pinocchio_utils.PinocchioUtils(
             self.finger_urdf_path, self.tip_link_names
         )
 
     def __del__(self):
         """Clean up."""
-        self.disconnect_from_simulation()
+        self._disconnect_from_simulation()
 
-    def connect_to_simulation(self):
+    def __connect_to_simulation(self):
         """
         Connect to the Pybullet client via either GUI (visual rendering
         enabled) or DIRECT (no visual rendering) physics servers.
@@ -54,8 +54,8 @@ class BaseFinger:
             pybullet.connect(pybullet.GUI)
         else:
             pybullet.connect(pybullet.DIRECT)
-
-    def disconnect_from_simulation(self):
+            
+    def _disconnect_from_simulation(self):
         """Disconnect from the simulation.
 
         Disconnects from the simulation and sets simulation to disabled to
@@ -66,7 +66,7 @@ class BaseFinger:
                 pybullet.disconnect()
             self.enable_simulation = False
 
-    def set_finger_type_dependency(self):
+    def __set_finger_type_dependency(self):
         """
         Sets the paths for the URDFs to use depending upon the finger type
         """
@@ -99,19 +99,19 @@ class BaseFinger:
             self.finger_type
         )
 
-    def init_joint_lists(self):
+    def __init_joint_lists(self):
         """
         Initialize lists of link/joint names depending on which robot is used.
         """
         if self.number_of_fingers == 1:
-            self.joint_names = [
+            self.link_names = [
                 "finger_upper_link",
                 "finger_middle_link",
                 "finger_lower_link",
             ]
             self.tip_link_names = ["finger_tip_link"]
         else:
-            self.joint_names = [
+            self.link_names = [
                 "finger_upper_link_0",
                 "finger_middle_link_0",
                 "finger_lower_link_0",
@@ -128,7 +128,7 @@ class BaseFinger:
                 "finger_tip_link_240",
             ]
 
-    def import_finger_model(self):
+    def _load_robot_urdf(self):
         """
         Load the single/trifinger model from the corresponding urdf
         """
@@ -151,35 +151,22 @@ class BaseFinger:
 
         # create a map link_name -> link_index
         # Source: https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=12728.
-        self.link_name_to_index = {
+        link_name_to_index = {
             pybullet.getBodyInfo(self.finger_id)[0].decode("UTF-8"): -1,
         }
         for joint_idx in range(pybullet.getNumJoints(self.finger_id)):
             link_name = pybullet.getJointInfo(self.finger_id, joint_idx)[
                 12
             ].decode("UTF-8")
-            self.link_name_to_index[link_name] = joint_idx
-
-        self.init_indices()
-        self.last_joint_position = [0] * len(self.revolute_joint_ids)
-
-    def init_indices(self):
-        """
-        Since the indices of the revolute joints and the tips are different in
-        different URDFs, this function sets the indices, using the current
-        URDF, for:
-         - finger links
-         - revolute joints
-         - tip joints
-        """
-        # TODO naming: these are indices, not ids
-        self.revolute_joint_ids = [
-            self.link_name_to_index[name] for name in self.joint_names
+            link_name_to_index[link_name] = joint_idx
+            
+        self.pybullet_link_indices = [
+            link_name_to_index[name] for name in self.link_names
         ]
-        self.finger_tip_ids = [
-            self.link_name_to_index[name] for name in self.tip_link_names
+        self.pybullet_tip_link_indices = [
+            link_name_to_index[name] for name in self.tip_link_names
         ]
-
         # joint and link indices are the same in pybullet
-        # TODO do we even need this variable?
-        self.finger_link_ids = self.revolute_joint_ids
+        self.pybullet_joint_indices = self.pybullet_link_indices
+
+
