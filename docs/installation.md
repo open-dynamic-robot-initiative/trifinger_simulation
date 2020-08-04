@@ -28,25 +28,27 @@ Install as Python package in a conda environment
 
 **Note:** Only do this if you cannot use the catkin approach (see above).  If
 you installed the package using the following instructions and later want to
-switch to catkin, you need to remove the package first, otherwise it can interfere
-with the environment of the catkin workspace.
+switch to catkin, you need to remove the package first, otherwise it can
+interfere with the environment of the catkin workspace.
 
 1. Clone this repo,
 
        git clone git@gitlab.is.tue.mpg.de:robotics/trifinger_simulation.git
 
-2. Then run the installation script in interactive mode *with appropriate modifications depending on your shell type*. The installation script sets up a conda env (based on Python 3.6.9) and installs the `trifinger_simulation` package within it.
+2. Then run the installation script in interactive mode. The installation
+   script sets up a conda env (based on Python 3.6.9) and installs the
+   `trifinger_simulation` package within it.
 
-For bash,
-
-       bash -i bash_setup_env.sh
+       bash -i create_conda_env.sh
 
 3. Then activate the env,
 
        conda activate trifinger_simulation
 
-4. You should check that you the tests in `tests/` (which wouldn't include the tests in `tests/catkin`) are successful:
+4. You should check that you the tests in `tests/` (which wouldn't include the
+   tests in `tests/catkin`) are successful:
 
        python -m unittest discover tests/
 
-Note that `unittest discover` doesn't search recursively and hence the tests in `tests/catkin` won't get executed.
+   Note that `unittest discover` doesn't search recursively and hence the tests
+   in `tests/catkin` won't get executed.
