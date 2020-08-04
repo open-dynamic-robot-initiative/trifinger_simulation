@@ -98,9 +98,10 @@ class CubeEnv(gym.GoalEnv):
 
         Args:
             initializer: Initializer class for providing initial cube pose and
-                goal pose.  See RandomInitializer and FixedInitializer.
+                goal pose.  See :class:`RandomInitializer` and
+                :class:`FixedInitializer`.
             action_type (ActionType): Specify which type of actions to use.
-                See ActionType for details.
+                See :class:`ActionType` for details.
             frameskip (int):  Number of actual control steps to be performed in
                 one call of step().
             visualization (bool): If true, the pyBullet GUI is run for
