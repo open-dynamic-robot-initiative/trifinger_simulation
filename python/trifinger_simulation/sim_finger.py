@@ -35,17 +35,12 @@ class SimFinger:
                 according to a time_step of 0.004 s.
             enable_visualization (bool): Set this to 'True' for a GUI interface
                 to the simulation.
-        """
-        
-        self.enable_simulation = True
-
-        
-        self.enable_visualization = enable_visualization
+        """        
         self.finger_type = finger_types_data.check_finger_type(finger_type)
 
         self.__set_finger_type_dependency()
         self.__init_joint_lists()
-        self.__connect_to_simulation()
+        self.__connect_to_simulation(enable_visualization)
         self.pinocchio_utils = pinocchio_utils.PinocchioUtils(
             self.finger_urdf_path, self.tip_link_names)
         
@@ -140,7 +135,8 @@ class SimFinger:
         """Clean up."""
         self._disconnect_from_simulation()
 
-    def __connect_to_simulation(self):
+    @staticmethod
+    def __connect_to_simulation(enable_visualization):
         """
         Connect to the Pybullet client via either GUI (visual rendering
         enabled) or DIRECT (no visual rendering) physics servers.
@@ -148,10 +144,7 @@ class SimFinger:
         In GUI connection mode, use ctrl or alt with mouse scroll to adjust
         the view of the camera.
         """
-        if not self.enable_simulation:
-            return
-
-        if self.enable_visualization:
+        if enable_visualization:
             pybullet.connect(pybullet.GUI)
         else:
             pybullet.connect(pybullet.DIRECT)
@@ -163,10 +156,8 @@ class SimFinger:
         avoid any further function calls to it.
         """
         
-        if self.enable_simulation:
-            if pybullet.isConnected():
-                pybullet.disconnect()
-            self.enable_simulation = False
+        if pybullet.isConnected():
+            pybullet.disconnect()
 
     def __set_finger_type_dependency(self):
         """
@@ -234,9 +225,6 @@ class SimFinger:
         """
         Load the single/trifinger model from the corresponding urdf
         """
-        if not self.enable_simulation:
-            return
-
         finger_base_position = [0, 0, 0.0]
         finger_base_orientation = pybullet.getQuaternionFromEuler([0, 0, 0])
 
