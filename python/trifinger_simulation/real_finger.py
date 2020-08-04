@@ -13,11 +13,11 @@ import pybullet_data
 
 import robot_interfaces
 import robot_fingers
-from trifinger_simulation.base_finger import BaseFinger
 from trifinger_simulation import finger_types_data
+from trifinger_simulation.sim_finger import SimFinger
 
 
-class RealFinger(BaseFinger):
+class RealFinger:
     """
     The RealFinger class provides an interface to the real robot. Any script
     that creates an instance of the :class:`.SimFinger` can create an instance
@@ -43,12 +43,13 @@ class RealFinger(BaseFinger):
                 set to match the one of the real robot.
         """
         # Simulation is only used for visualization, so only run it when needed
-        self.enable_simulation = enable_visualization
-
-        super().__init__(finger_type, enable_visualization)
-
-        if self.enable_simulation:
-            self.__setup_pybullet()
+        self.simulator = None
+        if enable_visualization:
+            self.simulator = SimFinger(
+                finger_type=finger_type,
+                time_step=0.001,  # todo: not sure if this is correct
+                enable_visualization=True,
+            )
 
         number_of_fingers = finger_types_data.get_number_of_fingers(
             finger_type
@@ -95,17 +96,6 @@ class RealFinger(BaseFinger):
 
         self.real_finger_backend.initialize()
 
-    def __setup_pybullet(self):
-        """
-        Set the physical parameters of the world in which the simulation
-        will run, and import the models to be simulated.
-        """
-        pybullet.setAdditionalSearchPath(pybullet_data.getDataPath())
-        pybullet.setGravity(0, 0, -9.81)
-
-        pybullet.loadURDF("plane_transparent.urdf", [0, 0, 0])
-        self._load_robot_urdf()
-
     def append_desired_action(self, action):
         """
         Append an action to the action timeseries, that should be
@@ -132,11 +122,10 @@ class RealFinger(BaseFinger):
         """
         observation = self.robot.get_observation(time_index)
 
-        if self.enable_simulation:
-            for i, joint_id in enumerate(self.pybullet_joint_indices):
-                pybullet.resetJointState(
-                    self.finger_id, joint_id, observation.position[i]
-                )
+        if self.simulator is not None:
+            self.simulator.reset_finger_positions_and_velocities(
+                joint_positions=observation.position
+            )
 
         return observation
 
@@ -151,4 +140,3 @@ class RealFinger(BaseFinger):
             t = self.append_desired_action(action)
             observation = self.get_observation(t)
         return observation
-
