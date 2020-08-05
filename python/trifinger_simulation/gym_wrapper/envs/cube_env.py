@@ -193,6 +193,24 @@ class CubeEnv(gym.GoalEnv):
             info["difficulty"],
         )
 
+    def _create_observation(self, t):
+        robot_observation = self.platform.get_robot_observation(t)
+        object_observation = self.platform.get_object_pose(t)
+
+        observation = {
+            "observation": {
+                "position": robot_observation.position,
+                "velocity": robot_observation.velocity,
+                "torque": robot_observation.torque,
+            },
+            "desired_goal": self.goal,
+            "achieved_goal": {
+                "position": object_observation.position,
+                "orientation": object_observation.orientation,
+            },
+        }
+        return observation
+
     def step(self, action):
         if self.platform is None:
             raise RuntimeError("Call `reset()` before starting to step.")
@@ -234,21 +252,7 @@ class CubeEnv(gym.GoalEnv):
             # Use observations of step t + 1 to follow what would be expected
             # in a typical gym environment.  Note that on the real robot, this
             # will not be possible
-            robot_observation = self.platform.get_robot_observation(t + 1)
-            object_observation = self.platform.get_object_pose(t + 1)
-
-            observation = {
-                "observation": {
-                    "position": robot_observation.position,
-                    "velocity": robot_observation.velocity,
-                    "torque": robot_observation.torque,
-                },
-                "desired_goal": self.goal,
-                "achieved_goal": {
-                    "position": object_observation.position,
-                    "orientation": object_observation.orientation,
-                },
-            }
+            observation = self._create_observation(t + 1)
 
             reward += self.compute_reward(
                 observation["achieved_goal"],
@@ -277,6 +281,8 @@ class CubeEnv(gym.GoalEnv):
         self.info = {"difficulty": self.initializer.difficulty}
 
         self.step_count = 0
+
+        return self._create_observation(0)
 
     def seed(self, seed=None):
         self.np_random, seed = gym.utils.seeding.np_random(seed)
