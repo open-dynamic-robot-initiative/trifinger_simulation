@@ -39,7 +39,7 @@ interfere with the environment of the catkin workspace.
    script sets up a conda env (based on Python 3.6.9) and installs the
    `trifinger_simulation` package within it.
 
-       bash -i create_conda_env.sh
+       ${SHELL} -i create_conda_env.sh
 
 3. Then activate the env,
 
