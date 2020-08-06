@@ -11,7 +11,7 @@ class TestTriFingerPlatform(unittest.TestCase):
 
         # compute camera update step interval based on configured rates
         camera_update_step_interval = (
-            1 / platform.camera_rate_fps
+            1 / platform._camera_rate_fps
         ) / platform._time_step
         # robot time step in milliseconds
         time_step_ms = platform._time_step * 1000

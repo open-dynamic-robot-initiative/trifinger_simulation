@@ -1,9 +1,13 @@
 import json
 import numpy as np
 
-from .tasks import move_cube
-from .sim_finger import SimFinger
-from . import camera, collision_objects
+
+from trifinger_simulation.tasks import move_cube
+from trifinger_simulation.sim_finger import SimFinger
+from trifinger_simulation import camera, collision_objects
+from types import SimpleNamespace
+
+import gym
 
 
 class ObjectPose:
@@ -58,9 +62,67 @@ class TriFingerPlatform:
 
     """
 
+    # Create the action and observation spaces
+    # ========================================
+
+    _n_joints = 9
+    _n_fingers = 3
+    _max_torque_Nm = 0.36
+    _max_velocity_radps = 10
+
+    spaces = SimpleNamespace()
+
+    spaces.robot_torque = SimpleNamespace(
+        low=np.full(_n_joints, -_max_torque_Nm, dtype=np.float32),
+        high=np.full(_n_joints, _max_torque_Nm, dtype=np.float32),
+        default=np.zeros(_n_joints, dtype=np.float32),
+    )
+    spaces.robot_position = SimpleNamespace(
+        low=np.array([-0.9, -1.57, -2.7] * _n_fingers, dtype=np.float32),
+        high=np.array([1.4, 1.57, 0.0] * _n_fingers, dtype=np.float32),
+        default=np.array(
+            [0.0, np.deg2rad(-70), np.deg2rad(-130)] * _n_fingers,
+            dtype=np.float32,
+        ),
+    )
+    spaces.robot_velocity = SimpleNamespace(
+        low=np.full(_n_joints, -_max_velocity_radps, dtype=np.float32),
+        high=np.full(_n_joints, _max_velocity_radps, dtype=np.float32),
+        default=np.zeros(_n_joints, dtype=np.float32),
+    )
+    spaces.object_position = SimpleNamespace(
+        low=np.array([-0.3, -0.3, 0], dtype=np.float32),
+        high=np.array([0.3, 0.3, 0.3], dtype=np.float32),
+        default=np.array([0, 0, move_cube._min_height], dtype=np.float32),
+    )
+
+    spaces.object_orientation = SimpleNamespace(
+        low=-np.ones(4, dtype=np.float32),
+        high=np.ones(4, dtype=np.float32),
+        default=move_cube.Pose().orientation,
+    )
+
+    # for convenience, we also create the respective gym spaces
+    spaces.robot_torque.gym = gym.spaces.Box(
+        low=spaces.robot_torque.low, high=spaces.robot_torque.high
+    )
+    spaces.robot_position.gym = gym.spaces.Box(
+        low=spaces.robot_position.low, high=spaces.robot_position.high
+    )
+    spaces.robot_velocity.gym = gym.spaces.Box(
+        low=spaces.robot_velocity.low, high=spaces.robot_velocity.high
+    )
+    spaces.object_position.gym = gym.spaces.Box(
+        low=spaces.object_position.low, high=spaces.object_position.high
+    )
+    spaces.object_orientation.gym = gym.spaces.Box(
+        low=spaces.object_orientation.low, high=spaces.object_orientation.high
+    )
+
     def __init__(
         self,
         visualization=False,
+        initial_robot_position=None,
         initial_object_pose=None,
         enable_cameras=False,
     ):
@@ -68,6 +130,7 @@ class TriFingerPlatform:
 
         Args:
             visualization (bool):  Set to true to run visualization.
+            initial_robot_position: Initial robot joint angles
             initial_object_pose:  Initial pose for the manipulation object.
                 Can be any object with attributes ``position`` (x, y, z) and
                 ``orientation`` (x, y, z, w).  This is optional, if not set, a
@@ -80,7 +143,7 @@ class TriFingerPlatform:
         #: Camera rate in frames per second.  Observations of camera and
         #: object pose will only be updated with this rate.
         #: NOTE: This is currently not used!
-        self.camera_rate_fps = 30
+        self._camera_rate_fps = 30
 
         #: Set to true to render camera observations
         self.enable_cameras = enable_cameras
@@ -91,9 +154,8 @@ class TriFingerPlatform:
         # first camera update in the first step
         self._next_camera_update_step = 0
 
-        # Initially move the fingers to a pose where they are guaranteed to not
-        # collide with the object on the ground.
-        initial_position = [0.0, np.deg2rad(-70), np.deg2rad(-130)] * 3
+        # Initialize robot, object and cameras
+        # ====================================
 
         self.simfinger = SimFinger(
             finger_type="trifingerpro",
@@ -101,26 +163,26 @@ class TriFingerPlatform:
             enable_visualization=visualization,
         )
 
-        # set fingers to initial pose
-        self.simfinger.reset_finger_positions_and_velocities(initial_position)
+        if initial_robot_position is None:
+            initial_robot_position = self.spaces.robot_position.default
+
+        self.simfinger.reset_finger_positions_and_velocities(
+            initial_robot_position
+        )
 
         if initial_object_pose is None:
-            initial_object_pose = move_cube.sample_goal(difficulty=-1)
+            initial_object_pose = move_cube.Pose(
+                position=self.spaces.object_position.default,
+                orientation=self.spaces.object_orientation.default,
+            )
         self.cube = collision_objects.Block(
             initial_object_pose.position, initial_object_pose.orientation
         )
 
-        self._action_log = {
-            "initial_robot_position": initial_position,
-            "initial_object_pose": {
-                "position": initial_object_pose.position.tolist(),
-                "orientation": initial_object_pose.orientation.tolist(),
-            },
-            "actions": [],
-        }
-
         self.tricamera = camera.TriFingerCameras()
 
+        # Forward some methods for convenience
+        # ====================================
         # forward "RobotFrontend" methods directly to simfinger
         self.Action = self.simfinger.Action
         self.get_desired_action = self.simfinger.get_desired_action
@@ -129,12 +191,28 @@ class TriFingerPlatform:
         self.get_current_timeindex = self.simfinger.get_current_timeindex
         self.get_robot_observation = self.simfinger.get_observation
 
+        # forward kinematics directly to simfinger
+        self.forward_kinematics = (
+            self.simfinger.pinocchio_utils.forward_kinematics
+        )
+
+        # Initialize log
+        # ==============
+        self._action_log = {
+            "initial_robot_position": initial_robot_position.tolist(),
+            "initial_object_pose": {
+                "position": initial_object_pose.position.tolist(),
+                "orientation": initial_object_pose.orientation.tolist(),
+            },
+            "actions": [],
+        }
+
     def get_time_step(self):
         """Get simulation time step in seconds."""
         return self._time_step
 
     def _compute_camera_update_step_interval(self):
-        return (1.0 / self.camera_rate_fps) / self._time_step
+        return (1.0 / self._camera_rate_fps) / self._time_step
 
     def append_desired_action(self, action):
         """

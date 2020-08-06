@@ -51,7 +51,9 @@ class Pose:
     """Represents a pose given by position and orientation."""
 
     def __init__(
-        self, position=np.array([0, 0, 0]), orientation=np.array([0, 0, 0, 1])
+        self,
+        position=np.array([0, 0, 0], dtype=np.float32),
+        orientation=np.array([0, 0, 0, 1], dtype=np.float32),
     ):
         """Initialize.
 

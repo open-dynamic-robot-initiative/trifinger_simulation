@@ -4,7 +4,7 @@ import enum
 import numpy as np
 import gym
 
-import trifinger_simulation
+from trifinger_simulation import TriFingerPlatform
 from trifinger_simulation.tasks import move_cube
 
 
@@ -128,46 +128,25 @@ class CubeEnv(gym.GoalEnv):
         # Create the action and observation spaces
         # ========================================
 
-        n_joints = 9
-        n_fingers = 3
-        max_torque_Nm = 0.36
-        max_velocity_radps = 10
-
-        torque_space = gym.spaces.Box(
-            low=np.full(n_joints, -max_torque_Nm, dtype=np.float32),
-            high=np.full(n_joints, max_torque_Nm, dtype=np.float32),
-        )
-
-        position_space = gym.spaces.Box(
-            low=np.array([-0.9, -1.57, -2.7] * n_fingers, dtype=np.float32),
-            high=np.array([1.4, 1.57, 0.0] * n_fingers, dtype=np.float32),
-        )
-
-        velocity_space = gym.spaces.Box(
-            low=np.full(n_joints, -max_velocity_radps, dtype=np.float32),
-            high=np.full(n_joints, max_velocity_radps, dtype=np.float32),
-        )
+        spaces = TriFingerPlatform.spaces
 
         object_state_space = gym.spaces.Dict(
             {
-                "position": gym.spaces.Box(
-                    low=np.array([-0.3, -0.3, 0], dtype=np.float32),
-                    high=np.array([0.3, 0.3, 0.3], dtype=np.float32),
-                ),
-                "orientation": gym.spaces.Box(
-                    low=-np.ones(4, dtype=np.float32),
-                    high=np.ones(4, dtype=np.float32),
-                ),
+                "position": spaces.robot_torque.gym,
+                "orientation": spaces.object_orientation.gym,
             }
         )
 
         if self.action_type == ActionType.TORQUE:
-            self.action_space = torque_space
+            self.action_space = spaces.robot_torque.gym
         elif self.action_type == ActionType.POSITION:
-            self.action_space = position_space
+            self.action_space = spaces.robot_position.gym
         elif self.action_type == ActionType.TORQUE_AND_POSITION:
             self.action_space = gym.spaces.Dict(
-                {"torque": torque_space, "position": position_space}
+                {
+                    "torque": spaces.robot_torque.gym,
+                    "position": spaces.robot_position.gym,
+                }
             )
         else:
             raise ValueError("Invalid action_type")
@@ -176,9 +155,9 @@ class CubeEnv(gym.GoalEnv):
             {
                 "observation": gym.spaces.Dict(
                     {
-                        "position": position_space,
-                        "velocity": velocity_space,
-                        "torque": torque_space,
+                        "position": spaces.robot_position.gym,
+                        "velocity": spaces.robot_velocity.gym,
+                        "torque": spaces.robot_torque.gym,
                     }
                 ),
                 "desired_goal": object_state_space,
@@ -192,24 +171,6 @@ class CubeEnv(gym.GoalEnv):
             move_cube.Pose.from_dict(achieved_goal),
             info["difficulty"],
         )
-
-    def _create_observation(self, t):
-        robot_observation = self.platform.get_robot_observation(t)
-        object_observation = self.platform.get_object_pose(t)
-
-        observation = {
-            "observation": {
-                "position": robot_observation.position,
-                "velocity": robot_observation.velocity,
-                "torque": robot_observation.torque,
-            },
-            "desired_goal": self.goal,
-            "achieved_goal": {
-                "position": object_observation.position,
-                "orientation": object_observation.orientation,
-            },
-        }
-        return observation
 
     def step(self, action):
         if self.platform is None:
@@ -234,19 +195,8 @@ class CubeEnv(gym.GoalEnv):
             if self.step_count > move_cube.episode_length:
                 raise RuntimeError("Exceeded number of steps for one episode.")
 
-            # construct robot action depending on action type
-            if self.action_type == ActionType.TORQUE:
-                robot_action = self.platform.Action(torque=action)
-            elif self.action_type == ActionType.POSITION:
-                robot_action = self.platform.Action(position=action)
-            elif self.action_type == ActionType.TORQUE_AND_POSITION:
-                robot_action = self.platform.Action(
-                    torque=action["torque"], position=action["position"]
-                )
-            else:
-                raise ValueError("Invalid action_type")
-
             # send action to robot
+            robot_action = self._gym_action_to_robot_action(action)
             t = self.platform.append_desired_action(robot_action)
 
             # Use observations of step t + 1 to follow what would be expected
@@ -266,10 +216,10 @@ class CubeEnv(gym.GoalEnv):
 
     def reset(self):
         # reset simulation
-        # TODO use pybullet.resetSimulation() instead of recreating everything
         del self.platform
-        self.platform = trifinger_simulation.TriFingerPlatform(
+        self.platform = TriFingerPlatform(
             visualization=self.visualization,
+            initial_robot_position=TriFingerPlatform.spaces.robot_position.default,
             initial_object_pose=self.initializer.get_initial_state(),
         )
 
@@ -288,3 +238,36 @@ class CubeEnv(gym.GoalEnv):
         self.np_random, seed = gym.utils.seeding.np_random(seed)
         move_cube.random = self.np_random
         return [seed]
+
+    def _create_observation(self, t):
+        robot_observation = self.platform.get_robot_observation(t)
+        object_observation = self.platform.get_object_pose(t)
+
+        observation = {
+            "observation": {
+                "position": robot_observation.position,
+                "velocity": robot_observation.velocity,
+                "torque": robot_observation.torque,
+            },
+            "desired_goal": self.goal,
+            "achieved_goal": {
+                "position": object_observation.position,
+                "orientation": object_observation.orientation,
+            },
+        }
+        return observation
+
+    def _gym_action_to_robot_action(self, gym_action):
+        # construct robot action depending on action type
+        if self.action_type == ActionType.TORQUE:
+            robot_action = self.platform.Action(torque=gym_action)
+        elif self.action_type == ActionType.POSITION:
+            robot_action = self.platform.Action(position=gym_action)
+        elif self.action_type == ActionType.TORQUE_AND_POSITION:
+            robot_action = self.platform.Action(
+                torque=gym_action["torque"], position=gym_action["position"]
+            )
+        else:
+            raise ValueError("Invalid action_type")
+
+        return robot_action
