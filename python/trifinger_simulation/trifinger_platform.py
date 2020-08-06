@@ -299,7 +299,7 @@ class TriFingerPlatform:
         Raises:
             ValueError: If invalid time index ``t`` is passed.
         """
-        current_t = self.get_current_timeindex()
+        current_t = self.simfinger._t
 
         if t == current_t:
             return self._object_pose_t
@@ -351,7 +351,7 @@ class TriFingerPlatform:
                 " observations."
             )
 
-        current_t = self.get_current_timeindex()
+        current_t = self.simfinger._t
 
         if t == current_t:
             return self._camera_observation_t
