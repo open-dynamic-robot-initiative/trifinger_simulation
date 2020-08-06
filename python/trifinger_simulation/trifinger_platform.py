@@ -176,7 +176,9 @@ class TriFingerPlatform:
                 orientation=self.spaces.object_orientation.default,
             )
         self.cube = collision_objects.Block(
-            initial_object_pose.position, initial_object_pose.orientation
+            initial_object_pose.position,
+            initial_object_pose.orientation,
+            mass=0.020,
         )
 
         self.tricamera = camera.TriFingerCameras()

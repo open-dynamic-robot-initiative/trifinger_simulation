@@ -68,13 +68,7 @@ class Marker:
 class CubeMarker:
     """Visualize a cube."""
 
-    def __init__(
-        self,
-        width,
-        position,
-        orientation,
-        color=(0, 1, 0, 0.5)
-    ):
+    def __init__(self, width, position, orientation, color=(0, 1, 0, 0.5)):
         """
         Create a cube marker for visualization
 
