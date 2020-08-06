@@ -81,7 +81,7 @@ class TriFingerPlatform:
         low=np.array([-0.9, -1.57, -2.7] * _n_fingers, dtype=np.float32),
         high=np.array([1.4, 1.57, 0.0] * _n_fingers, dtype=np.float32),
         default=np.array(
-            [0.0, np.deg2rad(-70), np.deg2rad(-130)] * _n_fingers,
+            [0.0, np.deg2rad(70), np.deg2rad(-130)] * _n_fingers,
             dtype=np.float32,
         ),
     )
