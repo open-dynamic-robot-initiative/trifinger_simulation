@@ -121,7 +121,9 @@ class SimFinger:
         Raises:
             ValueError: If invalid time index ``t`` is passed.
         """
-        if t == self._t:
+        if t < 0:
+            raise ValueError("Cannot access time index less than zero.")
+        elif t == self._t:
             # observation from before action_t was applied
             observation = self._observation_t
 
@@ -219,7 +221,9 @@ class SimFinger:
         Raises:
             ValueError: If invalid time index ``t`` is passed.
         """
-        if t == self._t or t == self._t + 1:
+        if t < 0:
+            raise ValueError("Cannot access time index less than zero.")
+        elif t == self._t or t == self._t + 1:
             return self.time_step_s * 1000 * t
         else:
             raise ValueError(
@@ -229,6 +233,11 @@ class SimFinger:
 
     def get_current_timeindex(self):
         """Get the current time index."""
+        if self._t < 0:
+            raise ValueError(
+                "Time index is only available after sending the first action."
+            )
+
         return self._t
 
     def reset_finger_positions_and_velocities(
@@ -451,7 +460,9 @@ class SimFinger:
 
     def __validate_time_index(self, t):
         """Raise error if t does not match with self._t."""
-        if t != self._t:
+        if t < 0:
+            raise ValueError("Cannot access time index less than zero.")
+        elif t != self._t:
             raise ValueError(
                 "Given time index %d does not match with current index %d"
                 % (t, self._t)
