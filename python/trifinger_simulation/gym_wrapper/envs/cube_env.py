@@ -5,6 +5,7 @@ import numpy as np
 import gym
 
 from trifinger_simulation import TriFingerPlatform
+from trifinger_simulation import visual_objects
 from trifinger_simulation.tasks import move_cube
 
 
@@ -228,6 +229,15 @@ class CubeEnv(gym.GoalEnv):
             "position": goal.position,
             "orientation": goal.orientation,
         }
+
+        # visualize the goal
+        if self.visualization:
+            self.goal_marker = visual_objects.CubeMarker(
+                width=0.065,
+                position=goal.position,
+                orientation=goal.orientation,
+            )
+
         self.info = {"difficulty": self.initializer.difficulty}
 
         self.step_count = 0
