@@ -63,3 +63,45 @@ class Marker:
             pybullet.resetBasePositionAndOrientation(
                 goal_id, position, orientation
             )
+
+
+class CubeMarker:
+    """Visualize a cube."""
+
+    def __init__(
+        self,
+        width,
+        position,
+        orientation,
+        color=(0, 1, 0, 0.5)
+    ):
+        """
+        Create a cube marker for visualization
+
+        Args:
+            width (float): Length of one side of the cube.
+            position: Position (x, y, z)
+            orientation: Orientation as quaternion (x, y, z, w)
+            color: Color of the cube as a tuple (r, b, g, q)
+            """
+        self.shape_id = pybullet.createVisualShape(
+            shapeType=pybullet.GEOM_BOX,
+            halfExtents=[width / 2] * 3,
+            rgbaColor=color,
+        )
+        self.body_id = pybullet.createMultiBody(
+            baseVisualShapeIndex=self.shape_id,
+            basePosition=position,
+            baseOrientation=orientation,
+        )
+
+    def set_state(self, position, orientation):
+        """Set pose of the marker.
+
+        Args:
+            position: Position (x, y, z)
+            orientation: Orientation as quaternion (x, y, z, w)
+        """
+        pybullet.resetBasePositionAndOrientation(
+            self.body_id, position, orientation
+        )
