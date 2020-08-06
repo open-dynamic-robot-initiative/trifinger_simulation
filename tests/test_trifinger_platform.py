@@ -71,12 +71,40 @@ class TestTriFingerPlatform(unittest.TestCase):
         self.assertEqual(nth_stamp_s, camera_obs.cameras[1].timestamp)
         self.assertEqual(nth_stamp_s, camera_obs.cameras[2].timestamp)
 
+    def test_get_object_pose_timeindex(self):
+        platform = TriFingerPlatform()
+
+        # negative time index needs to be rejected
+        with self.assertRaises(ValueError):
+            platform.get_object_pose(-1)
+
+        t = platform.append_desired_action(platform.Action())
+        try:
+            platform.get_object_pose(t)
+            platform.get_object_pose(t + 1)
+        except Exception:
+            self.fail()
+
+        with self.assertRaises(ValueError):
+            platform.get_object_pose(t + 2)
+
+    def test_get_camera_observation_timeindex(self):
+        platform = TriFingerPlatform(enable_cameras=True)
+
+        # negative time index needs to be rejected
+        with self.assertRaises(ValueError):
+            platform.get_camera_observation(-1)
+
+        t = platform.append_desired_action(platform.Action())
+        try:
+            platform.get_camera_observation(t)
+            platform.get_camera_observation(t + 1)
+        except Exception:
+            self.fail()
+
+        with self.assertRaises(ValueError):
+            platform.get_camera_observation(t + 2)
+
 
 if __name__ == "__main__":
-    import rosunit
-
-    rosunit.unitrun(
-        "trifinger_simulation",
-        "test_trifinger_platform",
-        TestTriFingerPlatform,
-    )
+    unittest.main()
