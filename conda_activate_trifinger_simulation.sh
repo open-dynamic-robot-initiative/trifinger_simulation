@@ -1,0 +1,2 @@
+export PYTHONNOUSERSITE=True
+conda activate trifinger_simulation

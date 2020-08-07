@@ -6,10 +6,6 @@ There are two ways to build/install this package.
 1. As part of a catkin workspace (recommended)
 2. As an isolated Python package using the setup.py
 
-In general, Option 1 should be preferred, ideally using Singularity to avoid any
-dependency issues.  Only fall back to Option 2 if 1 does not work for some
-reason.
-
 Build using catkin
 ------------------
 
@@ -26,11 +22,6 @@ After building the workspace, sourcing it's `setup.bash` is enough to setup
 Install as Python package in a conda environment
 ------------------------------------------------
 
-**Note:** Only do this if you cannot use the catkin approach (see above).  If
-you installed the package using the following instructions and later want to
-switch to catkin, you need to remove the package first, otherwise it can
-interfere with the environment of the catkin workspace.
-
 1. Clone this repo,
 
        git clone git@gitlab.is.tue.mpg.de:robotics/trifinger_simulation.git
@@ -41,14 +32,14 @@ interfere with the environment of the catkin workspace.
 
        ${SHELL} -i create_conda_env.sh
 
-3. Then activate the env,
+3. Then activate the env using,
 
-       conda activate trifinger_simulation
+       source conda_activate_trifinger_simulation.sh
 
-4. You should check that you the tests in `tests/` (which wouldn't include the
-   tests in `tests/catkin`) are successful:
+**VERY VERY IMPORTANT** Everytime you want to activate the `trifinger_simulation` conda environment, you must do so using the above command. It ensures that your conda environment is isolated from the global/user site-packages, and enables one to know exactly what they are running inside their environment. In case you do not activate the environment like this, and instead just activate it using `conda activate trifinger_simulation`, you would still be able to access the packages in your global/user site-packages from inside an activated conda environment.
 
-       python -m unittest discover tests/
+*Why is this important?* By having access only to the packages you install from within the environment `trifinger_simulation` using conda/pip, when you export this (active) environment as a yml, say using,
 
-   Note that `unittest discover` doesn't search recursively and hence the tests
-   in `tests/catkin` won't get executed.
+       conda env export > environment.yml
+
+you will get a list of all the packages installed within the environment along with their versions, which you used to run your code. This ensures reproducibility of your code by using this yml.
