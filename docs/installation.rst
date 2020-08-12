@@ -43,17 +43,6 @@ Install the trifinger_simulation package
 
        python -m pip install -e .
 
-     **Note on Activating the Conda Environment**
-
-    Every time you activate your trifinger_simulation conda environment, it is
-    important that you make sure that ``PYTHONNOUSERSITE`` is set to True, as is
-    done in step 2 above.  This ensures that your conda environment is isolated
-    from the global/user site-packages, which is important for us to reproduce
-    your env on our side. For convenience, we provide a script which does this::
-
-        source conda_activate_trifinger_simulation.sh
-
-
 Build using catkin
 -------------------------
 
