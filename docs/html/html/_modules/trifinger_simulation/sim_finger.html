@@ -1,0 +1,995 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>trifinger_simulation.sim_finger &mdash; TriFinger Robot Simulation 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> TriFinger Robot Simulation
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Ease of Use with a Real Robot</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../simvsreal.html">Simulation vs Real Robot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../driverinterface.html">Interface with a Real Robot</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../sim_finger.html">The SimFinger Class</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../trifingerplatform.html">The TriFingerPlatform Class</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TriFinger Robot Simulation</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>trifinger_simulation.sim_finger</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for trifinger_simulation.sim_finger</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">pybullet</span>
+<span class="kn">import</span> <span class="nn">pybullet_data</span>
+
+<span class="kn">from</span> <span class="nn">trifinger_simulation.action</span> <span class="kn">import</span> <span class="n">Action</span>
+<span class="kn">from</span> <span class="nn">trifinger_simulation.observation</span> <span class="kn">import</span> <span class="n">Observation</span>
+<span class="kn">from</span> <span class="nn">trifinger_simulation.base_finger</span> <span class="kn">import</span> <span class="n">BaseFinger</span>
+<span class="kn">from</span> <span class="nn">trifinger_simulation</span> <span class="kn">import</span> <span class="n">collision_objects</span>
+
+
+<div class="viewcode-block" id="SimFinger"><a class="viewcode-back" href="../../sim_finger.html#trifinger_simulation.SimFinger">[docs]</a><span class="k">class</span> <span class="nc">SimFinger</span><span class="p">(</span><span class="n">BaseFinger</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Provides simulation for each of the different finger</span>
+<span class="sd">    robots: the trifingerone, trifingeredu, and trifingerpro,</span>
+<span class="sd">    as well as complete API support for each of their single fingers</span>
+<span class="sd">    (except for the trifingerpro). This simulation is based on PyBullet,</span>
+<span class="sd">    the official Python wrapper around the Bullet-C API.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">finger_type</span><span class="p">,</span> <span class="n">time_step</span><span class="o">=</span><span class="mf">0.004</span><span class="p">,</span> <span class="n">enable_visualization</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes the simulated physical world we will work in.</span>
+
+<span class="sd">        1) it imports the model of the robot according to the desired robot</span>
+<span class="sd">        type, which you can specify. This model includes the movable links</span>
+<span class="sd">        as well as the entire frame supporting these links: the table, and</span>
+<span class="sd">        the stage. 2) sets the physical properties of the world, and 3) the</span>
+<span class="sd">        physical properties of the links and actuators of the robot.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            finger_type (string): Name of the finger type.  In order to get</span>
+<span class="sd">                a list of the valid finger types, call</span>
+<span class="sd">                :meth:`.finger_types_data.get_valid_finger_types`</span>
+<span class="sd">            time_step (float): Time (in seconds) between two</span>
+<span class="sd">                simulation steps. Don&#39;t set this to be larger than 1/60.</span>
+<span class="sd">                The gains are dependent on the time_step, and have been</span>
+<span class="sd">                set according to a time_step of 0.004 s in this simulation.</span>
+<span class="sd">            enable_visualization (bool): Set this to &#39;True&#39; for a</span>
+<span class="sd">                GUI interface to the simulation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Always enable the simulation for the simulated robot :)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enable_simulation</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">finger_type</span><span class="p">,</span> <span class="n">enable_visualization</span><span class="p">)</span>
+
+        <span class="c1">#: The simulation time step</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_step_s</span> <span class="o">=</span> <span class="n">time_step</span>
+
+        <span class="c1">#: The kp gains for the pd control of the finger(s). Note, this depends</span>
+        <span class="c1">#: on the simulation step size and has been set for a simulation rate</span>
+        <span class="c1">#: of 250 Hz.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">position_gains</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_fingers</span>
+        <span class="p">)</span>
+
+        <span class="c1">#: The kd gains for the pd control of the finger(s). Note, this depends</span>
+        <span class="c1">#: on the simulation step size and has been set for a simulation rate</span>
+        <span class="c1">#: of 250 Hz.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">velocity_gains</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_fingers</span>
+        <span class="p">)</span>
+
+        <span class="c1">#: The maximum allowable torque that can be applied to each motor.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_motor_torque</span> <span class="o">=</span> <span class="mf">0.36</span>
+
+        <span class="c1">#: The kd gains used for damping the joint motor velocities during the</span>
+        <span class="c1">#: safety torque check on the joint motors, so that the motors don&#39;t</span>
+        <span class="c1">#: move too fast.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">safety_kd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.08</span><span class="p">,</span> <span class="mf">0.08</span><span class="p">,</span> <span class="mf">0.04</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_fingers</span><span class="p">)</span>
+
+        <span class="c1">#: The time index of the simulation.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_t</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">make_physical_world</span><span class="p">()</span>
+
+        <span class="c1"># Enables force sensors on the finger tips</span>
+        <span class="k">for</span> <span class="n">joint_index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">finger_tip_ids</span><span class="p">:</span>
+            <span class="n">pybullet</span><span class="o">.</span><span class="n">enableJointForceTorqueSensor</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">finger_id</span><span class="p">,</span> <span class="n">joint_index</span><span class="p">,</span> <span class="n">enableSensor</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">make_physical_world</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the physical parameters of the world in which the simulation</span>
+<span class="sd">        will run, and import the models to be simulated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pybullet</span><span class="o">.</span><span class="n">setAdditionalSearchPath</span><span class="p">(</span><span class="n">pybullet_data</span><span class="o">.</span><span class="n">getDataPath</span><span class="p">())</span>
+        <span class="n">pybullet</span><span class="o">.</span><span class="n">setGravity</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">9.81</span><span class="p">)</span>
+        <span class="n">pybullet</span><span class="o">.</span><span class="n">setTimeStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_step_s</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">floor</span> <span class="o">=</span> <span class="n">pybullet</span><span class="o">.</span><span class="n">loadURDF</span><span class="p">(</span><span class="s2">&quot;plane_transparent.urdf&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># Refer to :func:`.BasFinger.import_finger_model` for details.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">import_finger_model</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_dynamics_properties</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disable_velocity_control</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_stage</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">set_dynamics_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets properties of the robot&#39;s finger links, such as their mass,</span>
+<span class="sd">        friction, damping, maximum joint velocities etc.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">link_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">finger_link_ids</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">change_link_dynamics</span><span class="p">(</span>
+                <span class="n">link_id</span><span class="p">,</span>
+                <span class="n">max_joint_velocity</span><span class="o">=</span><span class="mf">1e3</span><span class="p">,</span>
+                <span class="n">restitution</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+                <span class="n">joint_damping</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                <span class="n">lateral_friction</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                <span class="n">spinning_friction</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                <span class="n">rolling_friction</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                <span class="n">linear_damping</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                <span class="n">angular_damping</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                <span class="n">contact_stiffness</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                <span class="n">contact_damping</span><span class="o">=</span><span class="mf">0.05</span>
+                <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">check_link_id_validity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Checks if an index is a valid link id.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            index (int): The index that is to be</span>
+<span class="sd">                checked.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">finger_link_ids</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Please pass a valid finger link id.&quot;</span>
+                             <span class="s2">&quot; Valid finger ids are = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">link_name_to_index</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">change_link_dynamics</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">link_id</span><span class="p">,</span>
+            <span class="n">max_joint_velocity</span><span class="o">=</span><span class="mf">1e3</span><span class="p">,</span>
+            <span class="n">restitution</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+            <span class="n">joint_damping</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">lateral_friction</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+            <span class="n">spinning_friction</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+            <span class="n">rolling_friction</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+            <span class="n">linear_damping</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+            <span class="n">angular_damping</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+            <span class="n">contact_stiffness</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+            <span class="n">contact_damping</span><span class="o">=</span><span class="mf">0.05</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Changes the dynamics properties of one link at a time.</span>
+<span class="sd">        Please refer to the ``pybullet.changeDynamics()`` for details</span>
+<span class="sd">        on the arguments.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            link_id (int): The index of the link whose dynamics are to be</span>
+<span class="sd">                changed. Default behaviour is to change the properties of all</span>
+<span class="sd">                links.</span>
+<span class="sd">            max_joint_velocity (double)</span>
+<span class="sd">            restitution (double)</span>
+<span class="sd">            joint_damping (double)</span>
+<span class="sd">            lateral_friction (double)</span>
+<span class="sd">            spinning_friction (double)</span>
+<span class="sd">            rolling_friction (double)</span>
+<span class="sd">            linear_damping (double)</span>
+<span class="sd">            angular_damping (double)</span>
+<span class="sd">            contact_stiffness (double)</span>
+<span class="sd">            contact_damping (double)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_link_id_validity</span><span class="p">(</span><span class="n">link_id</span><span class="p">)</span>
+        <span class="n">pybullet</span><span class="o">.</span><span class="n">changeDynamics</span><span class="p">(</span>
+            <span class="n">bodyUniqueId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">finger_id</span><span class="p">,</span>
+            <span class="n">linkIndex</span><span class="o">=</span><span class="n">link_id</span><span class="p">,</span>
+            <span class="n">maxJointVelocity</span><span class="o">=</span><span class="n">max_joint_velocity</span><span class="p">,</span>
+            <span class="n">restitution</span><span class="o">=</span><span class="n">restitution</span><span class="p">,</span>
+            <span class="n">jointDamping</span><span class="o">=</span><span class="n">joint_damping</span><span class="p">,</span>
+            <span class="n">lateralFriction</span><span class="o">=</span><span class="n">lateral_friction</span><span class="p">,</span>
+            <span class="n">spinningFriction</span><span class="o">=</span><span class="n">spinning_friction</span><span class="p">,</span>
+            <span class="n">rollingFriction</span><span class="o">=</span><span class="n">rolling_friction</span><span class="p">,</span>
+            <span class="n">linearDamping</span><span class="o">=</span><span class="n">linear_damping</span><span class="p">,</span>
+            <span class="n">angularDamping</span><span class="o">=</span><span class="n">angular_damping</span><span class="p">,</span>
+            <span class="n">contactStiffness</span><span class="o">=</span><span class="n">contact_stiffness</span><span class="p">,</span>
+            <span class="n">contactDamping</span><span class="o">=</span><span class="n">contact_damping</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">change_link_texture</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">link_id</span><span class="p">,</span>
+            <span class="n">color_rgba</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">texture_file_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Changes the color of any link on the robot, or load a texture image</span>
+<span class="sd">        onto it one link at a time.</span>
+
+<span class="sd">        A texture image will get loaded on top of a color.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            link_id: a valid link id</span>
+<span class="sd">            color_rgba: A list of RGBA values.</span>
+<span class="sd">            texture_file_path: Path to a texture that is to be loaded onto</span>
+<span class="sd">                the object</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_link_id_validity</span><span class="p">(</span><span class="n">link_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">texture_file_path</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">color_rgba</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;This method was called without any&quot;</span>
+                             <span class="s2">&quot;values for the desired visual attribute&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">texture_file_path</span><span class="p">:</span>
+            <span class="n">texture_id</span> <span class="o">=</span> <span class="n">pybullet</span><span class="o">.</span><span class="n">loadTexture</span><span class="p">(</span><span class="n">texture_file_path</span><span class="p">)</span>
+            <span class="n">pybullet</span><span class="o">.</span><span class="n">changeVisualShape</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">finger_id</span><span class="p">,</span>
+                <span class="n">link_id</span><span class="p">,</span>
+                <span class="n">textureUniqueId</span><span class="o">=</span><span class="n">texture_id</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">color_rgba</span><span class="p">:</span>
+            <span class="n">pybullet</span><span class="o">.</span><span class="n">changeVisualShape</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">finger_id</span><span class="p">,</span>
+                <span class="n">link_id</span><span class="p">,</span>
+                <span class="n">rgbaColor</span><span class="o">=</span><span class="n">color_rgba</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">change_floor_texture</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">texture_file_path</span><span class="p">):</span>
+        <span class="n">floor_texture_id</span> <span class="o">=</span> <span class="n">pybullet</span><span class="o">.</span><span class="n">loadTexture</span><span class="p">(</span><span class="n">texture_file_path</span><span class="p">)</span>
+        <span class="n">pybullet</span><span class="o">.</span><span class="n">changeVisualShape</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">floor</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">textureUniqueId</span><span class="o">=</span><span class="n">floor_texture_id</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">disable_velocity_control</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Disabless the high friction velocity motors that get created by</span>
+<span class="sd">        pybullet by default at all the revolute and prismatic joints when</span>
+<span class="sd">        they are loaded from the urdf.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">pybullet</span><span class="o">.</span><span class="n">setJointMotorControlArray</span><span class="p">(</span>
+            <span class="n">bodyUniqueId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">finger_id</span><span class="p">,</span>
+            <span class="n">jointIndices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">revolute_joint_ids</span><span class="p">,</span>
+            <span class="n">controlMode</span><span class="o">=</span><span class="n">pybullet</span><span class="o">.</span><span class="n">VELOCITY_CONTROL</span><span class="p">,</span>
+            <span class="n">targetVelocities</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">revolute_joint_ids</span><span class="p">),</span>
+            <span class="n">forces</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">revolute_joint_ids</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">create_stage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">high_border</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates the stage (table and boundary).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            high_border (bool, optional):  Only used for the TriFinger.</span>
+<span class="sd">                If set to False, a low boundary will be loaded instead</span>
+<span class="sd">                of a high one. The high boundary is to restrict any object</span>
+<span class="sd">                that the trifinger is interacting with from falling</span>
+<span class="sd">                outside of its interaction area.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">mesh_path</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">robot_properties_path</span><span class="p">,</span> <span class="s2">&quot;meshes&quot;</span><span class="p">,</span> <span class="s2">&quot;stl&quot;</span><span class="p">,</span> <span class="n">filename</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">finger_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;fingerone&quot;</span><span class="p">,</span> <span class="s2">&quot;single&quot;</span><span class="p">,</span> <span class="s2">&quot;fingeredu&quot;</span><span class="p">]:</span>
+            <span class="c1"># self.stage = collision_objects.Object(</span>
+            <span class="c1">#     type=&quot;custom&quot;,</span>
+            <span class="c1">#     mesh_file_path=mesh_path(</span>
+            <span class="c1">#         &quot;Stage_simplified.stl&quot;),</span>
+            <span class="c1">#     position=[0, 0, 0],</span>
+            <span class="c1">#     is_concave=True,</span>
+            <span class="c1"># )</span>
+            <span class="k">if</span> <span class="n">high_border</span><span class="p">:</span>
+                <span class="n">high_border_colour</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">boundary</span> <span class="o">=</span> <span class="n">collision_objects</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;custom&quot;</span><span class="p">,</span>
+                        <span class="n">mesh_file_path</span><span class="o">=</span><span class="n">mesh_path</span><span class="p">(</span>
+                            <span class="s2">&quot;high_table_boundary.stl&quot;</span><span class="p">),</span>
+                        <span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                        <span class="n">is_concave</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">color_rgba</span><span class="o">=</span><span class="n">high_border_colour</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">finger_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;trifingerone&quot;</span><span class="p">,</span> <span class="s2">&quot;tri&quot;</span><span class="p">,</span> <span class="s2">&quot;trifingerpro&quot;</span><span class="p">]:</span>
+            <span class="n">table_colour</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.18</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.19</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">high_border_colour</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.73</span><span class="p">,</span> <span class="mf">0.68</span><span class="p">,</span> <span class="mf">0.72</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">high_border</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">collision_objects</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;custom&quot;</span><span class="p">,</span>
+                    <span class="n">mesh_file_path</span><span class="o">=</span><span class="n">mesh_path</span><span class="p">(</span>
+                        <span class="s2">&quot;trifinger_table_without_border.stl&quot;</span><span class="p">),</span>
+                    <span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="n">is_concave</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">color_rgba</span><span class="o">=</span><span class="n">table_colour</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">boundary</span> <span class="o">=</span> <span class="n">collision_objects</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;custom&quot;</span><span class="p">,</span>
+                    <span class="n">mesh_file_path</span><span class="o">=</span><span class="n">mesh_path</span><span class="p">(</span>
+                        <span class="s2">&quot;high_table_boundary.stl&quot;</span><span class="p">),</span>
+                    <span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="n">is_concave</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">color_rgba</span><span class="o">=</span><span class="n">high_border_colour</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">collision_objects</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;custom&quot;</span><span class="p">,</span>
+                    <span class="n">mesh_file_path</span><span class="o">=</span><span class="n">mesh_path</span><span class="p">(</span>
+                        <span class="s2">&quot;BL-M_Table_ASM_big.stl&quot;</span><span class="p">),</span>
+                    <span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="n">is_concave</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">color_rgba</span><span class="o">=</span><span class="n">table_colour</span><span class="p">,</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">finger_type</span> <span class="o">==</span> <span class="s2">&quot;trifingeredu&quot;</span><span class="p">:</span>
+            <span class="n">table_colour</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">high_border_colour</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">collision_objects</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;custom&quot;</span><span class="p">,</span>
+                <span class="n">mesh_file_path</span><span class="o">=</span><span class="n">mesh_path</span><span class="p">(</span>
+                    <span class="s2">&quot;trifinger_table_without_border.stl&quot;</span><span class="p">),</span>
+                <span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="n">is_concave</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">color_rgba</span><span class="o">=</span><span class="n">table_colour</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">boundary</span> <span class="o">=</span> <span class="n">collision_objects</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;custom&quot;</span><span class="p">,</span>
+                <span class="n">mesh_file_path</span><span class="o">=</span><span class="n">mesh_path</span><span class="p">(</span>
+                    <span class="s2">&quot;edu/frame_wall.stl&quot;</span><span class="p">),</span>
+                <span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="n">is_concave</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">color_rgba</span><span class="o">=</span><span class="n">high_border_colour</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid finger type &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">finger_type</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">set_real_time_sim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">switch</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Uses a desired simulation rate or chooses to simulate in real-time.</span>
+
+<span class="sd">        Defaults to non-real time.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            switch (int, 0/1): 1 to set the simulation in real-time.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pybullet</span><span class="o">.</span><span class="n">setRealTimeSimulation</span><span class="p">(</span><span class="n">switch</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">Action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">torque</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fills in the fields of the action structure.</span>
+
+<span class="sd">        This is a factory go create an :class:`~pybullet_fingers.action.Action`</span>
+<span class="sd">        instance with proper default values, depending on the finger type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            torque (array): Torques to apply to the joints.  Defaults to</span>
+<span class="sd">                zero.</span>
+<span class="sd">            position (array): Angular target positions for the joints.  If set</span>
+<span class="sd">                to NaN for a joint, no position control is run for this joint.</span>
+<span class="sd">                Defaults to all NaN.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ~action.Action: the action to be applied to the motors</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">torque</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">torque</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_fingers</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">position</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_fingers</span><span class="p">)</span>
+
+        <span class="n">action</span> <span class="o">=</span> <span class="n">Action</span><span class="p">(</span><span class="n">torque</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">action</span>
+
+    <span class="k">def</span> <span class="nf">append_desired_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Applies an action to the robot.</span>
+
+<span class="sd">        *Call this method to apply any action to the robot. The naming is</span>
+<span class="sd">        to be consisent with the structure for appending actions on the real</span>
+<span class="sd">        robot.*</span>
+
+<span class="sd">        So, the action that is passed here first goes through</span>
+<span class="sd">        :func:`_set_desired_action` in which the gains as defined</span>
+<span class="sd">        on initialization are set, and the torques are computed if</span>
+<span class="sd">        the action to be applied is in the terms of joint positions.</span>
+<span class="sd">        This is because any desired action will finally be applied to the</span>
+<span class="sd">        motors in the form of torques, so these torques are then passed</span>
+<span class="sd">        through a safety check :func:`_safety_torque_check` and then finally</span>
+<span class="sd">        applied to the motors in :func:`_set_motor_torques`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            action (~action.Action): Joint positions or torques or both</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            self._t (int): The current time index t at which the action</span>
+<span class="sd">                is applied.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># copy the action in a way that works for both Action and</span>
+        <span class="c1"># robot_interfaces.(tri)finger.Action.  Note that a simple</span>
+        <span class="c1"># copy.copy(action) does **not** work for robot_interfaces</span>
+        <span class="c1"># actions!</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_desired_action_t</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">action</span><span class="p">)(</span>
+            <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">torque</span><span class="p">),</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">position</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_applied_action_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_desired_action</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+
+        <span class="c1"># save current observation, then step simulation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observation_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_latest_observation</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_step_simulation</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_t</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t</span>
+
+    <span class="k">def</span> <span class="nf">_set_desired_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">desired_action</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Converts all desired torques and positions into torques</span>
+<span class="sd">        that can be applied to the motors by calling</span>
+<span class="sd">        :func:`compute_pd_control_torques`, and then sending them to</span>
+<span class="sd">        be applied after safety checks.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            desired_action (~action.Action): Joint positions or torques or both</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            applied_action (~action.Action): The action that is actually</span>
+<span class="sd">                applied after performing the safety checks.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># copy the action in a way that works for both Action and</span>
+        <span class="c1"># robot_interfaces.(tri)finger.Action.  Note that a simple</span>
+        <span class="c1"># copy.copy(desired_action) does **not** work for robot_interfaces</span>
+        <span class="c1"># actions!</span>
+        <span class="n">applied_action</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">desired_action</span><span class="p">)(</span>
+            <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">desired_action</span><span class="o">.</span><span class="n">torque</span><span class="p">),</span>
+            <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">desired_action</span><span class="o">.</span><span class="n">position</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">set_gains</span><span class="p">(</span><span class="n">gains</span><span class="p">,</span> <span class="n">defaults</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Replaces NaN entries in gains with values from defaults.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">gains</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">gains</span><span class="p">)</span>
+            <span class="n">output</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">defaults</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">output</span>
+
+        <span class="n">applied_action</span><span class="o">.</span><span class="n">position_kp</span> <span class="o">=</span> <span class="n">set_gains</span><span class="p">(</span>
+            <span class="n">desired_action</span><span class="o">.</span><span class="n">position_kp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_gains</span>
+        <span class="p">)</span>
+        <span class="n">applied_action</span><span class="o">.</span><span class="n">position_kd</span> <span class="o">=</span> <span class="n">set_gains</span><span class="p">(</span>
+            <span class="n">desired_action</span><span class="o">.</span><span class="n">position_kd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocity_gains</span>
+        <span class="p">)</span>
+
+        <span class="n">torque_command</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">desired_action</span><span class="o">.</span><span class="n">torque</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">desired_action</span><span class="o">.</span><span class="n">position</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="n">torque_command</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">compute_pd_control_torques</span><span class="p">(</span>
+                    <span class="n">desired_action</span><span class="o">.</span><span class="n">position</span><span class="p">,</span>
+                    <span class="n">applied_action</span><span class="o">.</span><span class="n">position_kp</span><span class="p">,</span>
+                    <span class="n">applied_action</span><span class="o">.</span><span class="n">position_kd</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="n">applied_action</span><span class="o">.</span><span class="n">torque</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_motor_torques</span><span class="p">(</span>
+            <span class="n">torque_command</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">applied_action</span>
+
+    <span class="k">def</span> <span class="nf">compute_pd_control_torques</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint_positions</span><span class="p">,</span> <span class="n">kp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Computes the torque command to reach a given target position in joint</span>
+<span class="sd">        space starting from the positions at which the joints currently are,</span>
+<span class="sd">        using a PD controller.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            joint_positions (array-like, shape=(n,)):  Desired joint positions.</span>
+<span class="sd">            kp (array-like, shape=(n,)): P-gains, one for each joint.</span>
+<span class="sd">            kd (array-like, shape=(n,)): D-gains, one for each joint.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            joint_torques (list of floats): the torques to be sent to the</span>
+<span class="sd">                joints of the finger(s) in order to reach the desired joint</span>
+<span class="sd">                positions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">kp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">kp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_gains</span>
+        <span class="k">if</span> <span class="n">kd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">kd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocity_gains</span>
+
+        <span class="n">current_joint_states</span> <span class="o">=</span> <span class="n">pybullet</span><span class="o">.</span><span class="n">getJointStates</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finger_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">revolute_joint_ids</span>
+        <span class="p">)</span>
+        <span class="n">current_position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">joint</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">current_joint_states</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">current_velocity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">joint</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">current_joint_states</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="n">position_error</span> <span class="o">=</span> <span class="n">joint_positions</span> <span class="o">-</span> <span class="n">current_position</span>
+
+        <span class="n">position_feedback</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">kp</span><span class="p">)</span> <span class="o">*</span> <span class="n">position_error</span>
+        <span class="n">velocity_feedback</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">kd</span><span class="p">)</span> <span class="o">*</span> <span class="n">current_velocity</span>
+
+        <span class="n">joint_torques</span> <span class="o">=</span> <span class="n">position_feedback</span> <span class="o">-</span> <span class="n">velocity_feedback</span>
+
+        <span class="c1"># set nan entries to zero (nans occur on joints for which the target</span>
+        <span class="c1"># position was set to nan)</span>
+        <span class="n">joint_torques</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">joint_torques</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="k">return</span> <span class="n">joint_torques</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_set_motor_torques</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">desired_torque_commands</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets torque commands for the motors.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            desired_torque_commands (list of floats): The desired torques to be</span>
+<span class="sd">                applied to the motors.  The torques that are actually applied</span>
+<span class="sd">                may differ as some safety checks are applied.  See return</span>
+<span class="sd">                value.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torque_commands (list of floats): List of torques that are actually</span>
+<span class="sd">                set after applying safety checks.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">torque_commands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_safety_torque_check</span><span class="p">(</span><span class="n">desired_torque_commands</span><span class="p">)</span>
+
+        <span class="n">pybullet</span><span class="o">.</span><span class="n">setJointMotorControlArray</span><span class="p">(</span>
+            <span class="n">bodyUniqueId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">finger_id</span><span class="p">,</span>
+            <span class="n">jointIndices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">revolute_joint_ids</span><span class="p">,</span>
+            <span class="n">controlMode</span><span class="o">=</span><span class="n">pybullet</span><span class="o">.</span><span class="n">TORQUE_CONTROL</span><span class="p">,</span>
+            <span class="n">forces</span><span class="o">=</span><span class="n">torque_commands</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">torque_commands</span>
+
+    <span class="k">def</span> <span class="nf">_safety_torque_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">desired_torques</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Performs a check on the torques being sent to be applied to</span>
+<span class="sd">        the motors so that they do not exceed the safety torque limit.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            desired_torques (list of floats): The torques desired to be</span>
+<span class="sd">                applied to the motors</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            applied_torques (list of floats): The torques that can be actually</span>
+<span class="sd">            applied to the motors (and will be applied)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">applied_torques</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">desired_torques</span><span class="p">),</span>
+            <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">max_motor_torque</span><span class="p">,</span>
+            <span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">max_motor_torque</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">current_joint_states</span> <span class="o">=</span> <span class="n">pybullet</span><span class="o">.</span><span class="n">getJointStates</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finger_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">revolute_joint_ids</span>
+        <span class="p">)</span>
+        <span class="n">current_velocity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">joint</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">current_joint_states</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">applied_torques</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">safety_kd</span> <span class="o">*</span> <span class="n">current_velocity</span>
+
+        <span class="n">applied_torques</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">applied_torques</span><span class="p">),</span>
+                <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">max_motor_torque</span><span class="p">,</span>
+                <span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">max_motor_torque</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">applied_torques</span>
+
+    <span class="k">def</span> <span class="nf">_get_latest_observation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gets observation of the current state.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            observation (~pybullet_fingers.observation.Observation):</span>
+<span class="sd">                the joint positions, velocities, and torques of the</span>
+<span class="sd">                joints.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">observation</span> <span class="o">=</span> <span class="n">Observation</span><span class="p">()</span>
+        <span class="n">current_joint_states</span> <span class="o">=</span> <span class="n">pybullet</span><span class="o">.</span><span class="n">getJointStates</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finger_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">revolute_joint_ids</span>
+        <span class="p">)</span>
+
+        <span class="n">observation</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">joint</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">current_joint_states</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">observation</span><span class="o">.</span><span class="n">velocity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">joint</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">current_joint_states</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">observation</span><span class="o">.</span><span class="n">torque</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">joint</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">current_joint_states</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="n">finger_tip_states</span> <span class="o">=</span> <span class="n">pybullet</span><span class="o">.</span><span class="n">getJointStates</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finger_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">finger_tip_ids</span>
+        <span class="p">)</span>
+        <span class="n">observation</span><span class="o">.</span><span class="n">tip_force</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">tip</span><span class="p">[</span><span class="mi">2</span><span class="p">][:</span><span class="mi">3</span><span class="p">])</span> <span class="k">for</span> <span class="n">tip</span> <span class="ow">in</span> <span class="n">finger_tip_states</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="c1"># The measurement of the push sensor of the real robot lies in the</span>
+        <span class="c1"># interval [0, 1].  It is around 0.23 while there is no contact and</span>
+        <span class="c1"># saturates at (very roughly) 20 N.</span>
+        <span class="n">push_sensor_saturation_force_N</span> <span class="o">=</span> <span class="mf">20.0</span>
+        <span class="n">push_sensor_no_contact_value</span> <span class="o">=</span> <span class="mf">0.23</span>
+        <span class="n">observation</span><span class="o">.</span><span class="n">tip_force</span> <span class="o">/=</span> <span class="n">push_sensor_saturation_force_N</span>
+        <span class="n">observation</span><span class="o">.</span><span class="n">tip_force</span> <span class="o">+=</span> <span class="n">push_sensor_no_contact_value</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">observation</span><span class="o">.</span><span class="n">tip_force</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">observation</span><span class="o">.</span><span class="n">tip_force</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">observation</span>
+
+    <span class="k">def</span> <span class="nf">get_observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gets the observation at a certain time index (with some restrictions</span>
+<span class="sd">        on the time index, see below).</span>
+
+<span class="sd">        *Call this method to get the observation from the world.*</span>
+
+<span class="sd">        Two types of observations can be queried for:</span>
+<span class="sd">        1) the observation *at* the time of applying the action, so</span>
+<span class="sd">        this observation actually corresponds to the state of the</span>
+<span class="sd">        environment due to the application of the *previous* action.</span>
+<span class="sd">        2) the observation from one time step after applying the action,</span>
+<span class="sd">        so this is the result of the state of the world after stepping the</span>
+<span class="sd">        simulation by one time_step, whether this results in the completion</span>
+<span class="sd">        of the action depends on what this action is, of course.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            t (int): Index of the time step of query.</span>
+<span class="sd">                **The only valid value is the index of the current step</span>
+<span class="sd">                (return value of the last call of</span>
+<span class="sd">                :meth:`~append_desired_action`).**</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            observation (~pybullet_fingers.observation.Observation):</span>
+<span class="sd">                Observation of the robot state</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If invalid time index ``t`` is passed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t</span><span class="p">:</span>
+            <span class="c1"># observation from before action_t was applied</span>
+            <span class="n">observation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_observation_t</span>
+
+        <span class="k">elif</span> <span class="n">t</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># observation from after action_t was applied</span>
+            <span class="n">observation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_latest_observation</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;You can only get the observation at the current time index,&quot;</span>
+                <span class="s2">&quot; or the next one.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">observation</span>
+
+    <span class="k">def</span> <span class="nf">_step_simulation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Steps the simulation to go to the next world state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pybullet</span><span class="o">.</span><span class="n">stepSimulation</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">get_desired_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gets the desired action of time step &#39;t&#39;.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            t (int): Index of the time step of query.</span>
+<span class="sd">                **The only valid value is the index of the current step</span>
+<span class="sd">                (return value of the last call of</span>
+<span class="sd">                :meth:`~append_desired_action`).**</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The desired action of time step t.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If invalid time index ``t`` is passed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_time_index</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desired_action_t</span>
+
+    <span class="k">def</span> <span class="nf">get_applied_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gets the action that is actually applied at time step &#39;t&#39;.</span>
+
+<span class="sd">        The actually applied action can differ from the desired one, e.g.</span>
+<span class="sd">        because the position controller affects the torque command or because</span>
+<span class="sd">        the desired torques were higher than the maximum allowable value.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            t (int): Index of the time step of query.</span>
+<span class="sd">                **The only valid value is the index of the current step</span>
+<span class="sd">                (return value of the last call of</span>
+<span class="sd">                :meth:`~append_desired_action`).**</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The applied action of time step t.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If invalid time index ``t`` is passed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_time_index</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_applied_action_t</span>
+
+    <span class="k">def</span> <span class="nf">_validate_time_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Validates if the time index that&#39;s been passed</span>
+<span class="sd">        matches with the current time index of the simulation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            t (int): some time index</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If invalid time index ``t`` is passed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Given time index </span><span class="si">%d</span><span class="s2"> does not match with current index </span><span class="si">%d</span><span class="s2">&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t</span><span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_timestamp_ms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gets timestamp of time step &#39;t&#39;.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            t (int): Index of the time step of query.</span>
+<span class="sd">                **The only valid value is the index of the current step</span>
+<span class="sd">                (return value of the last call of</span>
+<span class="sd">                :meth:`~append_desired_action`).**</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Timestamp in milliseconds.  The timestamp starts at zero when</span>
+<span class="sd">            initializing and is increased with every simulation step according</span>
+<span class="sd">            to the configured time step.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If invalid time index ``t`` is passed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_time_index</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_step_s</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t</span>
+
+    <span class="k">def</span> <span class="nf">get_current_timeindex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gets the current time index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t</span>
+
+    <span class="k">def</span> <span class="nf">pybullet_inverse_kinematics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">desired_tip_positions</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Computes the joint angular positions needed to achieve a desired tip</span>
+<span class="sd">        position.</span>
+
+<span class="sd">        WARNING: pybullet&#39;s inverse kinematics seem to be very inaccurate! (or</span>
+<span class="sd">        we are somehow using it wrongly...)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            finger (SimFinger): a SimFinger object</span>
+<span class="sd">            desired_tip_position (list of floats): xyz target position for</span>
+<span class="sd">                each finger tip.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            joint_pos (list of floats): The angular positions to be applid at</span>
+<span class="sd">            the joints to reach the desired_tip_position</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">at_target_threshold</span> <span class="o">=</span> <span class="mf">0.0001</span>
+
+        <span class="c1"># joint_pos = list(</span>
+        <span class="c1">#    pybullet.calculateInverseKinematics2(</span>
+        <span class="c1">#        bodyUniqueId=self.finger_id,</span>
+        <span class="c1">#        endEffectorLinkIndices=self.finger_tip_ids,</span>
+        <span class="c1">#        targetPositions=desired_tip_positions,</span>
+        <span class="c1">#        residualThreshold=at_target_threshold))</span>
+
+        <span class="c1"># For some reason calculateInverseKinematics2 above is not working</span>
+        <span class="c1"># properly (only gives proper results for the joints of the first</span>
+        <span class="c1"># finger).  As a workaround for now, call calculateInverseKinematics</span>
+        <span class="c1"># for a single end-effector for each finger and always pick only the</span>
+        <span class="c1"># joint positions for that finger.</span>
+
+        <span class="n">joint_pos</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">revolute_joint_ids</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">tip_index</span><span class="p">,</span> <span class="n">desired_tip_position</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+            <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">finger_tip_ids</span><span class="p">,</span> <span class="n">desired_tip_positions</span><span class="p">)</span>
+        <span class="p">):</span>
+
+            <span class="n">q</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="n">pybullet</span><span class="o">.</span><span class="n">calculateInverseKinematics</span><span class="p">(</span>
+                    <span class="n">bodyUniqueId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">finger_id</span><span class="p">,</span>
+                    <span class="n">endEffectorLinkIndex</span><span class="o">=</span><span class="n">tip_index</span><span class="p">,</span>
+                    <span class="n">targetPosition</span><span class="o">=</span><span class="n">desired_tip_position</span><span class="p">,</span>
+                    <span class="n">residualThreshold</span><span class="o">=</span><span class="n">at_target_threshold</span><span class="p">,</span>
+                    <span class="n">maxNumIterations</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">range_start</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">3</span>
+            <span class="n">range_end</span> <span class="o">=</span> <span class="n">range_start</span> <span class="o">+</span> <span class="mi">3</span>
+            <span class="n">joint_pos</span><span class="p">[</span><span class="n">range_start</span><span class="p">:</span><span class="n">range_end</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="n">range_start</span><span class="p">:</span><span class="n">range_end</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">joint_pos</span>
+
+    <span class="k">def</span> <span class="nf">reset_finger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint_positions</span><span class="p">,</span> <span class="n">joint_velocities</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Resets the finger(s) to have the desired joint positions (required)</span>
+<span class="sd">        and joint velocities (defaults to all zero) &quot;instantaneously&quot;, that</span>
+<span class="sd">        is w/o calling the control loop.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            joint_positions (array-like):  Angular position for each joint.</span>
+<span class="sd">            joint_velocities (array-like, optional): Angular velocities for</span>
+<span class="sd">                each joint. If None, these velocities are set to 0.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">joint_velocities</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">joint_velocities</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_fingers</span> <span class="o">*</span> <span class="mi">3</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">joint_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">revolute_joint_ids</span><span class="p">):</span>
+            <span class="n">pybullet</span><span class="o">.</span><span class="n">resetJointState</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">finger_id</span><span class="p">,</span>
+                <span class="n">joint_id</span><span class="p">,</span>
+                <span class="n">joint_positions</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                <span class="n">joint_velocities</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_latest_observation</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Max Planck Institute for Intelligent Systems
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
