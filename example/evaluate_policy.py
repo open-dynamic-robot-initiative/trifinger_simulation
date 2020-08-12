@@ -36,7 +36,6 @@ from example_pushing_training_env import FlatObservationWrapper
 from stable_baselines import PPO2
 
 
-
 class RandomPolicy:
     """Dummy policy which uses random actions."""
 
@@ -46,8 +45,8 @@ class RandomPolicy:
     def predict(self, observation):
         return self.action_space.sample()
 
-class PPOPolicy:
 
+class PPOPolicy:
     def __init__(self, path):
         self.ppo_policy = PPO2.load(path)
 
@@ -92,9 +91,9 @@ def main():
         # standard CubeEnv in any way which will affect the simulation (i.e.
         # affect the state action trajectories), the action trajectories you
         # compute will not make sense.
-        env = ExamplePushingTrainingEnv(initializer=initializer,
-                                        frameskip=3,
-                                        visualization=False)
+        env = ExamplePushingTrainingEnv(
+            initializer=initializer, frameskip=3, visualization=False
+        )
         env = FlatObservationWrapper(env)
 
         # we load the trained policy

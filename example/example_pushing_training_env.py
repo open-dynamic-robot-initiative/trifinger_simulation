@@ -60,7 +60,7 @@ class ExamplePushingTrainingEnv(gym.Env):
         """
         # Basic initialization
         # ====================
-        
+
         self.initializer = initializer
         self.action_type = action_type
         self.visualization = visualization
@@ -161,9 +161,11 @@ class ExamplePushingTrainingEnv(gym.Env):
         if self.initializer is None:
             # if no initializer is given (which will be the case during training),
             # we can initialize in any way desired. here, we initialize the cube always
-            # in the center of the arena, instead of randomly, as this appears to help 
+            # in the center of the arena, instead of randomly, as this appears to help
             # training
-            initial_robot_position = TriFingerPlatform.spaces.robot_position.default
+            initial_robot_position = (
+                TriFingerPlatform.spaces.robot_position.default
+            )
             default_object_position = (
                 TriFingerPlatform.spaces.object_position.default
             )
@@ -174,15 +176,17 @@ class ExamplePushingTrainingEnv(gym.Env):
                 position=default_object_position,
                 orientation=default_object_orientation,
             )
-            goal_object_pose = move_cube.sample_goal(difficulty=1)   
+            goal_object_pose = move_cube.sample_goal(difficulty=1)
         else:
             # if an initializer is given, i.e. during evaluation, we need to initialize
             # according to it, to make sure we remain coherent with the standard CubeEnv.
             # otherwise the trajectories produced during evaluation will be invalid.
-            initial_robot_position = TriFingerPlatform.spaces.robot_position.default
-            initial_object_pose=self.initializer.get_initial_state()
+            initial_robot_position = (
+                TriFingerPlatform.spaces.robot_position.default
+            )
+            initial_object_pose = self.initializer.get_initial_state()
             goal_object_pose = self.initializer.get_goal()
-            
+
         self.platform = TriFingerPlatform(
             visualization=self.visualization,
             initial_robot_position=initial_robot_position,

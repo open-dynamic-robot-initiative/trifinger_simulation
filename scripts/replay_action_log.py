@@ -106,14 +106,22 @@ def main():
     # verify that actual and logged final object pose match
     try:
         np.testing.assert_array_almost_equal(
-            cube_pose.position, final_pose["position"], decimal=3,
-            err_msg=("Recorded object position does not match with the one"
-                     " achieved by the replay")
+            cube_pose.position,
+            final_pose["position"],
+            decimal=3,
+            err_msg=(
+                "Recorded object position does not match with the one"
+                " achieved by the replay"
+            ),
         )
         np.testing.assert_array_almost_equal(
-            cube_pose.orientation, final_pose["orientation"], decimal=3,
-            err_msg=("Recorded object orientation does not match with the one"
-                     " achieved by the replay")
+            cube_pose.orientation,
+            final_pose["orientation"],
+            decimal=3,
+            err_msg=(
+                "Recorded object orientation does not match with the one"
+                " achieved by the replay"
+            ),
         )
     except AssertionError as e:
         print("Failed.", file=sys.stderr)
