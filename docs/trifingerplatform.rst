@@ -23,7 +23,7 @@ series.  This means that the effect of the desired action ``a_t`` is not yet
 visible in the observation ``y_t`` as is illustrated below.  (``a'_t``
 corresponds to the *applied action*, see `Desired vs Applied Action`_)
 
-.. image:: ../images/action_observation_timing.png
+.. image:: ../images/applied_action_dependency.png
    :width: 80%
    :align: center
 
