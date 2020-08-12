@@ -42,7 +42,7 @@ passing a time index that lies in the future will result in an error.
 Real Time Behaviour
 =====================
 
-As described above, the simulation is stepped in ``get_observation()``.  Each
+As described above, the simulation is stepped in ``append_desired_action()``.  Each
 time this function is called, the next time step is computed, based on the
 ``time_step`` duration passed to ``SimFinger`` during initialization.  It does
 not matter how much time passes between these calls as the simulation is paused

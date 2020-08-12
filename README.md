@@ -63,7 +63,7 @@ please cite this repository and also the corresponding paper:
 
 ```
 @misc{trifinger-simulation,
-  author = {Joshi, Shruti and Widmaier, Felix and Wuethrich, Manuel and Agrawal, Vaibhav},
+  author = {Joshi, Shruti and Widmaier, Felix and Agrawal, Vaibhav and Wüthrich, Manuel},
   year = {2020},
   publisher = {GitHub},
   journal = {GitHub repository},
