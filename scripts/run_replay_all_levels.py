@@ -121,15 +121,13 @@ def main():
         for level, rewards in level_rewards.items():
             rewards = np.asarray(rewards)
             mean = rewards.mean()
-            report += (
-                "Level {} mean reward:\t{:.3f},\tstd: {:.3f}\n".format(
-                    level, mean, rewards.std()
-                )
+            report += "Level {} mean reward:\t{:.3f},\tstd: {:.3f}\n".format(
+                level, mean, rewards.std()
             )
             total_reward += level * mean
 
-        report += ("-------------------------------------------------------\n")
-        report += ("Total Weighted Reward: {:.3f}\n".format(total_reward))
+        report += "-------------------------------------------------------\n"
+        report += "Total Weighted Reward: {:.3f}\n".format(total_reward)
 
         print(report)
 
