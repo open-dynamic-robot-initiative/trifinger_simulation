@@ -24,12 +24,12 @@ class TestPyBulletBackend(unittest.TestCase):
         if finger_type == "single":
             finger_types = robot_interfaces.finger
             create_backend = (
-                trifinger_simulation.drivers.create_single_finger_backend
+                 trifinger_simulation.drivers.create_single_finger_backend
             )
         else:
             finger_types = robot_interfaces.trifinger
             create_backend = (
-                trifinger_simulation.drivers.create_trifinger_backend
+                 trifinger_simulation.drivers.create_trifinger_backend
             )
 
         robot_data = finger_types.SingleProcessData()

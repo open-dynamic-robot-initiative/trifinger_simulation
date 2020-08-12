@@ -14,6 +14,12 @@ d = generate_distutils_setup(
             "robot_properties_fingers/urdf/*",
         ]
     },
+    scripts=[
+        "scripts/replay_action_log.py",
+        "scripts/rrc_evaluate",
+        "scripts/run_evaluate_policy_all_levels.py",
+        "scripts/run_replay_all_levels.py",
+    ],
 )
 
 setup(**d)

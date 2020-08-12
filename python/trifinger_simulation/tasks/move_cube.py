@@ -115,7 +115,7 @@ def sample_goal(difficulty):
             - 4: Random goal pose in the air, including orientation.
 
     Returns:
-        (Pose): Goal pose of the cube relative to the world frame.  Note that
+        Pose: Goal pose of the cube relative to the world frame.  Note that
             the pose always contains an orientation.  For difficulty levels
             where the orientation is not considered, this is set to
             ``[0, 0, 0, 1]`` and will be ignored when computing the reward.

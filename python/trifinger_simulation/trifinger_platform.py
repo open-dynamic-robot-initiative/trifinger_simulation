@@ -303,7 +303,9 @@ class TriFingerPlatform:
         """
         current_t = self.simfinger._t
 
-        if t == current_t:
+        if t < 0:
+            raise ValueError("Cannot access time index less than zero.")
+        elif t == current_t:
             return self._object_pose_t
         elif t == current_t + 1:
             return self._get_current_object_pose(t)
@@ -355,7 +357,9 @@ class TriFingerPlatform:
 
         current_t = self.simfinger._t
 
-        if t == current_t:
+        if t < 0:
+            raise ValueError("Cannot access time index less than zero.")
+        elif t == current_t:
             return self._camera_observation_t
         elif t == current_t + 1:
             return self._get_current_camera_observation(t)

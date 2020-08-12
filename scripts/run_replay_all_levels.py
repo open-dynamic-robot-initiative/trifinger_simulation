@@ -87,46 +87,60 @@ def main():
     )
     args = parser.parse_args()
 
-    if not os.path.isdir(args.input_directory):
-        print(
-            "'{}' does not exist or is not a directory.".format(
-                args.input_directory
+    try:
+        if not os.path.isdir(args.input_directory):
+            print(
+                "'{}' does not exist or is not a directory.".format(
+                    args.input_directory
+                )
             )
-        )
+            sys.exit(1)
+
+        levels = (1, 2, 3, 4)
+
+        # load samples
+        sample_file = os.path.join(args.input_directory, "test_data.p")
+        with open(sample_file, "rb") as fh:
+            test_data = pickle.load(fh)
+
+        # run "replay_action_log.py" for each sample
+        level_rewards = {level: [] for level in levels}
+        for sample in test_data:
+            print(
+                "Replay level {} sample {}".format(
+                    sample.difficulty, sample.iteration
+                )
+            )
+            level_rewards[sample.difficulty].append(run_replay(sample))
+
+        # report
+        print("\n=======================================================\n")
+
+        report = ""
+        total_reward = 0
+        for level, rewards in level_rewards.items():
+            rewards = np.asarray(rewards)
+            mean = rewards.mean()
+            report += (
+                "Level {} mean reward:\t{:.3f},\tstd: {:.3f}\n".format(
+                    level, mean, rewards.std()
+                )
+            )
+            total_reward += level * mean
+
+        report += ("-------------------------------------------------------\n")
+        report += ("Total Weighted Reward: {:.3f}\n".format(total_reward))
+
+        print(report)
+
+        # save report to file
+        report_file = os.path.join(args.input_directory, "reward.txt")
+        with open(report_file, "w") as fh:
+            fh.write(report)
+
+    except Exception as e:
+        print(e, file=sys.stderr)
         sys.exit(1)
-
-    levels = (1, 2, 3, 4)
-
-    # load samples
-    sample_file = os.path.join(args.input_directory, "test_data.p")
-    with open(sample_file, "rb") as fh:
-        test_data = pickle.load(fh)
-
-    # run "replay_action_log.py" for each sample
-    level_rewards = {level: [] for level in levels}
-    for sample in test_data:
-        print(
-            "Replay level {} sample {}".format(
-                sample.difficulty, sample.iteration
-            )
-        )
-        level_rewards[sample.difficulty].append(run_replay(sample))
-
-    # report
-    print("\n==========================================================\n")
-    total_reward = 0
-    for level, rewards in level_rewards.items():
-        rewards = np.asarray(rewards)
-        mean = rewards.mean()
-        print(
-            "Level {} mean reward:\t{:.3f},\tstd: {:.3f}".format(
-                level, mean, rewards.std()
-            )
-        )
-        total_reward += level * mean
-
-    print("----------------------------------------------------------")
-    print("Total Weighted Reward: {:.3f}".format(total_reward))
 
 
 if __name__ == "__main__":
