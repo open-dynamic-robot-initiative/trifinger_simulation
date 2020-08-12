@@ -12,7 +12,7 @@ The documentation for this repository is available online [here](https://trifing
 
 ## Installation instructions
 
-Find below the installation instructions to install this package as a standalone python package. This package can also be installed as part of a catkin workspace. Please refer to the `installation instructions <installation.rst>`_ for details.
+Find below the installation instructions to install this package as a standalone python package. This package can also be installed as part of a catkin workspace. Please refer to the [installation instructions](docs/installation.rst) for details.
 
 ### Prerequisites: Install Anaconda or Miniconda
 
@@ -61,19 +61,23 @@ We have tested with conda version 4.8.3.
 If you are using this package in you academic work,
 please cite this repository and also the corresponding paper:
 
+```
 @misc{trifinger-simulation,
   author = {Joshi, Shruti and Widmaier, Felix and Wuethrich, Manuel and Agrawal, Vaibhav},
   year = {2020},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/}},
+  howpublished = {\url{https://github.com/open-dynamic-robot-initiative/trifinger_simulation}},
 }
+```
 
+```
 @misc{wthrich2020trifinger,
     title={TriFinger: An Open-Source Robot for Learning Dexterity},
-    author={Manuel Wüthrich and Felix Widmaier and Felix Grimminger and Joel Akpo and Shruti Joshi and Vaibhav Agrawal and Bilal Hammoud and Majid Khadiv and Miroslav Bogdanovic and Vincent Berenz and Julian Viereck and Maximilien Naveau and Ludovic Righetti and Bernhard Schölkopf and Stefan Bauer},
+    author={Manuel Wüthrich and Felix Widmaier and Felix Grimminger and Joel Akpo and Shruti Joshi and Vaibhav Agrawal and Bilal Hammoud and Majid                             Khadiv and Miroslav Bogdanovic and Vincent Berenz and Julian Viereck and Maximilien Naveau and Ludovic Righetti and Bernhard Schölkopf and Stefan Bauer},
     year={2020},
     eprint={2008.03596},
     archivePrefix={arXiv},
     primaryClass={cs.RO}
 }
+```

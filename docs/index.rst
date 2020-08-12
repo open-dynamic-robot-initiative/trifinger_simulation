@@ -63,7 +63,7 @@ please cite this repository and also the corresponding paper:
       year = {2020},
       publisher = {GitHub},
       journal = {GitHub repository},
-      howpublished = {\url{https://github.com/}},
+      howpublished = {\url{https://github.com/open-dynamic-robot-initiative/trifinger_simulation}},
    }
 
 .. code-block:: bibtex
