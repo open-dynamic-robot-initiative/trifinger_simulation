@@ -1,15 +1,14 @@
 #!/bin/sh
-# This script illustrates how final submissions will be evaluated.
+# Evaluates a policy by executing `evaluate_policy.py` with multiple goals.
 #
 # This expects a file called `evaluate_policy.py` in the directory in which
 # this script is executed!
-#
-# Note that for the actual evaluation, "run_evaluate_policy_all_levels.py" will
-# be executed in the Singularity image provided by the participants while
-# "run_replay_all_levels.py" will be executed in the original challenge image
-# provided by us, without any modifications by the participants.
-# If the participants do not submit a custom Singularity image along with their
-# code, the original image will be used for both steps.
+# Further it expects an existing output directory to be passed as argument.
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <output_directory>"
+    exit 1
+fi
 
 # abort if any command returns an error
 set -e
@@ -19,7 +18,15 @@ set -e
 thisdir=$(dirname $0)
 
 # create temporary directory to store generated files
-tmpdir=$(mktemp -dt run_evaluation_XXXXXXXXX)
+#tmpdir=$(mktemp -dt run_evaluation_XXXXXXXXX)
+
+# use specified output directory
+tmpdir=$1
+
+if [ ! -d "${tmpdir}" ]; then
+    echo "Output directory ${tmpdir} does not exist."
+    exit 1
+fi
 echo "Storing generated files in ${tmpdir}"
 
 echo

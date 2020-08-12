@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Example evaluation script to evaluate a policy.
 
-This is an example evaluation script for evaluating a "RandomPolicy".  Use this
-as a base for your own script to evaluate your policy.  All you need to do is
-to replace the `RandomPolicy` and potentially the Gym environment with your own
-ones (see the TODOs in the code below).
+This is an example evaluation script which loads a policy trained with PPO. If
+this script were moved into the top trifinger_simulation folder (since this is where
+we will execute the trifinger_evaluate command), it would consistute a valid
+submission (naturally, imports below would have to be adjusted accordingly).
 
 This script will be executed in an automated procedure.  For this to work, make
 sure you do not change the overall structure of the script!
@@ -23,11 +23,18 @@ is written to the specified file.  This log file is crucial as it is used to
 evaluate the actual performance of the policy.
 """
 import sys
+import os
 
 import gym
 
 from trifinger_simulation.gym_wrapper.envs import cube_env
 from trifinger_simulation.tasks import move_cube
+
+from example_pushing_training_env import ExamplePushingTrainingEnv
+from example_pushing_training_env import FlatObservationWrapper
+
+from stable_baselines import PPO2
+
 
 
 class RandomPolicy:
@@ -38,6 +45,14 @@ class RandomPolicy:
 
     def predict(self, observation):
         return self.action_space.sample()
+
+class PPOPolicy:
+
+    def __init__(self, path):
+        self.ppo_policy = PPO2.load(path)
+
+    def predict(self, observation):
+        return self.ppo_policy.predict(observation, deterministic=True)[0]
 
 
 def main():
@@ -55,7 +70,7 @@ def main():
         )
         sys.exit(1)
 
-    # the poses are passes as JSON strings, so they need to be converted first
+    # the poses are passed as JSON strings, so they need to be converted first
     initial_pose = move_cube.Pose.from_json(initial_pose_json)
     goal_pose = move_cube.Pose.from_json(goal_pose_json)
 
@@ -64,17 +79,38 @@ def main():
         difficulty, initial_pose, goal_pose
     )
 
-    # TODO: Replace with your environment if you used a custom one.
-    env = gym.make(
-        "trifinger_simulation.gym_wrapper:real_robot_challenge_phase_1-v1",
-        initializer=initializer,
-        action_type=cube_env.ActionType.POSITION,
-        visualization=False,
-    )
+    # if difficulty == 1 (i.e. pushing), we load the policy we trained for that
+    # task. otherwise, we just use the RandomPolicy as placeholder. Naturally,
+    # when you submit you would have a policy for each difficulty level.
+    if difficulty == 1:
 
-    # TODO: Replace this with your model
-    # Note: You may also use a different policy for each difficulty level (difficulty)
-    policy = RandomPolicy(env.action_space)
+        # we create the same env as we used for training in
+        # train_pushing_ppo.py, such that action and observation space remain
+        # coherent with the policy. however, unlike during  training, we set the
+        # initialization using the initializer, since this is what's expected
+        # during evaluation. if you do not use the initializer, or modify the
+        # standard CubeEnv in any way which will affect the simulation (i.e.
+        # affect the state action trajectories), the action trajectories you
+        # compute will not make sense.
+        env = ExamplePushingTrainingEnv(initializer=initializer,
+                                        frameskip=3,
+                                        visualization=False)
+        env = FlatObservationWrapper(env)
+
+        # we load the trained policy
+        policy_path = os.path.join(
+            "./training_checkpoints", "model_78000000_steps"
+        )
+        policy = PPOPolicy(policy_path)
+
+    else:
+        env = gym.make(
+            "trifinger_simulation.gym_wrapper:real_robot_challenge_phase_1-v1",
+            initializer=initializer,
+            action_type=cube_env.ActionType.POSITION,
+            visualization=False,
+        )
+        policy = RandomPolicy(env.action_space)
 
     # Execute one episode.  Make sure that the number of simulation steps
     # matches with the episode length of the task.  When using the default Gym

@@ -11,8 +11,10 @@ dependencies:
   - gym==0.17.2
   - opencv-python==4.2.0.34
   - catkin-pkg==0.4.22
-  # the below packages are needed for stable-baselines
-  - tensorflow==1.14.0
+    # the packages below are required to run the example (training with ppo)
+    # which we provide. if you do not wish to execute the example, you may
+    # safely remove them
+  - tensorflow==1.15.0
   - pandas==0.24.2
   - joblib==0.16.0
   - stable-baselines==2.10.0

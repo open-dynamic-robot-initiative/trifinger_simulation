@@ -20,6 +20,7 @@ Both initial and goal pose are given as JSON strings with keys "position" and
 """
 import argparse
 import json
+import sys
 import numpy as np
 
 from trifinger_simulation import trifinger_platform
@@ -103,12 +104,21 @@ def main():
     print("Accumulated Reward:", accumulated_reward)
 
     # verify that actual and logged final object pose match
-    np.testing.assert_array_almost_equal(
-        cube_pose.position, final_pose["position"]
-    )
-    np.testing.assert_array_almost_equal(
-        cube_pose.orientation, final_pose["orientation"]
-    )
+    try:
+        np.testing.assert_array_almost_equal(
+            cube_pose.position, final_pose["position"], decimal=3,
+            err_msg=("Recorded object position does not match with the one"
+                     " achieved by the replay")
+        )
+        np.testing.assert_array_almost_equal(
+            cube_pose.orientation, final_pose["orientation"], decimal=3,
+            err_msg=("Recorded object orientation does not match with the one"
+                     " achieved by the replay")
+        )
+    except AssertionError as e:
+        print("Failed.", file=sys.stderr)
+        print(e, file=sys.stderr)
+        sys.exit(1)
 
     print("Passed.")
 

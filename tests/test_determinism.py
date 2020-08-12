@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 import numpy as np
+
 import gym
 
 from trifinger_simulation.sim_finger import SimFinger

@@ -63,25 +63,21 @@ class FixedInitializer:
 
 
 class ActionType(enum.Enum):
-    """Different action types that can be used to control the robot.
+    """Different action types that can be used to control the robot."""
 
-    The different types are:
-        TORQUE: Use pure torque commands.  The action is a list of torques (one
-            per joint) in this case.
-        POSITION: Use joint position commands.  The action is a list of angular
-            joint positions (one per joint) in this case.  Internally a PD
-            controller is executed for each action to determine the torques
-            that are applied to the robot.
-        TORQUE_AND_POSITION: Use both torque and position commands.  In this
-            case the action is a dictionary with keys "torque" and "position"
-            which contain the corresponding lists of values (see above).  The
-            torques resulting from the position controller are added to the
-            torques in the action before applying them to the robot.
-
-    """
-
+    #: Use pure torque commands.  The action is a list of torques (one per
+    #: joint) in this case.
     TORQUE = enum.auto()
+    #: Use joint position commands.  The action is a list of angular joint
+    #: positions (one per joint) in this case.  Internally a PD controller is
+    #: executed for each action to determine the torques that are applied to
+    #: the robot.
     POSITION = enum.auto()
+    #: Use both torque and position commands.  In this case the action is a
+    #: dictionary with keys "torque" and "position" which contain the
+    #: corresponding lists of values (see above).  The torques resulting from
+    #: the position controller are added to the torques in the action before
+    #: applying them to the robot.
     TORQUE_AND_POSITION = enum.auto()
 
 
@@ -167,6 +163,23 @@ class CubeEnv(gym.GoalEnv):
         )
 
     def compute_reward(self, achieved_goal, desired_goal, info):
+        """Compute the reward for the given achieved and desired goal.
+        Args:
+            achieved_goal (dict): Current pose of the object.
+            desired_goal (dict): Goal pose of the object.
+            info (dict): An info dictionary containing a field "difficulty"
+                which specifies the difficulty level.
+        Returns:
+            float: The reward that corresponds to the provided achieved goal
+            w.r.t. to the desired goal. Note that the following should always
+            hold true::
+                ob, reward, done, info = env.step()
+                assert reward == env.compute_reward(
+                    ob['achieved_goal'],
+                    ob['desired_goal'],
+                    info,
+                )
+        """
         return -move_cube.evaluate_state(
             move_cube.Pose.from_dict(desired_goal),
             move_cube.Pose.from_dict(achieved_goal),
@@ -174,6 +187,22 @@ class CubeEnv(gym.GoalEnv):
         )
 
     def step(self, action):
+        """Run one timestep of the environment's dynamics.
+        When end of episode is reached, you are responsible for calling
+        ``reset()`` to reset this environment's state.
+        Args:
+            action: An action provided by the agent (depends on the selected
+                :class:`ActionType`).
+        Returns:
+            tuple:
+            - observation (dict): agent's observation of the current
+              environment.
+            - reward (float) : amount of reward returned after previous action.
+            - done (bool): whether the episode has ended, in which case further
+              step() calls will return undefined results.
+            - info (dict): info dictionary containing the difficulty level of
+              the goal.
+        """
         if self.platform is None:
             raise RuntimeError("Call `reset()` before starting to step.")
 
@@ -245,6 +274,16 @@ class CubeEnv(gym.GoalEnv):
         return self._create_observation(0)
 
     def seed(self, seed=None):
+        """Sets the seed for this env’s random number generator.
+        .. note::
+           Spaces need to be seeded separately.  E.g. if you want to sample
+           actions directly from the action space using
+           ``env.action_space.sample()`` you can set a seed there using
+           ``env.action_space.seed()``.
+        Returns:
+            List of seeds used by this environment.  This environment only uses
+            a single seed, so the list contains only one element.
+        """
         self.np_random, seed = gym.utils.seeding.np_random(seed)
         move_cube.random = self.np_random
         return [seed]

@@ -582,10 +582,6 @@ class SimFinger:
                 "robot_properties_fingers"
             )
         except Exception:
-            print(
-                "Importing the robot description files from local copy "
-                "of the robot_properties_fingers package."
-            )
             self.robot_properties_path = os.path.join(
                 os.path.dirname(__file__), "robot_properties_fingers"
             )
