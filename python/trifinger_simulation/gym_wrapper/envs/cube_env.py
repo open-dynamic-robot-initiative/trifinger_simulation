@@ -129,7 +129,7 @@ class CubeEnv(gym.GoalEnv):
 
         object_state_space = gym.spaces.Dict(
             {
-                "position": spaces.robot_torque.gym,
+                "position": spaces.object_position.gym,
                 "orientation": spaces.object_orientation.gym,
             }
         )
