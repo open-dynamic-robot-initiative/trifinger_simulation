@@ -1,26 +1,8 @@
-***************
-Getting Started
-***************
-
-.. contents::
-
-
-Installation
-============
-
-See `installation instructions <installation.md>`_.
-
-
-A Simple Demo
-=============
-
-See SimFinger :ref:`simfinger-usage-example`.
-
-
 .. _sec-simulation-vs-real-robot:
 
+**************************
 Simulation vs Real Robot
-========================
+**************************
 
 We aim to have the same API for controlling the robot in the ``SimFinger`` class
 as in ``robot_interfaces::RobotFrontend`` to allow transition from simulation to
@@ -37,7 +19,7 @@ more details see `robot_interfaces with Simulation`_.
 
 
 Simulation is stepped in ``append_desired_action()``
-----------------------------------------------------
+========================================================
 
 Every time the ``append_desired_action()`` method is called, the next time step
 in the simulation is computed.  This means that the state of the simulation
@@ -47,7 +29,7 @@ and will repeat the last action if no new action is provided in time.
 
 
 No waiting for future time steps
---------------------------------
+======================================
 
 On the real robot, it is possible to pass a time index that lies in the future
 and most methods of the ``RobotFrontend`` will simply block and wait until this
@@ -58,7 +40,7 @@ passing a time index that lies in the future will result in an error.
 
 
 Real Time Behaviour
--------------------
+=====================
 
 As described above, the simulation is stepped in ``get_observation()``.  Each
 time this function is called, the next time step is computed, based on the
@@ -74,7 +56,7 @@ robot will repeat the previous action until a new action is provided.
 
 
 No Time Series in SimFinger
----------------------------
+==============================
 
 The ``robot_interfaces`` package makes use of time series for observations,
 actions, etc.  This means all data of the last few time steps is available.  One
@@ -92,7 +74,7 @@ the observation of the current time step ``t``.  Passing any other value for
 
 
 API-differences to RobotFrontend
---------------------------------
+==================================
 
 Our goal is to provide the same API in ``SimFinger`` as in ``RobotFrontend`` to
 make transition between simulation and real robot easy.  There are a few
@@ -113,35 +95,3 @@ The following methods are not supported:
   simulation, so this method is omitted to avoid confusion.
 - ``wait_until_timeindex()``:  In general the process of waiting for a specific
   time step is not supported, see `No waiting for future time steps`_.
-
-
-
-robot_interfaces with Simulation
-================================
-
-It is possible to use ``robot_interfaces`` with pyBullet by using the pyBullet
-driver in the backend.  By doing this, you only need to replace the backend when
-switching between simulation and real robot while all the rest of your code can
-remain the same.
-
-
-To create a TriFinger backend using simulation:
-
-.. code-block:: python
-
-    import trifinger_simulation.drivers
-
-    backend = trifinger_simulation.drivers.create_trifinger_backend(
-        robot_data, real_time_mode=True, visualize=True
-    )
-
-If ``real_time_mode`` is ``True``, the backend will expect a new action every
-millisecond and repeat the previous action if it is not provided in time (like
-on the real robot).  If set to ``False``, it will run as fast as possible and
-wait for new actions.
-
-Set ``visualize=True`` to run the pyBullet GUI for visualization.
-
-
-For a complete example, see `demo_robot_interface.py
-<../demos/demo_robot_interface.py>`_.

@@ -3,7 +3,7 @@
   <name>trifinger_simulation</name>
   <version>0.1.0</version>
   <description>
-      pyBullet simulation for the Finger, TriFinger and related robots.
+      TriFinger Robot Simulation
   </description>
 
   <maintainer email="felix.widmaier@tue.mpg.de">Felix Widmaier</maintainer>
