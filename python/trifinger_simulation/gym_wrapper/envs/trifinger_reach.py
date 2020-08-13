@@ -12,7 +12,7 @@ from trifinger_simulation.gym_wrapper import utils
 from trifinger_simulation import visual_objects, sample, finger_types_data
 
 
-class FingerReach(gym.Env):
+class TriFingerReach(gym.Env):
     """
     A gym environment to enable training on either the single or
     the tri-fingers robots for the task of reaching

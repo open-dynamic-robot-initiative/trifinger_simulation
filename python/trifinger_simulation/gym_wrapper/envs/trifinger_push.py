@@ -15,7 +15,7 @@ from trifinger_simulation import (
 )
 
 
-class FingerPush(gym.Env):
+class TriFingerPush(gym.Env):
     """A gym environment to enable training on any of the valid robots,
     real or simulated, for the task of pushing.
     """

@@ -22,24 +22,26 @@ Dive in!
    :maxdepth: 2
    :caption: Getting Started
 
-   Installation <installation>
+   Installation <getting_started/installation>
 
 .. add basic usage example here
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Ease of Use with a Real Robot
    
-   Simulation vs Real Robot <simvsreal>
-   Interface with a Real Robot <driverinterface>
-   Timestep Logic <timesteplogic>
+   Switching between the Real Robot and the Simulated Robot in this Simulation <simreal/simwithreal>
+   The RealFinger <simreal/real_finger>
+   Switching between the Real Robot and the Simulated Robot in the Real Robot API <simreal/realwithsim>
+   Switching between Non-real-time and Real-time Behaviour <simreal/simvsreal>
+   "Real" and "Non-real" TimeSteps <simreal/timesteplogic>
 
 .. toctree::
    :maxdepth: 1
    :caption: API Documentation
 
-   The SimFinger Class <sim_finger>
-   The TriFingerPlatform Class <trifingerplatform>
+   The SimFinger Class <api/sim_finger>
+   The TriFingerPlatform Class <api/trifingerplatform>
 
 
 Indices and tables

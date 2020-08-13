@@ -2,11 +2,11 @@ from gym.envs.registration import register
 
 register(
     id="reach-v0",
-    entry_point="trifinger_simulation.gym_wrapper.envs.finger_reach:FingerReach",
+    entry_point="trifinger_simulation.gym_wrapper.envs.finger_reach:TriFingerReach",
 )
 register(
     id="push-v0",
-    entry_point="trifinger_simulation.gym_wrapper.envs.finger_push:FingerPush",
+    entry_point="trifinger_simulation.gym_wrapper.envs.finger_push:TriFingerPush",
 )
 
 register(

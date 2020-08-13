@@ -8,9 +8,6 @@
 import os
 import rospkg
 
-import pybullet
-import pybullet_data
-
 import robot_interfaces
 import robot_fingers
 from trifinger_simulation import finger_types_data
