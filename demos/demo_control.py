@@ -22,7 +22,7 @@ def main():
     )
     argparser.add_argument(
         "--finger-type",
-        default="tri",
+        default="trifingerone",
         choices=finger_types_data.get_valid_finger_types(),
         help="Specify a valid finger type",
     )
