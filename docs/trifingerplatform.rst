@@ -80,12 +80,6 @@ For more information on the API of the real robot, see our publication `TriFinge
 Robot for Learning Dexterity <https://sites.google.com/view/trifinger>`_.
 
 
-Usage Example
-=============
-
-.. literalinclude:: ../examples/demo_trifinger_platform_minimal.py
-
-
 Desired vs Applied Action
 =========================
 
