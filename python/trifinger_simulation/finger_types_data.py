@@ -32,10 +32,11 @@ def get_valid_finger_types():
     Returns:
         list: List of supported finger types.
     """
-    print("Among these listed finger types, 'single' and 'tri'"
-          " are deprecated. Use 'fingerone' and 'trifingerone'"
-          " instead respectively."
-            )
+    print(
+        "Among these listed finger types, 'single' and 'tri'"
+        " are deprecated. Use 'fingerone' and 'trifingerone'"
+        " instead respectively."
+    )
     return finger_types_data.keys()
 
 
@@ -53,10 +54,11 @@ def check_finger_type(key):
         )
     else:
         if key in ["single", "tri"]:
-            warnings.warn("The '%s' key is deprecated. Please use"
-                          " 'fingerone' instead of 'single', and"
-                          " 'trifingerone' instead of 'tri."
-                          % (key))
+            warnings.warn(
+                "The '%s' key is deprecated. Please use"
+                " 'fingerone' instead of 'single', and"
+                " 'trifingerone' instead of 'tri." % (key)
+            )
         return key
 
 

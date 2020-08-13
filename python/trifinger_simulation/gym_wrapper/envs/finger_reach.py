@@ -9,12 +9,7 @@ from trifinger_simulation.sim_finger import SimFinger
 from trifinger_simulation.gym_wrapper.data_logger import DataLogger
 from trifinger_simulation.gym_wrapper.finger_spaces import FingerSpaces
 from trifinger_simulation.gym_wrapper import utils
-from trifinger_simulation import (
-    visual_objects,
-    sample,
-    finger_types_data
-)
-
+from trifinger_simulation import visual_objects, sample, finger_types_data
 
 
 class FingerReach(gym.Env):
@@ -95,10 +90,13 @@ class FingerReach(gym.Env):
         #: the number of times the same action is to be applied to
         #: the robot.
         self.steps_per_control = int(
-            round(control_rate_s / self.finger.time_step_s))
+            round(control_rate_s / self.finger.time_step_s)
+        )
         assert (
             abs(
-                control_rate_s - self.steps_per_control * self.finger.time_step_s)
+                control_rate_s
+                - self.steps_per_control * self.finger.time_step_s
+            )
             <= 0.000001
         )
 
@@ -255,7 +253,7 @@ class FingerReach(gym.Env):
             self.logger.append(
                 joint_positions, end_effector_position, time.time()
             )
-        
+
         # returns only the observations corresponding to the keys that were
         # used for constructing the observation space
         observation = [

@@ -47,8 +47,7 @@ class FingerPush(gym.Env):
         #: an instance of the simulated robot depending on the desired
         #: robot type
         self.finger = SimFinger(
-            finger_type=finger_type,
-            enable_visualization=enable_visualization,
+            finger_type=finger_type, enable_visualization=enable_visualization,
         )
 
         self.num_fingers = finger_types_data.get_number_of_fingers(finger_type)
@@ -56,10 +55,13 @@ class FingerPush(gym.Env):
         #: the number of times the same action is to be applied to
         #: the robot.
         self.steps_per_control = int(
-            round(control_rate_s / self.finger.time_step_s))
+            round(control_rate_s / self.finger.time_step_s)
+        )
         assert (
             abs(
-                control_rate_s - self.steps_per_control * self.finger.time_step_s)
+                control_rate_s
+                - self.steps_per_control * self.finger.time_step_s
+            )
             <= 0.000001
         )
 
