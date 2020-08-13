@@ -37,11 +37,10 @@ class FingerReach(gym.Env):
         robots being trained independently.
 
         Args:
-            control_rate_s (float): the rate at which step method of the env
-                will run. This is used to compute the number of times the same
-                action has to be applied to the robot in order to say that at
-                the end of this action loop, the robot would have reached the
-                desired action.
+            control_rate_s (float): the rate (in seconds) at which step method of the env
+                will run. The actual robot controller may run at a higher rate,
+                so this is used to compute the number of robot control updates
+                per environment step.
             finger_type (string): Name of the finger type.  In order to get
                 a dictionary of the valid finger types, call
                 :meth:`.finger_types_data.get_valid_finger_types`
