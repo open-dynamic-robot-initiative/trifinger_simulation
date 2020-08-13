@@ -6,6 +6,11 @@ The :class:`~trifinger_simulation.SimFinger` class provides a simulation
 environment for the different finger robots: these include the TriFingerEdu, our
 reproducible open-source robot platform; the TriFingerPro, and the TriFingerOne.
 
+.. note::
+
+   for a complete list of supported robots,
+   call :meth:`~trifinger_simulation.finger_types_data.get_valid_finger_types()`.
+
 The interface for controlling the robot in the simulation is equivalent to the
 one of ``robot_interfaces::RobotFrontend`` that is used for the real robots.
 Note, however, that there are some differences in behaviour between simulation
@@ -20,7 +25,6 @@ API Documentation
 
 
 .. autoclass:: trifinger_simulation.SimFinger
-
    :members:
 
 ------------------------------------------------------------------------------
