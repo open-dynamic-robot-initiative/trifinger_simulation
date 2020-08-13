@@ -12,7 +12,7 @@ from trifinger_simulation import (
     sim_finger,
     visual_objects,
     sample,
-    finger_types_data
+    finger_types_data,
 )
 
 

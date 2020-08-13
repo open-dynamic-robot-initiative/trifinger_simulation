@@ -13,6 +13,7 @@ import robot_interfaces
 import trifinger_simulation.drivers
 from trifinger_simulation import finger_types_data
 
+
 def get_random_position(num_fingers=1):
     """Generate a random position within a save range."""
     position_min = np.array([-1, -1, -2] * num_fingers)
