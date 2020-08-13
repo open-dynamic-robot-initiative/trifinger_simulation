@@ -32,6 +32,7 @@ Dive in!
    
    Simulation vs Real Robot <simvsreal>
    Interface with a Real Robot <driverinterface>
+   Timestep Logic <timesteplogic>
 
 .. toctree::
    :maxdepth: 1
@@ -48,7 +49,12 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-.. youtube:: FDWyIdC1EEQ
+.. raw:: html
+
+   <div style='text-align: center; margin-bottom: 2em;'>
+   <iframe width="560" height="315" src="https://www.youtube.com/embed/xu5VvyjDLRY" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+   </iframe>
+   </div>
 
 Cite Us!
 ==============
@@ -59,7 +65,7 @@ please cite this repository and also the corresponding paper:
 .. code-block:: bibtex
 
    @misc{trifinger-simulation,
-      author = {Joshi, Shruti and Widmaier, Felix and Wuethrich, Manuel and Agrawal, Vaibhav},
+      author = {Joshi, Shruti and Widmaier, Felix and Agrawal, Vaibhav and Wüthrich, Manuel},
       year = {2020},
       publisher = {GitHub},
       journal = {GitHub repository},

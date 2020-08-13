@@ -2,6 +2,8 @@
 Driver to Interface with the Robot
 ***************************************
 
+.. _`robot_interfaces with Simulation`:
+
 robot_interfaces with Simulation
 ================================
 
@@ -29,5 +31,6 @@ wait for new actions.
 Set ``visualize=True`` to run the pyBullet GUI for visualization.
 
 
-For a complete example, see `demo_robot_interface.py
-<../demos/demo_robot_interface.py>`_.
+For a complete example, see `demo_robot_interface.py`_
+
+.. _`demo_robot_interface.py`: https://github.com/open-dynamic-robot-initiative/trifinger_simulation/blob/master/demos/catkin/demo_robot_interface.py

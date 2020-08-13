@@ -18,23 +18,27 @@ class SimFinger:
     A simulation environment for the single and the tri-finger robots.
     This environment is based on PyBullet, the official Python wrapper around
     the Bullet-C API.
+
+    Attributes:
+        finger_type (string): Name of the finger type.  Use
+                :meth:`get_valid_finger_types` to get a list of all supported
+                types.
+        time_step (float): Time (in seconds) between two simulation steps.
+            Don't set this to be larger than 1/60.  The gains etc. are set
+            according to a time_step of 0.004 s.
+        enable_visualization (bool): Set this to 'True' for a GUI interface
+            to the simulation.
     """
 
     def __init__(
         self, finger_type, time_step=0.004, enable_visualization=False,
     ):
-        """
-        Constructor, initializes the physical world we will work in.
+        """Constructor, initializes the physical world we will work in.
 
         Args:
-            finger_type (string): Name of the finger type.  Use
-                :meth:`get_valid_finger_types` to get a list of all supported
-                types.
-            time_step (float): Time (in seconds) between two simulation steps.
-                Don't set this to be larger than 1/60.  The gains etc. are set
-                according to a time_step of 0.004 s.
-            enable_visualization (bool): Set this to 'True' for a GUI interface
-                to the simulation.
+            finger_type : See :attr:`finger_type`
+            time_step : See :attr:`time_step`
+            enable_visualization : See :attr:`enable_visualization`
         """
         self.finger_type = finger_types_data.check_finger_type(finger_type)
         self.number_of_fingers = finger_types_data.get_number_of_fingers(

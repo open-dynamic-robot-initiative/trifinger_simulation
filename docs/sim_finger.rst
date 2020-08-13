@@ -6,24 +6,32 @@ The :class:`~trifinger_simulation.SimFinger` class provides a simulation
 environment for the different finger robots: these include the TriFingerEdu, our
 reproducible open-source robot platform; the TriFingerPro, and the TriFingerOne.
 
-.. note:: for a complete list of supported robots,
-call :method:`~trifinger_simulation.finger_types_data.get_valid_finger_types()`.
+.. note::
 
-The interface for controlling the robot in the simulation is equivalent to the
-one of ``robot_interfaces::RobotFrontend`` that is used for the real robots.
-Note, however, that there are some differences in behaviour between simulation
-and real robot, see :ref:`sec-simulation-vs-real-robot`.
+   for a complete list of supported robots,
+   call :meth:`trifinger_simulation.finger_types_data.get_valid_finger_types()`.
 
 Class :class:`~trifinger_simulation.TriFingerPlatform` is a wrapper around the
 :class:`~trifinger_simulation.SimFinger` class.
-.
+
+.. _`Desired vs Applied Action`:
+
+Desired vs Applied Action
+=========================
+
+The action given by the user is called the *desired* action.  This action may be
+altered before it is actually applied on the robot, e.g. by some safety checks
+limiting torque and velocity.  This altered action is called the *applied*
+action.  You may use
+:meth:`~trifinger_simulation.SimFinger.get_applied_action` to see what action
+actually got applied on the robot.
+
 
 API Documentation 
 ===================
 
 
 .. autoclass:: trifinger_simulation.SimFinger
-
    :members:
 
 ------------------------------------------------------------------------------

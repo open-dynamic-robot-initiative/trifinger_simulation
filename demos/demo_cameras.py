@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Demo showing how add cameras in the TriFinger simulation."""
+"""Demo showing how to add cameras in the TriFinger simulation."""
 import numpy as np
 import cv2
 

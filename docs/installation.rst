@@ -10,15 +10,14 @@ Install as Python package in a conda environment
 ----------------------------------------------------
 
 Prerequisites: Install Anaconda or Miniconda
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If not already done, install ``conda`` (Miniconda is sufficient).  To do so, see the
 `official documentation <https://docs.conda.io/projects/conda/en/latest/user-guide/install/>`_.
 
-We have tested with conda version 4.8.3.
+We tested with conda version 4.8.3.
 
-Install the trifinger_simulation package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Installing the trifinger_simulation package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1. Clone this repo and cd into it::
 
@@ -27,7 +26,6 @@ Install the trifinger_simulation package
 
 2. Set up the conda env::
 
-       export PYTHONNOUSERSITE=True
        conda env create -f environment.yml
 
    Note that the environment.yml contains some packages (such as
@@ -43,16 +41,6 @@ Install the trifinger_simulation package
 
        python -m pip install -e .
 
-     **Note on Activating the Conda Environment**
-
-    Every time you activate your trifinger_simulation conda environment, it is
-    important that you make sure that ``PYTHONNOUSERSITE`` is set to True, as is
-    done in step 2 above.  This ensures that your conda environment is isolated
-    from the global/user site-packages, which is important for us to reproduce
-    your env on our side. For convenience, we provide a script which does this::
-
-        source conda_activate_trifinger_simulation.sh
-
 
 Build using catkin
 -------------------------
@@ -61,3 +49,5 @@ Build using catkin
 ``robot_interfaces``, etc.
 
 Proper instructions for this will follow soon.
+
+.. _`repository readme`: https://github.com/open-dynamic-robot-initiative/trifinger_simulation/blob/sjoshi/fix_docs/README.md

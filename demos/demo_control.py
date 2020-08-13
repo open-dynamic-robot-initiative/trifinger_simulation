@@ -13,7 +13,6 @@ from trifinger_simulation import finger_types_data
 
 
 def main():
-
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument(
         "--control-mode",
@@ -23,9 +22,9 @@ def main():
     )
     argparser.add_argument(
         "--finger-type",
-        default="tri",
+        default="trifingerone",
         choices=finger_types_data.get_valid_finger_types(),
-        help="Specify type of finger as single or tri.",
+        help="Specify a valid finger type",
     )
     args = argparser.parse_args()
     time_step = 0.004

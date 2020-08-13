@@ -1,9 +1,9 @@
 import typing
+import warnings
 
 
 class FingerTypesDataFormat(typing.NamedTuple):
-    """
-    Describes the format for the finger type data,
+    """Describes the format for the finger type data,
     comprising of the corresponding urdf, and the
     number of fingers.
     """
@@ -48,6 +48,12 @@ def check_finger_type(key):
             % (key, finger_types_data.keys())
         )
     else:
+        if key in ["single", "tri"]:
+            warnings.warn(
+                "The '%s' key is deprecated. Please use"
+                " 'fingerone' instead of 'single', and"
+                " 'trifingerone' instead of 'tri." % (key)
+            )
         return key
 
 
@@ -57,6 +63,9 @@ def get_finger_urdf(key):
 
     Returns:
         string: The name of this urdf file
+
+    Raises:
+        ValueError if the key passed is an invalid finger_type
     """
     finger_type = check_finger_type(key)
     return finger_types_data[finger_type].urdf_file
@@ -68,6 +77,9 @@ def get_number_of_fingers(key):
 
     Returns:
         int: the number of fingers
+
+    Raises:
+        ValueError if the key passed is an invalid finger_type
     """
     finger_type = check_finger_type(key)
     return finger_types_data[finger_type].number_of_fingers
