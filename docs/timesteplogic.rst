@@ -10,7 +10,7 @@ taken from the "desired actions" time series and processed.  At the same time an
 observation is acquired from the robot and added to the "observation" time
 series.  This means that the effect of the desired action ``a_t`` is not yet
 visible in the observation ``y_t`` as is illustrated below.  (``a'_t``
-corresponds to the *applied action*, see :ref:`Desired vs Applied Action`_)
+corresponds to the *applied action*, see :ref:`Desired vs Applied Action`)
 
 .. image:: images/applied_action_dependency.png
    :width: 80%
