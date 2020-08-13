@@ -9,7 +9,7 @@ reproducible open-source robot platform; the TriFingerPro, and the TriFingerOne.
 .. note::
 
    for a complete list of supported robots,
-   call :meth:`~trifinger_simulation.finger_types_data.get_valid_finger_types()`.
+   call :meth:`trifinger_simulation.finger_types_data.get_valid_finger_types()`.
 
 Class :class:`~trifinger_simulation.TriFingerPlatform` is a wrapper around the
 :class:`~trifinger_simulation.SimFinger` class.
