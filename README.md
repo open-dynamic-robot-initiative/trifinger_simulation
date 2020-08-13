@@ -2,6 +2,10 @@
 
 Welcome to the official simulation of the TriFinger robots!
 
+<!-- ![trifingeredu](docs/images/workspace.png) -->
+<img src="docs/images/workspace.png" alt="trifingeredu workspace" width="400" height="300"/>
+<img src="docs/images/hand.JPG" alt="trifingeredu workspace" width="290" height="300"/>
+
 ## The Project
 
 To know more about the TriFinger robots, check out our official [project website](https://sites.google.com/view/trifinger), and the [preprint](https://arxiv.org/abs/2008.03596) of this work.
