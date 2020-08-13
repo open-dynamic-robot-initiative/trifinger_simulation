@@ -35,7 +35,20 @@ same way irrespective of whether its a simulated or real. You can see an example
 of this usage in our `TriFingerReach environment <https://github.com/open-dynamic-robot-initiative/trifinger_simulation/blob/master/python/trifinger_simulation/gym_wrapper/envs/finger_reach.py>`_.
 
 The ``RealFinger`` class exposes analogous methods to interact with the real robot as the ones
-for ``SimFinger``. Head over to the :ref:`RealFinger`_ for details.
+for ``SimFinger``. Inside ``RealFinger``, the robot actually gets created like this:
+
+.. code-block:: python
+
+    import robot_interfaces
+    import robot_fingers
+
+    robot_config_path = "path_to_the_config_yml_of_the_desired_robot_type"
+
+    robot_data = robot_interfaces.trifinger.SingleProcessData()
+
+    robot_backend = robot_fingers.create_trifinger_backend(
+                robot_data, robot_config_path)
+    robot = robot_interfaces.trifinger.Frontend(robot_data)
 
 .. note:: 
 
