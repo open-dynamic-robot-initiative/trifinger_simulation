@@ -18,18 +18,7 @@ The documentation for this repository is available online [here](https://trifing
 
 ## Installation instructions
 
-Find below the installation instructions to install this package as a standalone python package. This package can also be installed as part of a catkin workspace. Please refer to the [installation instructions](docs/installation.rst) for details.
-
-### Prerequisites: Install Anaconda or Miniconda
-
-If not already done, install ``conda`` (Miniconda is sufficient).  To do so, see the
-[official documentation](https://docs.conda.io/projects/conda/en/latest/user-guide/install/).
-
-We have tested with conda version 4.8.3.
-
-## Install the trifinger_simulation package
-
-Please refer to the `installation instructions <https://trifinger-robot-simulation.readthedocs.io/en/latest/installation.html>`_.
+Please refer to the [installation instructions](https://trifinger-robot-simulation.readthedocs.io/en/latest/installation.html) for details.
 
 ## Cite Us
 
