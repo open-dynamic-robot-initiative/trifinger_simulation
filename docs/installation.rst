@@ -26,7 +26,6 @@ Installing the trifinger_simulation package
 
 2. Set up the conda env::
 
-       export PYTHONNOUSERSITE=True
        conda env create -f environment.yml
 
    Note that the environment.yml contains some packages (such as
