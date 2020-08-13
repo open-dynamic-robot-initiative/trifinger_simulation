@@ -29,28 +29,7 @@ We have tested with conda version 4.8.3.
 
 ## Install the trifinger_simulation package
 
-1. Clone this repo and cd into it::
-
-       git clone https://gitlab.is.tue.mpg.de/robotics/trifinger_simulation.git
-       cd trifinger_simulation
-
-2. Set up the conda env::
-
-       export PYTHONNOUSERSITE=True
-       conda env create -f environment.yml
-
-   Note that the environment.yml contains some packages (such as
-   stable-baselines and tensorflow) which are only required for running the
-   examples we provide. If you do not wish to install them, you can safely remove
-   them, see comments in the environment.yml file.
-
-3. Activate the conda env (you might have to start a new terminal)::
-
-       conda activate trifinger_simulation
-
-4. Install the trifinger_simulation package::
-
-       python -m pip install -e .
+Please refer to the `installation instructions <https://trifinger-robot-simulation.readthedocs.io/en/latest/installation.html>`_.
 
 ## Cite Us
 
