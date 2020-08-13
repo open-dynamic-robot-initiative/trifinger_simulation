@@ -9,7 +9,12 @@ from trifinger_simulation.sim_finger import SimFinger
 from trifinger_simulation.gym_wrapper.data_logger import DataLogger
 from trifinger_simulation.gym_wrapper.finger_spaces import FingerSpaces
 from trifinger_simulation.gym_wrapper import utils
-from trifinger_simulation import visual_objects, sample
+from trifinger_simulation import (
+    visual_objects,
+    sample,
+    finger_types_data
+)
+
 
 
 class FingerReach(gym.Env):
@@ -28,48 +33,114 @@ class FingerReach(gym.Env):
         finger_config_suffix="0",
         synchronize=False,
     ):
-        """
-        Constructor sets up smoothing, the finger robot depending on whether
-        the simulated or the real one is to be used, sets up the physical world
-        parameters, and resets to begin training.
+        """Intializes the constituents of the reaching environment.
+
+        Constructor sets up the finger robot depending on the finger type, and
+        also whether an instance of the simulated or the real robot is to be
+        created. Also sets up the observation and action spaces, smoothing for
+        reducing jitter on the robot, and provides for a way to synchronize
+        robots being trained independently.
 
         Args:
-            control_rate_s (float): the rate at which the env step runs
+            control_rate_s (float): the rate at which step method of the env
+                will run. This is used to compute the number of times the same
+                action has to be applied to the robot in order to say that at
+                the end of this action loop, the robot would have reached the
+                desired action.
+            finger_type (string): Name of the finger type.  In order to get
+                a dictionary of the valid finger types, call
+                :meth:`.finger_types_data.get_valid_finger_types`
             enable_visualization (bool): if the simulation env is to be
                 visualized
-            finger-type (str "single"/"tri"): to train on the "single"
-                or the "tri" finger
-            smoothing_params:
-                num_episodes: the total number of episodes for which the
+            smoothing_params (dict):
+                num_episodes (int): the total number of episodes for which the
                     training is performed
-                start_after: the fraction of episodes after which the
+                start_after (float): the fraction of episodes after which the
                     smoothing of applied actions to the motors should start
-                final_alpha: smoothing coeff that will be reached at the end
-                    of the smoothing
-                stop_after: the fraction of total episodes by which final alpha
-                    is to be reached, after which the same final alpha will be
-                    used for smoothing in the remainder of the episodes
-            use_real_robot (bool): if the model was trained on the
-                real robot
-                ([default] False)
-            finger_config_suffix (arg use-real): which finger was trained
-                ([default] 0)
+                final_alpha (float): smoothing coeff that will be reached at
+                    the end of the smoothing
+                stop_after (float): the fraction of total episodes by which
+                    final alpha is to be reached, after which the same final
+                    alpha will be used for smoothing in the remainder of
+                    the episodes
+                is_test (bool, optional): Include this for testing
+            use_real_robot (bool): if training is to be performed on
+                the real robot ([default] False)
+            finger_config_suffix: pass this if only one of
+                the three fingers is to be trained. Valid choices include
+                [0, 120, 240] ([default] 0)
+            synchronize (bool): Set this to True if you want to train
+                independently on three fingers in separate processes, but
+                have them synchronized. ([default] False)
         """
+        #: an instance of a simulated, or a real robot depending on
+        #: what is desired.
+        if use_real_robot:
+            from pybullet_fingers.real_finger import RealFinger
 
-        self.logger = DataLogger()
+            self.finger = RealFinger(
+                finger_type=finger_type,
+                finger_config_suffix=finger_config_suffix,
+                enable_visualization=enable_visualization,
+            )
 
-        if finger_type == "single":
-            self.num_fingers = 1
         else:
-            self.num_fingers = 3
+            self.finger = SimFinger(
+                finger_type=finger_type,
+                enable_visualization=enable_visualization,
+            )
 
-        simulation_rate_s = 0.004
-        self.steps_per_control = int(round(control_rate_s / simulation_rate_s))
+        self.num_fingers = finger_types_data.get_number_of_fingers(finger_type)
+
+        #: the number of times the same action is to be applied to
+        #: the robot.
+        self.steps_per_control = int(
+            round(control_rate_s / self.finger.time_step_s))
         assert (
-            abs(control_rate_s - self.steps_per_control * simulation_rate_s)
+            abs(
+                control_rate_s - self.steps_per_control * self.finger.time_step_s)
             <= 0.000001
         )
 
+        #: the types of observations that should be a part of the environment's
+        #: observed state
+        self.observations_keys = [
+            "joint_positions",
+            "joint_velocities",
+            "goal_position",
+            "action_joint_positions",
+        ]
+
+        self.observations_sizes = [
+            3 * self.num_fingers,
+            3 * self.num_fingers,
+            3 * self.num_fingers,
+            3 * self.num_fingers,
+        ]
+
+        # sets up the observation and action spaces for the environment,
+        # unscaled spaces have the custom bounds set up for each observation
+        # or action type, whereas all the values in the observation and action
+        # spaces lie between 1 and -1
+        self.spaces = FingerSpaces(
+            num_fingers=self.num_fingers,
+            observations_keys=self.observations_keys,
+            observations_sizes=self.observations_sizes,
+            separate_goals=True,
+        )
+
+        self.unscaled_observation_space = (
+            self.spaces.get_unscaled_observation_space()
+        )
+        self.unscaled_action_space = self.spaces.get_unscaled_action_space()
+
+        self.observation_space = self.spaces.get_scaled_observation_space()
+        self.action_space = self.spaces.get_scaled_action_space()
+
+        #: a logger to enable logging of observations if desired
+        self.logger = DataLogger()
+
+        # sets up smooothing
         if "is_test" in smoothing_params:
             self.smoothing_start_episode = 0
             self.smoothing_alpha = smoothing_params["final_alpha"]
@@ -96,60 +167,15 @@ class FingerReach(gym.Env):
         self.smoothed_action = None
         self.episode_count = 0
 
-        self.observations_keys = [
-            "joint_positions",
-            "joint_velocities",
-            "goal_position",
-            "action_joint_positions",
-        ]
-
-        self.observations_sizes = [
-            3 * self.num_fingers,
-            3 * self.num_fingers,
-            3 * self.num_fingers,
-            3 * self.num_fingers,
-        ]
-
-        self.spaces = FingerSpaces(
-            num_fingers=self.num_fingers,
-            observations_keys=self.observations_keys,
-            observations_sizes=self.observations_sizes,
-            separate_goals=True,
-        )
-
-        if use_real_robot:
-            from trifinger_simulation.real_finger import RealFinger
-
-            self.finger = RealFinger(
-                finger_type=finger_type,
-                finger_config_suffix=finger_config_suffix,
-                enable_visualization=enable_visualization,
-            )
-
-        else:
-            self.finger = SimFinger(
-                finger_type=finger_type,
-                time_step=simulation_rate_s,
-                enable_visualization=enable_visualization,
-            )
-
-        gym.Env.__init__(self)
-        self.metadata = {"render.modes": ["human"]}
-
-        self.unscaled_observation_space = (
-            self.spaces.get_unscaled_observation_space()
-        )
-        self.unscaled_action_space = self.spaces.get_unscaled_action_space()
-
-        self.observation_space = self.spaces.get_scaled_observation_space()
-        self.action_space = self.spaces.get_scaled_action_space()
+        #: a marker to visualize where the target goal position for the episode
+        #: is to which the tip link(s) of the robot should reach
         self.enable_visualization = enable_visualization
         if self.enable_visualization:
             self.goal_marker = visual_objects.Marker(
                 number_of_goals=self.num_fingers
             )
 
-        self.seed()
+        # set up synchronization if it's set to true
         self.synchronize = synchronize
         if synchronize:
             now = datetime.datetime.now()
@@ -159,6 +185,7 @@ class FingerReach(gym.Env):
         else:
             self.next_start_time = None
 
+        self.seed()
         self.reset()
 
     def _compute_reward(self, observation, goal):
@@ -213,6 +240,9 @@ class FingerReach(gym.Env):
             np.subtract(flat_goals, end_effector_position)
         )
 
+        # populate this observation dict from which you can select which
+        # observation types to finally choose depending on the keys
+        # used for constructing the observation space of the environment
         observation_dict = {}
         observation_dict["end_effector_position"] = end_effector_position
         observation_dict["joint_positions"] = joint_positions
@@ -225,6 +255,9 @@ class FingerReach(gym.Env):
             self.logger.append(
                 joint_positions, end_effector_position, time.time()
             )
+        
+        # returns only the observations corresponding to the keys that were
+        # used for constructing the observation space
         observation = [
             v for key in self.observations_keys for v in observation_dict[key]
         ]
@@ -304,15 +337,18 @@ class FingerReach(gym.Env):
             utils.sleep_until(self.next_start_time)
             self.next_start_time += datetime.timedelta(seconds=4)
 
+        # updates smoothing parameters
         self.update_smoothing()
         self.episode_count += 1
         self.smoothed_action = None
 
+        # resets the finger to a random position
         action = sample.feasible_random_joint_positions_for_reaching(
             self.finger, self.spaces.action_bounds
         )
         observation = self.finger.reset_finger_positions_and_velocities(action)
 
+        # generates a random goal for the next episode
         target_joint_config = np.asarray(
             sample.feasible_random_joint_positions_for_reaching(
                 self.finger, self.spaces.action_bounds
@@ -322,10 +358,11 @@ class FingerReach(gym.Env):
             target_joint_config
         )
 
-        self.logger.new_episode(target_joint_config, self.goal)
-
         if self.enable_visualization:
             self.goal_marker.set_state(self.goal)
+
+        # logs relevant information for replayability
+        self.logger.new_episode(target_joint_config, self.goal)
 
         return utils.scale(
             self._get_state(observation, action=action),

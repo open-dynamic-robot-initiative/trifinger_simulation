@@ -13,7 +13,6 @@ from trifinger_simulation import finger_types_data
 
 
 def main():
-
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument(
         "--control-mode",

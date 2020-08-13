@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Simple check if the available gym environments load without any error."""
+"""Minimum example to show how to create the available gym environments."""
 import gym
 import argparse
 
@@ -7,22 +7,22 @@ import argparse
 def main():
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument(
-        "--env_name",
+        "--env",
         default="push",
         choices=["reach", "push"],
         help="Specify which gym env to load, push or reach",
     )
     args = argparser.parse_args()
 
-    if args.env_name == "push":
+    if args.env == "push":
         env = gym.make(
             "trifinger_simulation.gym_wrapper:push-v0",
             control_rate_s=0.02,
-            finger_type="single",
+            finger_type="trifingerone",
             enable_visualization=True,
         )
 
-    elif args.env_name == "reach":
+    elif args.env == "reach":
 
         smoothing_params = {
             "num_episodes": 700,
@@ -33,7 +33,7 @@ def main():
         env = gym.make(
             "trifinger_simulation.gym_wrapper:reach-v0",
             control_rate_s=0.02,
-            finger_type="single",
+            finger_type="trifingerone",
             smoothing_params=smoothing_params,
             enable_visualization=True,
         )

@@ -8,6 +8,7 @@ from trifinger_simulation.gym_wrapper.data_logger import DataLogger
 from trifinger_simulation.gym_wrapper.finger_spaces import FingerSpaces
 from trifinger_simulation.gym_wrapper import utils
 from trifinger_simulation import (
+    finger_types_data,
     collision_objects,
     visual_objects,
     sample,
@@ -15,39 +16,55 @@ from trifinger_simulation import (
 
 
 class FingerPush(gym.Env):
-    """
-    A gym environment to enable training on either the single or
-    the tri-fingers robots for the task of pushing
+    """A gym environment to enable training on any of the valid robots,
+    real or simulated, for the task of pushing.
     """
 
     def __init__(
         self, control_rate_s, finger_type, enable_visualization,
     ):
-        """
-        Constructor sets up the physical world parameters,
-        and resets to begin training.
+        """Intializes the constituents of the pushing environment.
+
+        Constructor sets up the finger robot depending on the finger type,
+        sets up the observation and action spaces, smoothing for
+        reducing jitter on the robot, and provides for a way to synchronize
+        robots being trained independently.
+
 
         Args:
-            control_rate_s (float): the rate at which the env step runs
-            finger-type (str "single"/"tri"): to train on the "single"
-                or the "tri" finger
+            control_rate_s (float): the rate at which step method of the env
+                will run. This is used to compute the number of times the same
+                action has to be applied to the robot in order to say that at
+                the end of this action loop, the robot would have reached the
+                desired action.
+            finger_type (string): Name of the finger type.  In order to get
+                a list of the valid finger types, call
+                :meth:`.finger_types_data.get_valid_finger_types`
             enable_visualization (bool): if the simulation env is to be
                 visualized
         """
 
-        self.logger = DataLogger()
+        #: an instance of the simulated robot depending on the desired
+        #: robot type
+        self.finger = SimFinger(
+            finger_type=finger_type,
+            enable_visualization=enable_visualization,
+        )
 
-        if finger_type == "single":
-            self.num_fingers = 1
-        else:
-            self.num_fingers = 3
-        simulation_rate_s = 0.004
-        self.steps_per_control = int(round(control_rate_s / simulation_rate_s))
+        self.num_fingers = finger_types_data.get_number_of_fingers(finger_type)
+
+        #: the number of times the same action is to be applied to
+        #: the robot.
+        self.steps_per_control = int(
+            round(control_rate_s / self.finger.time_step_s))
         assert (
-            abs(control_rate_s - self.steps_per_control * simulation_rate_s)
+            abs(
+                control_rate_s - self.steps_per_control * self.finger.time_step_s)
             <= 0.000001
         )
 
+        #: the types of observations that should be a part of the environment's
+        #: observed state
         self.observations_keys = [
             "joint_positions",
             "joint_velocities",
@@ -55,6 +72,8 @@ class FingerPush(gym.Env):
             "goal_position",
             "object_position",
         ]
+        #: the size of each of the observation type that is part of the
+        #: observation keys (in the same order)
         self.observations_sizes = [
             3 * self.num_fingers,
             3 * self.num_fingers,
@@ -63,22 +82,16 @@ class FingerPush(gym.Env):
             3,
         ]
 
+        # sets up the observation and action spaces for the environment,
+        # unscaled spaces have the custom bounds set up for each observation
+        # or action type, whereas all the values in the observation and action
+        # spaces lie between 1 and -1
         self.spaces = FingerSpaces(
             num_fingers=self.num_fingers,
             observations_keys=self.observations_keys,
             observations_sizes=self.observations_sizes,
             separate_goals=False,
         )
-
-        self.finger = SimFinger(
-            finger_type=finger_type,
-            time_step=simulation_rate_s,
-            enable_visualization=enable_visualization,
-        )
-
-        gym.Env.__init__(self)
-
-        self.metadata = {"render.modes": ["human"]}
 
         self.unscaled_observation_space = (
             self.spaces.get_unscaled_observation_space()
@@ -88,10 +101,14 @@ class FingerPush(gym.Env):
         self.observation_space = self.spaces.get_scaled_observation_space()
         self.action_space = self.spaces.get_scaled_action_space()
 
-        self.distance_threshold = 0.05
-        self.epsilon_reward = 0.001
+        #: a logger to enable logging of observations if desired
+        self.logger = DataLogger()
 
+        #: the object that has to be pushed
         self.block = collision_objects.Block()
+
+        #: a marker to visualize where the target goal position for the episode
+        #: is
         self.goal_marker = visual_objects.Marker(
             number_of_goals=1,
             goal_size=0.0325,
@@ -144,6 +161,10 @@ class FingerPush(gym.Env):
         end_effector_to_goal = list(
             np.subtract(flat_goals, end_effector_position)
         )
+
+        # populate this observation dict from which you can select which
+        # observation types to finally choose depending on the keys
+        # used for constructing the observation space of the environment
         observation_dict = {}
         observation_dict["joint_positions"] = joint_positions
         observation_dict["joint_velocities"] = joint_velocities
@@ -153,6 +174,8 @@ class FingerPush(gym.Env):
         observation_dict["object_position"], _ = self.block.get_state()
         observation_dict["action_joint_positions"] = action
 
+        # returns only the observations corresponding to the keys that were
+        # used for constructing the observation space
         if log_observation:
             self.logger.append(
                 observation_dict["joint_positions"],
@@ -180,7 +203,13 @@ class FingerPush(gym.Env):
             the done signal, and info on if the agent was successful at
             the current step
         """
+        # unscales the action to the ranges of the action space of the
+        # environment explicitly (as the prediction from the network
+        # lies in the range [-1;1])
         unscaled_action = utils.unscale(action, self.unscaled_action_space)
+
+        # this is the control loop to send the actions for a few timesteps
+        # which depends on the actual control rate
         finger_action = self.finger.Action(position=unscaled_action)
         state = None
         for _ in range(self.steps_per_control):
@@ -208,11 +237,18 @@ class FingerPush(gym.Env):
         Returns:
             the scaled to [-1;1] observation from the env after the reset
         """
+        # resets the finger to a random position
         action = sample.feasible_random_joint_positions_for_reaching(
             self.finger, self.spaces.action_bounds
         )
         observation = self.finger.reset_finger_positions_and_velocities(action)
+
+        #: the episode target for the agent which is sampled randomly
+        #: for each episode
         self.goal = sample.random_position_in_arena(height_limits=0.0425)
+
+        #: the position from which the object is initialized at the
+        #: beginning of each episode
         self.block_position = sample.random_position_in_arena(
             height_limits=0.0425
         )
@@ -220,6 +256,7 @@ class FingerPush(gym.Env):
         self.goal_marker.set_state([self.goal])
         self.block.set_state(self.block_position, [0, 0, 0, 1])
 
+        # logs relevant information for replayability
         self.logger.new_episode(self.block_position, self.goal)
 
         return utils.scale(

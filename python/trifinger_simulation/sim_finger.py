@@ -33,8 +33,7 @@ class SimFinger:
     def __init__(
         self, finger_type, time_step=0.004, enable_visualization=False,
     ):
-        """
-        Constructor, initializes the physical world we will work in.
+        """Constructor, initializes the physical world we will work in.
 
         Args:
             finger_type : See :attr:`finger_type`
