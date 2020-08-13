@@ -32,6 +32,7 @@ Dive in!
    
    Simulation vs Real Robot <simvsreal>
    Interface with a Real Robot <driverinterface>
+   Timestep Logic <timesteplogic>
 
 .. toctree::
    :maxdepth: 1
