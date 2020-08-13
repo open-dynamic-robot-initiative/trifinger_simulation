@@ -71,10 +71,10 @@ def feasible_random_joint_positions_for_reaching(
     """
     Sample random joint configuration with low risk of collisions.
 
-    For the single Finger, this just calls
+    In case of only one finger, this just calls
     random_joint_positions().
 
-    For the TriFinger, the sampling strategy depends on
+    In case of three fingers, the sampling strategy depends on
     self.sampling_strategy.
 
     Args:

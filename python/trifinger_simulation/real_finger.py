@@ -32,8 +32,8 @@ class RealFinger:
 
         Args:
             finger_type (string): Name of the finger type.  In order to get
-                a dictionary of the valid finger types, call
-                :meth:`get_valid_finger_types` from finger_types_data
+                a list of the valid finger types, call
+                :meth:`.finger_types_data.get_valid_finger_types`.
             finger_config_suffix (int): ID of the finger that is used. Has to
                 be one of [0, 120, 240]. This is only if a single finger is to
                 be used on any of the robots, and is ignored otherwise.
