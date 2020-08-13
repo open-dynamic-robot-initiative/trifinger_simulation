@@ -4,18 +4,21 @@ import argparse
 import math
 
 import robot_interfaces
-from trifinger_simulation import collision_objects, drivers, camera
+from trifinger_simulation import (
+    collision_objects,
+    drivers,
+    camera,
+    finger_types_data,
+)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--finger-type",
-        choices=["single", "tri"],
+        choices=finger_types_data.get_valid_finger_types(),
         required=True,
-        help="""Specify whether the Single Finger ("single") or the TriFinger
-            ("tri") is used.
-        """,
+        help="""Pass a valid finger type.""",
     )
     parser.add_argument(
         "--real-time-mode",
@@ -70,11 +73,12 @@ def main():
     args = parser.parse_args()
 
     # select the correct types/functions based on which robot is used
-    if args.finger_type == "single":
+    num_fingers = finger_types_data.get_number_of_fingers(args.finger_type)
+    if num_fingers == 1:
         shared_memory_id = "finger"
         finger_types = robot_interfaces.finger
         create_backend = drivers.create_single_finger_backend
-    else:
+    elif num_fingers == 3:
         shared_memory_id = "trifinger"
         finger_types = robot_interfaces.trifinger
         create_backend = drivers.create_trifinger_backend

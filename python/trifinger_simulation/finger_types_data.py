@@ -1,5 +1,4 @@
 import typing
-import warnings
 
 
 class FingerTypesDataFormat(typing.NamedTuple):
@@ -14,11 +13,7 @@ class FingerTypesDataFormat(typing.NamedTuple):
 
 finger_types_data = {
     "fingerone": FingerTypesDataFormat("finger.urdf", 1),
-    # for backward compatibility
-    "single": FingerTypesDataFormat("finger.urdf", 1),
     "trifingerone": FingerTypesDataFormat("trifinger.urdf", 3),
-    # for backward compatibility
-    "tri": FingerTypesDataFormat("trifinger.urdf", 3),
     "fingeredu": FingerTypesDataFormat("edu/fingeredu.urdf", 1),
     "trifingeredu": FingerTypesDataFormat("edu/trifingeredu.urdf", 3),
     "trifingerpro": FingerTypesDataFormat("pro/trifingerpro.urdf", 3),
@@ -48,12 +43,6 @@ def check_finger_type(key):
             % (key, finger_types_data.keys())
         )
     else:
-        if key in ["single", "tri"]:
-            warnings.warn(
-                "The '%s' key is deprecated. Please use"
-                " 'fingerone' instead of 'single', and"
-                " 'trifingerone' instead of 'tri." % (key)
-            )
         return key
 
 

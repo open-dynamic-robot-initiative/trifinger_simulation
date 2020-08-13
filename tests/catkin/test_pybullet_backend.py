@@ -4,6 +4,7 @@ import numpy as np
 
 import robot_interfaces
 import trifinger_simulation.drivers
+from trifinger_simulation import finger_types_data
 
 
 class TestPyBulletBackend(unittest.TestCase):
@@ -17,16 +18,17 @@ class TestPyBulletBackend(unittest.TestCase):
         tolerance.
 
         Args:
-            finger_type:  Which robot to use.  One of ("single", "tri").
+            finger_type:  Which robot to use.
             goal_positions:  A list of joint goal positions.
         """
         # select the correct types/functions based on which robot is used
-        if finger_type == "single":
+        num_fingers = finger_types_data.get_number_of_fingers(finger_type)
+        if num_fingers == 1:
             finger_types = robot_interfaces.finger
             create_backend = (
                 trifinger_simulation.drivers.create_single_finger_backend
             )
-        else:
+        elif num_fingers == 3:
             finger_types = robot_interfaces.trifinger
             create_backend = (
                 trifinger_simulation.drivers.create_trifinger_backend
