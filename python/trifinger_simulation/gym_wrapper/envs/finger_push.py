@@ -53,7 +53,7 @@ class FingerPush(gym.Env):
         self.num_fingers = finger_types_data.get_number_of_fingers(finger_type)
 
         #: the number of times the same action is to be applied to
-        #: the robot.
+        #: the robot in one step.
         self.steps_per_control = int(
             round(control_rate_s / self.finger.time_step_s)
         )
