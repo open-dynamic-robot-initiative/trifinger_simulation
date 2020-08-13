@@ -56,7 +56,7 @@ class RealFinger:
         )
 
         if number_of_fingers == 1:
-            if finger_type in ["fingerone"]:
+            if finger_type == "fingerone":
                 config_file_path = os.path.join(
                     rospkg.RosPack().get_path("robot_fingers"),
                     "config",
