@@ -32,11 +32,6 @@ def get_valid_finger_types():
     Returns:
         list: List of supported finger types.
     """
-    print(
-        "Among these listed finger types, 'single' and 'tri'"
-        " are deprecated. Use 'fingerone' and 'trifingerone'"
-        " instead respectively."
-    )
     return finger_types_data.keys()
 
 
