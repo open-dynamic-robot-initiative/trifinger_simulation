@@ -22,7 +22,7 @@ class TestSimulationDeterminisim(unittest.TestCase):
         run is compared.  If the simulation behaves deterministically, the
         observations should be equal.
         """
-        finger = SimFinger(finger_type="single",)
+        finger = SimFinger(finger_type="fingerone",)
 
         start_position = [0.5, -0.7, -1.5]
         action = finger.Action(torque=[0.3, 0.3, 0.3])
@@ -59,7 +59,7 @@ class TestSimulationDeterminisim(unittest.TestCase):
             "trifinger_simulation.gym_wrapper:reach-v0",
             control_rate_s=0.02,
             enable_visualization=False,
-            finger_type="single",
+            finger_type="fingerone",
             smoothing_params=smoothing_params,
         )
 

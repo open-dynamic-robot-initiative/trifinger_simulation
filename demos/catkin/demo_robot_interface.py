@@ -11,6 +11,7 @@ import numpy as np
 
 import robot_interfaces
 import trifinger_simulation.drivers
+from trifinger_simulation import finger_types_data
 
 
 def get_random_position(num_fingers=1):
@@ -27,11 +28,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--finger-type",
-        choices=["single", "tri"],
+        choices=finger_types_data.get_valid_finger_types(),
         required=True,
-        help="""Specify whether the Single Finger ("single")
-                        or the TriFinger ("tri") is used.
-                        """,
+        help="""Specify valid finger type""",
     )
     parser.add_argument(
         "--real-time-mode",
@@ -44,14 +43,13 @@ def main():
     args = parser.parse_args()
 
     # select the correct types/functions based on which robot is used
-    if args.finger_type == "single":
-        num_fingers = 1
+    num_fingers = finger_types_data.get_number_of_fingers(args.finger_type)
+    if num_fingers == 1:
         finger_types = robot_interfaces.finger
         create_backend = (
             trifinger_simulation.drivers.create_single_finger_backend
         )
-    else:
-        num_fingers = 3
+    elif num_fingers == 3:
         finger_types = robot_interfaces.trifinger
         create_backend = trifinger_simulation.drivers.create_trifinger_backend
 

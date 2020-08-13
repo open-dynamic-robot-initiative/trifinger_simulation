@@ -590,12 +590,6 @@ class SimFinger:
                 os.path.dirname(__file__), "robot_properties_fingers"
             )
 
-        if self.finger_type in ["single", "tri"]:
-            warnings.warn(
-                "Finger types 'single' and 'tri' are deprecated."
-                " Use 'fingerone' and 'trifingerone' instead."
-            )
-
         urdf_file = finger_types_data.get_finger_urdf(self.finger_type)
         self.finger_urdf_path = os.path.join(
             self.robot_properties_path, "urdf", urdf_file
@@ -652,14 +646,14 @@ class SimFinger:
                 self.robot_properties_path, "meshes", "stl", filename
             )
 
-        if self.finger_type in ["fingerone", "single", "fingeredu"]:
+        if self.finger_type in ["fingerone", "fingeredu"]:
             collision_objects.import_mesh(
                 mesh_path("Stage_simplified.stl"),
                 position=[0, 0, 0],
                 is_concave=True,
             )
 
-        elif self.finger_type in ["trifingerone", "tri", "trifingerpro"]:
+        elif self.finger_type in ["trifingerone", "trifingerpro"]:
             table_colour = (0.18, 0.15, 0.19, 1.0)
             high_border_colour = (0.73, 0.68, 0.72, 1.0)
             if high_border:

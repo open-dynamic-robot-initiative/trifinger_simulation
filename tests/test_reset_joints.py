@@ -20,7 +20,7 @@ class TestResetJoints(unittest.TestCase):
         Send hundred states (positions + velocities) to all the 1DOF joints
         of the fingers and assert they exactly reach these states.
         """
-        finger = SimFinger(finger_type="single",)
+        finger = SimFinger(finger_type="fingerone",)
 
         for _ in range(100):
             state_positions = sample.random_joint_positions(
