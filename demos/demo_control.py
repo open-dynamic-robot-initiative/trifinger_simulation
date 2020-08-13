@@ -24,7 +24,7 @@ def main():
         "--finger-type",
         default="tri",
         choices=finger_types_data.get_valid_finger_types(),
-        help="Specify type of finger as single or tri.",
+        help="Specify a valid finger type",
     )
     args = argparser.parse_args()
     time_step = 0.004
