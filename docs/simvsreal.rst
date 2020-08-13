@@ -37,6 +37,7 @@ This means that the state of the simulation does not change as long as this
 method is not called. This is different than on the real robot, which will physically
 continue to move and will repeat the last action if no new action is provided in time.
 
+.. _`No waiting for future time steps`:
 
 No waiting for future time steps
 ======================================
@@ -88,6 +89,6 @@ The following methods are not supported:
 - ``get_status()``:  There are no meaningful values for the status message in
   simulation, so this method is omitted to avoid confusion.
 - ``wait_until_timeindex()``:  In general the process of waiting for a specific
-  time step is not supported, see `No waiting for future time steps`_.
+  time step is not supported, see :ref:`No waiting for future time steps`.
 
 .. _`robot_interfaces::RobotFrontend`: https://github.com/open-dynamic-robot-initiative/robot_interfaces/blob/master/include/robot_interfaces/robot_frontend.hpp

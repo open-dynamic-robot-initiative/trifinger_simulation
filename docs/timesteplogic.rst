@@ -75,4 +75,4 @@ action.  You may use
 actually got applied on the robot.
 
 For more information on the API of the real robot, see our publication `TriFinger: An Open-Source
-Robot for Learning Dexterity <https://sites.google.com/view/trifinger>`_.
+Robot for Learning Dexterity <https://arxiv.org/abs/2008.03596>`_.
