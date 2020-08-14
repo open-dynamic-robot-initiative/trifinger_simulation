@@ -1,8 +1,6 @@
-.. _`Switching between the Real Robot and the Simulated Robot in this Simulation`:
-
-*****************************************************************************
-Switching between the Real Robot and the Simulated Robot in this Simulation
-*****************************************************************************
+**********************************************************************************
+Switching between the Real Robot and the Simulated Robot in trifinger_simulation
+**********************************************************************************
 
 We have designed the entire `trifinger_simulation` package with the
 aim of making it possible to seamlessly transition to our software for
