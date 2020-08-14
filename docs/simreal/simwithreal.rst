@@ -48,6 +48,13 @@ for ``SimFinger``. Inside ``RealFinger``, the robot actually gets created like t
                 robot_data, robot_config_path)
     robot = robot_interfaces.trifinger.Frontend(robot_data)
 
+.. note::
+
+    In order to use the ``RealFinger`` class, you would need to install additional packages like
+    `robot_interfaces`_ and `robot_fingers`_ as you can see in the example above. These packages are
+    not a part of the `trifinger_simulation conda environment`_. Instructions on how to install
+    these packages will follow soon in the :ref:`catbuild` section.
+
 .. note:: 
 
     If at this point, you are interested in exploring our software interface for the
@@ -60,3 +67,6 @@ in the note above) with this simulation. Head over to the next section, :ref:`ro
 
 
 .. _`RobotFrontend`: https://github.com/open-dynamic-robot-initiative/robot_interfaces/blob/master/include/robot_interfaces/robot_frontend.hpp
+.. _`robot_interfaces`: https://github.com/open-dynamic-robot-initiative/robot_interfaces/blob/master/
+.. _`robot_fingers`: https://github.com/open-dynamic-robot-initiative/robot_fingers
+.. _`trifinger_simulation conda environment`: https://github.com/open-dynamic-robot-initiative/trifinger_simulation/blob/master/environment.yml

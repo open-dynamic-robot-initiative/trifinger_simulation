@@ -41,6 +41,7 @@ Installing the trifinger_simulation package
 
        python -m pip install -e .
 
+.. _`catbuild`:
 
 Build using catkin
 -------------------------
