@@ -3,7 +3,7 @@ Switching between the Real Robot and the Simulated Robot in the Real Robot API
 ********************************************************************************
 
 It is also possible to use this simulation through our software for interfacing with the
-real robot. So, you could
+real robot. So, you can
 access the real TriFinger with the simulation as seen in :ref:`Switching between the Real Robot and the Simulated Robot in this Simulation`_.
 You can also access the simulated TriFinger through the real interface, as seen here below.
 
