@@ -10,7 +10,7 @@ You can also access the simulated TriFinger through the real interface, as seen 
 The Real Robot API
 ======================
 
-The `robot_interfaces`_ sotware package provides an interface to the hardware of the real
+The `robot_interfaces`_ software package provides an interface to the hardware of the real
 TriFinger robots.
 
 .. _`robot_interfaces with Simulation`:
