@@ -41,13 +41,9 @@ Installing the trifinger_simulation package
 
        python -m pip install -e .
 
+.. _`catbuild`:
 
 Build using catkin
 -------------------------
 
-``trifinger_simulation`` can also be used as a catkin package together with
-``robot_interfaces``, etc.
-
 Proper instructions for this will follow soon.
-
-.. _`repository readme`: https://github.com/open-dynamic-robot-initiative/trifinger_simulation/blob/sjoshi/fix_docs/README.md

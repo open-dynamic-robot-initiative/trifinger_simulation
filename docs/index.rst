@@ -22,24 +22,23 @@ Dive in!
    :maxdepth: 2
    :caption: Getting Started
 
-   Installation <installation>
-
-.. add basic usage example here
+   Installation <getting_started/installation>
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Ease of Use with a Real Robot
    
-   Simulation vs Real Robot <simvsreal>
-   Interface with a Real Robot <driverinterface>
-   Timestep Logic <timesteplogic>
+   simreal/simwithreal
+   simreal/realwithsim
+   simreal/simvsreal
+   simreal/timesteplogic
 
 .. toctree::
    :maxdepth: 1
    :caption: API Documentation
 
-   The SimFinger Class <sim_finger>
-   The TriFingerPlatform Class <trifingerplatform>
+   The SimFinger Class <api/sim_finger>
+   The TriFingerPlatform Class <api/trifingerplatform>
 
 
 Indices and tables
