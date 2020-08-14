@@ -1,6 +1,6 @@
-********************************
-"Real" and "Non-real" Time Steps
-********************************
+*************************************
+Real and Non-real-time Control Modes
+*************************************
 
 On the real robot, we are using *time series* for all robot data like actions
 and observations.  The user does not send actions directly to the robot but
