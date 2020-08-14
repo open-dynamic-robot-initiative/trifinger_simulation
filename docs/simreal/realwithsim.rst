@@ -3,20 +3,20 @@ Switching between the Real Robot and the Simulated Robot in the Real Robot API
 ********************************************************************************
 
 It is also possible to use this simulation through our software for interfacing with the
-real robot. So, you can
-access the real TriFinger with the simulation as seen in :ref:`Switching between the Real Robot and the Simulated Robot in this Simulation`_.
+real robot. So, you could
+access the real TriFinger with the simulation as seen in :doc:`simwithreal`.
 You can also access the simulated TriFinger through the real interface, as seen here below.
 
 The Real Robot API
 ======================
 
-The `robot_interfaces`_ software package provides an interface to the hardware of the real
+The `robot_interfaces`_ sotware package provides an interface to the hardware of the real
 TriFinger robots.
 
 .. _`robot_interfaces with Simulation`:
 
-Using the Simulation through the above API
-======================================================
+Using the Simulation through the `robot_interfaces`_ API
+===========================================================
 
 It is possible to create a backend of this simulation and have access to all the methods
 provided by `robot_interfaces`_ in addition to all the methods provided by ``SimFinger``.
