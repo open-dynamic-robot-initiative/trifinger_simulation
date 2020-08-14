@@ -1,5 +1,5 @@
 ********************************
-"Real" and "Non-real" TimeSteps
+"Real" and "Non-real" Time Steps
 ********************************
 
 On the real robot, we are using *time series* for all robot data like actions
