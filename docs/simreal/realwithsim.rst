@@ -11,7 +11,7 @@ The Real Robot API
 ======================
 
 The `robot_interfaces`_ sotware package provides an interface to the hardware of the real
-TriFinger robots.
+TriFinger robots. You can also find the documentation of this API `here <https://open-dynamic-robot-initiative.github.io/code_documentation/robot_interfaces/docs/doxygen/html/index.html>`_.
 
 .. _`robot_interfaces with Simulation`:
 

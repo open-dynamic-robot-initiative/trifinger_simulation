@@ -24,14 +24,12 @@ Dive in!
 
    Installation <getting_started/installation>
 
-.. add basic usage example here
-
 .. toctree::
    :maxdepth: 1
    :caption: Ease of Use with a Real Robot
    
-   simreal/simwithreal>
-   simreal/realwithsim>
+   simreal/simwithreal
+   simreal/realwithsim
    simreal/simvsreal
    simreal/timesteplogic
 
