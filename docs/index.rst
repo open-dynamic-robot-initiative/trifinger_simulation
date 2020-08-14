@@ -30,10 +30,10 @@ Dive in!
    :maxdepth: 1
    :caption: Ease of Use with a Real Robot
    
-   simreal/simwithreal
-   Switching between the Real Robot and the Simulated Robot in the Real Robot API <simreal/realwithsim>
-   Switching between Non-real-time and Real-time Behaviour <simreal/simvsreal>
-   "Real" and "Non-real" TimeSteps <simreal/timesteplogic>
+   simreal/simwithreal>
+   simreal/realwithsim>
+   simreal/simvsreal
+   simreal/timesteplogic
 
 .. toctree::
    :maxdepth: 1
