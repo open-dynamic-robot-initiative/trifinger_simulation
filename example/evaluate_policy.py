@@ -88,7 +88,7 @@ def main():
         # coherent with the policy. however, unlike during  training, we set the
         # initialization using the initializer, since this is what's expected
         # during evaluation. if you do not use the initializer, or modify the
-        # standard CubeEnv in any way which will affect the simulation (i.e.
+        # standard TriFingerCubeEnv in any way which will affect the simulation (i.e.
         # affect the state action trajectories), the action trajectories you
         # compute will not make sense.
         env = ExamplePushingTrainingEnv(

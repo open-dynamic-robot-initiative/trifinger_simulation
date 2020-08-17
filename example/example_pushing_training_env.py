@@ -180,7 +180,7 @@ class ExamplePushingTrainingEnv(gym.Env):
             goal_object_pose = move_cube.sample_goal(difficulty=1)
         else:
             # if an initializer is given, i.e. during evaluation, we need to initialize
-            # according to it, to make sure we remain coherent with the standard CubeEnv.
+            # according to it, to make sure we remain coherent with the standard TriFingerCubeEnv.
             # otherwise the trajectories produced during evaluation will be invalid.
             initial_robot_position = (
                 TriFingerPlatform.spaces.robot_position.default

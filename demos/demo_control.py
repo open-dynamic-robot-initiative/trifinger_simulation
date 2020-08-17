@@ -20,12 +20,14 @@ def main():
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument(
         "--control-mode",
+        "-c",
         default="position",
         choices=["position", "torque"],
         help="Specify position or torque as the control mode.",
     )
     argparser.add_argument(
         "--finger-type",
+        "-f",
         default="trifingerone",
         choices=finger_types_data.get_valid_finger_types(),
         help="Specify a valid finger type",
