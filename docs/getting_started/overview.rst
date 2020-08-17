@@ -5,6 +5,7 @@ Overview
 The ``trifinger_simulation`` package provides an interface to the TriFinger robots [#]_
 in simulation using the `pybullet physics engine <https://pypi.org/project/pybullet/>`_.
 
+
 A. Its main components include:
 
     1. The ``SimFinger`` class: which provides the complete simulation environment for the TriFinger, including all
@@ -18,11 +19,14 @@ A. Its main components include:
     3. The ``RealFinger`` class: which is a wrapper around the real robot API to make the real TriFinger robots accessible
     in any gym environment in the same way as the simulated TriFinger robots. For details on this, please refer to :doc:`../simreal/simwithreal`.
 
-    4. A gym-wrapper with two basic environments: for reaching ("TriFingerReach-v0"), and for pushing ("TriFingerPush-v0"). There's also one more gym
-    environment meant for the `Real Robot Challenge <https://real-robot-challenge.com/>`_ that you can use to perform tasks of varying
-    difficulty levels involving manipulation of a cubical object. For more details on this, please refer `here <https://people.tuebingen.mpg.de/felixwidmaier/realrobotchallenge/simulation_phase/tasks.html>`_.
+    4. A gym-wrapper with two basic environments: for reaching ("TriFingerReach-v0"), and for pushing ("TriFingerPush-v0"),
+    and an environment that you can use to perform tasks of varying
+    difficulty levels involving manipulation of a cubical object ("TriFingerCubeDifficulty{}-v1"). This environment is from
+    the `Real Robot Challenge <https://real-robot-challenge.com/>`_ . For more details on this, please refer `here <https://people.tuebingen.mpg.de/felixwidmaier/realrobotchallenge/simulation_phase/tasks.html>`_.
+
 
 B. You can also start by looking at some demos illustrating some basic use cases `in here <https://github.com/open-dynamic-robot-initiative/trifinger_simulation/tree/master/demos>`_.
+
 
 .. [#] The TriFinger robots are a little family of kinematically similar robots, including the
        TriFingerOne, the TriFingerEdu, and the TriFingerPro. These robots signify the different iterations
