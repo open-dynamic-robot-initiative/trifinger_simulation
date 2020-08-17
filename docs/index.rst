@@ -23,10 +23,12 @@ Dive in!
    :caption: Getting Started
 
    Installation <getting_started/installation>
+   Overview <getting_started/overview>
 
 .. toctree::
    :maxdepth: 1
    :caption: Ease of Use with a Real Robot
+   :name: sim-real
    
    simreal/simwithreal
    simreal/realwithsim
@@ -58,7 +60,7 @@ Indices and tables
 Cite Us!
 ==============
 
-If you are using this package in you academic work,
+If you are using this package in your academic work,
 please cite this repository and also the corresponding paper:
 
 .. code-block:: bibtex

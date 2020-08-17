@@ -16,7 +16,7 @@ def main():
 
     if args.env == "push":
         env = gym.make(
-            "trifinger_simulation.gym_wrapper:push-v0",
+            "trifinger_simulation.gym_wrapper:TriFingerPush-v0",
             control_rate_s=0.02,
             finger_type="trifingerone",
             enable_visualization=True,
@@ -31,7 +31,7 @@ def main():
             "stop_after": 5.0 / 7.0,
         }
         env = gym.make(
-            "trifinger_simulation.gym_wrapper:reach-v0",
+            "trifinger_simulation.gym_wrapper:TriFingerReach-v0",
             control_rate_s=0.02,
             finger_type="trifingerone",
             smoothing_params=smoothing_params,

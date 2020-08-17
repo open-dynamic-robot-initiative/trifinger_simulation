@@ -4,9 +4,11 @@ import enum
 import numpy as np
 import gym
 
-from trifinger_simulation import TriFingerPlatform
-from trifinger_simulation import visual_objects
 from trifinger_simulation.tasks import move_cube
+from trifinger_simulation import (
+    TriFingerPlatform,
+    visual_objects,
+)
 
 
 class RandomInitializer:
@@ -81,7 +83,7 @@ class ActionType(enum.Enum):
     TORQUE_AND_POSITION = enum.auto()
 
 
-class CubeEnv(gym.GoalEnv):
+class TriFingerCubeEnv(gym.GoalEnv):
     """Gym environment for moving cubes with simulated TriFingerPro."""
 
     def __init__(

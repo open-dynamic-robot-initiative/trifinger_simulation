@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-from stable_baselines import PPO2
-from example_pushing_training_env import ExamplePushingTrainingEnv
-from example_pushing_training_env import FlatObservationWrapper
-from trifinger_simulation.gym_wrapper.envs import cube_env
-
 import argparse
 import os
 import gym
 import numpy as np
+
+from stable_baselines import PPO2
+from trifinger_simulation.gym_wrapper.envs import trifinger_cube_env
+from example_pushing_training_env import (
+    ExamplePushingTrainingEnv,
+    FlatObservationWrapper,
+)
 
 
 if __name__ == "__main__":
@@ -32,9 +34,9 @@ if __name__ == "__main__":
     # we create the same env as we used for training in train_pushing_ppo.py,
     # such that action and observation space remain coherent with the policy.
     # however, unlike during the training, we set the initialization to the the
-    # same as in the standard CubeEnv, since this is what the policy will be
+    # same as in the standard TriFingerCubeEnv, since this is what the policy will be
     # evaluated on eventually.
-    initializer = cube_env.RandomInitializer(
+    initializer = trifinger_cube_env.RandomInitializer(
         difficulty=1
     )  # difficulty one means pushing
     env = ExamplePushingTrainingEnv(

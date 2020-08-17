@@ -27,7 +27,7 @@ import os
 
 import gym
 
-from trifinger_simulation.gym_wrapper.envs import cube_env
+from trifinger_simulation.gym_wrapper.envs import trifinger_cube_env
 from trifinger_simulation.tasks import move_cube
 
 from example_pushing_training_env import ExamplePushingTrainingEnv
@@ -74,7 +74,7 @@ def main():
     goal_pose = move_cube.Pose.from_json(goal_pose_json)
 
     # create a FixedInitializer with the given values
-    initializer = cube_env.FixedInitializer(
+    initializer = trifinger_cube_env.FixedInitializer(
         difficulty, initial_pose, goal_pose
     )
 
@@ -104,9 +104,9 @@ def main():
 
     else:
         env = gym.make(
-            "trifinger_simulation.gym_wrapper:real_robot_challenge_phase_1-v1",
+            "TriFingerCubeDifficulty{}-v1".format(difficulty),
             initializer=initializer,
-            action_type=cube_env.ActionType.POSITION,
+            action_type=trifinger_cube_env.ActionType.POSITION,
             visualization=False,
         )
         policy = RandomPolicy(env.action_space)

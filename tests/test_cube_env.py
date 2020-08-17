@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 
-from trifinger_simulation.gym_wrapper.envs import cube_env
+from trifinger_simulation.gym_wrapper.envs import trifinger_cube_env
 
 
 class TestSample(unittest.TestCase):
@@ -11,7 +11,7 @@ class TestSample(unittest.TestCase):
         # Observations need to be contained in the observation space.  If this
         # is not the case, there is either an issue with the  generation of the
         # observations or the observation space is not defined properly.
-        env = cube_env.CubeEnv(cube_env.RandomInitializer(4))
+        env = trifinger_cube_env.CubeEnv(trifinger_cube_env.RandomInitializer(4))
 
         observation = env.reset()
         self.assertTrue(env.observation_space.contains(observation))

@@ -22,7 +22,7 @@ Please refer to the [installation instructions](https://trifinger-robot-simulati
 
 ## Cite Us
 
-If you are using this package in you academic work,
+If you are using this package in your academic work,
 please cite this repository and also the corresponding paper:
 
 ```

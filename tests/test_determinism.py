@@ -56,7 +56,7 @@ class TestSimulationDeterminisim(unittest.TestCase):
         horizon = 100
 
         env = gym.make(
-            "trifinger_simulation.gym_wrapper:reach-v0",
+            "trifinger_simulation.gym_wrapper:TriFingerReach-v0",
             control_rate_s=0.02,
             enable_visualization=False,
             finger_type="fingerone",

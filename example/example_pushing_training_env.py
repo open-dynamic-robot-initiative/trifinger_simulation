@@ -4,11 +4,12 @@ import enum
 import numpy as np
 import gym
 
-import trifinger_simulation
-from trifinger_simulation.gym_wrapper.envs import cube_env
+from trifinger_simulation.gym_wrapper.envs import trifinger_cube_env
 from trifinger_simulation.tasks import move_cube
-from trifinger_simulation import visual_objects
-from trifinger_simulation import TriFingerPlatform
+from trifinger_simulation import (
+    TriFingerPlatform,
+    visual_objects,
+)
 
 
 class FlatObservationWrapper(gym.ObservationWrapper):
@@ -41,7 +42,7 @@ class ExamplePushingTrainingEnv(gym.Env):
     def __init__(
         self,
         initializer=None,
-        action_type=cube_env.ActionType.POSITION,
+        action_type=trifinger_cube_env.ActionType.POSITION,
         frameskip=1,
         visualization=False,
     ):
@@ -77,11 +78,11 @@ class ExamplePushingTrainingEnv(gym.Env):
 
         spaces = TriFingerPlatform.spaces
 
-        if self.action_type == cube_env.ActionType.TORQUE:
+        if self.action_type == trifinger_cube_env.ActionType.TORQUE:
             self.action_space = spaces.robot_torque.gym
-        elif self.action_type == cube_env.ActionType.POSITION:
+        elif self.action_type == trifinger_cube_env.ActionType.POSITION:
             self.action_space = spaces.robot_position.gym
-        elif self.action_type == cube_env.ActionType.TORQUE_AND_POSITION:
+        elif self.action_type == trifinger_cube_env.ActionType.TORQUE_AND_POSITION:
             self.action_space = gym.spaces.Dict(
                 {
                     "torque": spaces.robot_torque.gym,
@@ -267,11 +268,11 @@ class ExamplePushingTrainingEnv(gym.Env):
 
     def _gym_action_to_robot_action(self, gym_action):
         # construct robot action depending on action type
-        if self.action_type == cube_env.ActionType.TORQUE:
+        if self.action_type == trifinger_cube_env.ActionType.TORQUE:
             robot_action = self.platform.Action(torque=gym_action)
-        elif self.action_type == cube_env.ActionType.POSITION:
+        elif self.action_type == trifinger_cube_env.ActionType.POSITION:
             robot_action = self.platform.Action(position=gym_action)
-        elif self.action_type == cube_env.ActionType.TORQUE_AND_POSITION:
+        elif self.action_type == trifinger_cube_env.ActionType.TORQUE_AND_POSITION:
             robot_action = self.platform.Action(
                 torque=gym_action["torque"], position=gym_action["position"]
             )
