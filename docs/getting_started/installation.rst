@@ -3,8 +3,10 @@ Installation
 
 There are two ways to build/install this package.
 
-1. As an isolated Python package
-2. As part of a catkin workspace
+1. As an isolated :ref:`Python package <python>`
+2. As part of a :ref:`catkin <catbuild>` workspace
+
+.. _python:
 
 Install as Python package in a conda environment
 ----------------------------------------------------
@@ -43,7 +45,7 @@ Installing the trifinger_simulation package
 
 .. _`catbuild`:
 
-Build using catkin
--------------------------
+Build using catkin inside a Singularity container
+---------------------------------------------------
 
 Proper instructions for this will follow soon.
