@@ -22,8 +22,8 @@ Dive in!
    :maxdepth: 2
    :caption: Getting Started
 
-   Installation <getting_started/installation>
-   Overview <getting_started/overview>
+   getting_started/installation
+   getting_started/overview
 
 .. toctree::
    :maxdepth: 1

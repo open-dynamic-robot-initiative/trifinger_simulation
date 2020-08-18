@@ -52,6 +52,7 @@ source_suffix = [".rst", ".md"]
 
 # The master toctree document.
 master_doc = "index"
+numfig = True
 
 # General information about the project.
 project = "TriFinger Robot Simulation"
