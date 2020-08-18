@@ -21,7 +21,7 @@ Installing the trifinger_simulation package
 
 1. Clone this repo and cd into it::
 
-       git clone https://gitlab.is.tue.mpg.de/robotics/trifinger_simulation.git
+       git clone https://github.com/open-dynamic-robot-initiative/trifinger_simulation.git
        cd trifinger_simulation
 
 2. Set up the conda env::
