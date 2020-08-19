@@ -18,7 +18,7 @@ The documentation for this repository is available online [here](https://trifing
 
 ## Installation instructions
 
-Please refer to the [installation instructions](https://trifinger-robot-simulation.readthedocs.io/en/latest/installation.html) for details.
+Please refer to the [installation instructions](https://trifinger-robot-simulation.readthedocs.io/en/latest/getting_started/installation.html) for details.
 
 ## Cite Us
 
