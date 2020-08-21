@@ -7,7 +7,6 @@ import robot_interfaces
 from trifinger_simulation import (
     collision_objects,
     drivers,
-    camera,
     finger_types_data,
 )
 
@@ -83,11 +82,19 @@ def main():
         finger_types = robot_interfaces.trifinger
         create_backend = drivers.create_trifinger_backend
 
-    robot_data = finger_types.MultiProcessData(shared_memory_id, True)
+    # If max_number_of_actions is set, choose the history size of the time
+    # series such that the whole episode fits in (+1 for the status message
+    # containing the "limit exceeded" error).
+    if args.max_number_of_actions:
+        history_size = args.max_number_of_actions + 1
+    else:
+        history_size = 1000
 
-    if args.logfile:
-        logger = finger_types.Logger(robot_data, 100)
-        logger.start(args.logfile)
+    robot_data = finger_types.MultiProcessData(
+        shared_memory_id, True, history_size=history_size
+    )
+
+    logger = finger_types.Logger(robot_data)
 
     backend = create_backend(
         robot_data,
@@ -110,7 +117,7 @@ def main():
 
         # initialize the object tracker interface
         object_tracker_data = object_tracker.Data("object_tracker", True)
-        object_tracker_backend = object_tracker.SimulationBackend(
+        object_tracker_backend = object_tracker.SimulationBackend(  # noqa
             object_tracker_data, cube, args.real_time_mode
         )
 
@@ -119,9 +126,18 @@ def main():
 
         camera_data = tricamera.MultiProcessData("tricamera", True, 10)
         camera_driver = tricamera.PyBulletTriCameraDriver()
-        camera_backend = tricamera.Backend(camera_driver, camera_data)
+        camera_backend = tricamera.Backend(camera_driver, camera_data)  # noqa
 
     backend.wait_until_terminated()
+
+    if args.logfile:
+        if args.max_number_of_actions:
+            end_index = args.max_number_of_actions
+        else:
+            end_index = -1
+        logger.write_current_buffer(
+            args.logfile, start_index=0, end_index=end_index
+        )
 
 
 if __name__ == "__main__":
