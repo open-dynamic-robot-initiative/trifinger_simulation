@@ -5,7 +5,8 @@ from . import move_cube
 
 
 def move_cube_argparse(parser):
-    sub = parser.add_subparsers(title="Commands", dest="command")
+    sub = parser.add_subparsers(title="command", dest="command")
+    sub.required = True
 
     validate_file = sub.add_parser("validate_goal_file")
     validate_file.add_argument("filename", type=str)
@@ -34,16 +35,14 @@ def move_cube_sample_goal(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(title="Tasks", dest="task")
+    subparsers = parser.add_subparsers(title="task", dest="task")
+    subparsers.required = True
 
     parser_move_cube = subparsers.add_parser("move_cube")
     move_cube_argparse(parser_move_cube)
 
     args = parser.parse_args()
-    if hasattr(args, "func"):
-        args.func(args)
-    else:
-        parser.print_help()
+    args.func(args)
 
 
 if __name__ == "__main__":
