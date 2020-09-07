@@ -221,6 +221,34 @@ def validate_goal(goal):
         )
 
 
+def validate_goal_file(filename):
+    """Validate given goal file.
+
+    The specified file is expected to be a JSON file which contains a field
+    "difficulty".
+
+    Args:
+        filename (str): Path to the JSON file.
+
+    Raises:
+        Various types of exceptions if there is any issue with the specified
+        file.
+    """
+    with open(filename, "r") as fh:
+        data = json.load(fh)
+
+    # check key existance
+    assert "difficulty" in data, "no key 'difficulty'"
+    assert data["difficulty"] in [1, 2, 3, 4], "invalid difficulty"
+
+    if "goal" in data:
+        assert "position" in data["goal"], "goal does not contain 'position'"
+        assert "orientation" in data["goal"], "goal does not contain 'orientation'"
+
+        goal = Pose.from_dict(data["goal"])
+        validate_goal(goal)
+
+
 def evaluate_state(goal_pose, actual_pose, difficulty):
     """Compute cost of a given cube pose.  Less is better.
 
