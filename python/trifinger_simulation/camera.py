@@ -1,3 +1,6 @@
+import typing
+
+import numpy as np
 import pybullet
 from scipy.spatial.transform import Rotation
 
@@ -9,7 +12,7 @@ class Camera(object):
         self,
         camera_position,
         camera_orientation,
-        image_size=(720, 540),
+        image_size=(270, 270),
         pybullet_client=pybullet,
     ):
         """Initialize.
@@ -45,14 +48,13 @@ class Camera(object):
             farVal=100.0,
         )
 
-    def get_image(self):
+    def get_image(self) -> np.ndarray:
         """Get a rendered image from the camera.
 
         Returns:
             (array, shape=(height, width, 3)):  Rendered RGB image from the
                 simulated camera.
         """
-        # FIXME: images are upside down
         (_, _, img, _, _) = self._pybullet_client.getCameraImage(
             width=self._width,
             height=self._height,
@@ -86,11 +88,63 @@ class TriFingerCameras:
             ),
         ]
 
-    def get_images(self):
+    def get_images(self) -> typing.List[np.ndarray]:
         """Get images.
 
         Returns:
-            List of images, one per camera.  Order is [camera60, camera180,
+            List of RGB images, one per camera.  Order is [camera60, camera180,
             camera300].  See Camera.get_image() for details.
         """
         return [c.get_image() for c in self.cameras]
+
+    def get_bayer_images(self) -> typing.List[np.ndarray]:
+        """Get Bayer images.
+
+        Same as get_images() but returning the images as BG-Bayer patterns
+        instead of RGB.
+        """
+        return [rbg_to_bayer_bg(c.get_image()) for c in self.cameras]
+
+
+def rbg_to_bayer_bg(image: np.ndarray) -> np.ndarray:
+    """Convert an rgb image to a BG Bayer pattern.
+
+    This can be used to generate simulated raw camera data in Bayer format.
+    Note that there will be some loss in image quality.  It is mostly meant for
+    testing the full software pipeline with the same conditions as on the real
+    robot.  It is not optimized of realistic images.
+
+    Args:
+        image: RGB image.
+
+    Returns:
+        BG-Bayer pattern based on the input image.  Height and width are the
+        same as of the input image.
+    """
+    # there is only one channel but it still needs the third dimension, so that
+    # the conversion to a cv::Mat in C++ is easier
+    bayer_img = np.zeros((image.shape[0], image.shape[1], 1), dtype=np.uint8)
+
+    # channel names, assuming input is RGB
+    CHANNEL_RED = 0
+    CHANNEL_GREEN = 1
+    CHANNEL_BLUE = 2
+
+    # channel map to get the following pattern:
+    #
+    #   BG
+    #   GR
+    #
+    channel_map = {
+        (0, 0): CHANNEL_BLUE,
+        (1, 0): CHANNEL_GREEN,
+        (0, 1): CHANNEL_GREEN,
+        (1, 1): CHANNEL_RED,
+    }
+
+    for r in range(image.shape[0]):
+        for c in range(image.shape[1]):
+            channel = channel_map[(r % 2, c % 2)]
+            bayer_img[r, c] = image[r, c, channel]
+
+    return bayer_img
