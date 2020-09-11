@@ -129,7 +129,7 @@ def feasible_random_joint_positions_for_reaching(
                     low=[-np.pi / 2, np.deg2rad(-77.5), np.deg2rad(-172)],
                     high=[np.pi / 2, np.deg2rad(257.5), np.deg2rad(-2)],
                 )
-                tip_pos = finger.pinocchio_utils.forward_kinematics(
+                tip_pos = finger.kinematics.forward_kinematics(
                     np.concatenate(
                         [joint_pos for i in range(finger.number_of_fingers)]
                     ),

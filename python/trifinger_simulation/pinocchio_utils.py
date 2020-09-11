@@ -3,7 +3,7 @@ import numpy as np
 import pinocchio
 
 
-class PinocchioUtils:
+class Kinematics:
     """Forward and inverse kinematics for the finger platform."""
 
     def __init__(self, finger_urdf_path, tip_link_names):

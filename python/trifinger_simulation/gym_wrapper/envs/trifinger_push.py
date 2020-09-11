@@ -150,7 +150,7 @@ class TriFingerPush(gym.Env):
         """
         joint_positions = observation.position
         joint_velocities = observation.velocity
-        tip_positions = self.finger.pinocchio_utils.forward_kinematics(
+        tip_positions = self.finger.kinematics.forward_kinematics(
             joint_positions
         )
         end_effector_position = np.concatenate(tip_positions)

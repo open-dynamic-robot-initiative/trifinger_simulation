@@ -201,7 +201,7 @@ class TriFingerReach(gym.Env):
             self.spaces.key_to_index["joint_positions"]
         ]
 
-        end_effector_positions = self.finger.pinocchio_utils.forward_kinematics(
+        end_effector_positions = self.finger.kinematics.forward_kinematics(
             np.array(joint_positions)
         )
 
@@ -226,7 +226,7 @@ class TriFingerReach(gym.Env):
             observation (list): comprising of the observations corresponding
                 to the key values in the observation_keys
         """
-        tip_positions = self.finger.pinocchio_utils.forward_kinematics(
+        tip_positions = self.finger.kinematics.forward_kinematics(
             observation.position
         )
         end_effector_position = np.concatenate(tip_positions)
@@ -351,7 +351,7 @@ class TriFingerReach(gym.Env):
                 self.finger, self.spaces.action_bounds
             )
         )
-        self.goal = self.finger.pinocchio_utils.forward_kinematics(
+        self.goal = self.finger.kinematics.forward_kinematics(
             target_joint_config
         )
 

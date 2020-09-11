@@ -17,7 +17,7 @@ def main():
     init_pos = np.array([0, 0.9, -1.7] * finger.number_of_fingers)
     finger.reset_finger_positions_and_velocities(init_pos)
 
-    tip_positions = finger.pinocchio_utils.forward_kinematics(init_pos)
+    tip_positions = finger.kinematics.forward_kinematics(init_pos)
 
     # move the tips back and forth on the y-axis
     joint_pos = init_pos
@@ -33,7 +33,7 @@ def main():
 
             for i in range(len(tip_positions)):
                 tip_positions[i][1] += sign * 0.05 / n_steps
-            joint_pos, err = finger.pinocchio_utils.inverse_kinematics(
+            joint_pos, err = finger.kinematics.inverse_kinematics(
                 tip_positions, obs.position
             )
             print("error:", [round(np.linalg.norm(e), 4) for e in err])

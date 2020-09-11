@@ -75,7 +75,7 @@ class SimFinger:
         self.__connect_to_pybullet(enable_visualization)
         self.__setup_pybullet_simulation()
 
-        self.pinocchio_utils = pinocchio_utils.PinocchioUtils(
+        self.kinematics = pinocchio_utils.Kinematics(
             self.finger_urdf_path, self.tip_link_names
         )
 
