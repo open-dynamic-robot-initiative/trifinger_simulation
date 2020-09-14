@@ -52,7 +52,7 @@ def main():
             finger_action = finger.Action(position=desired_joint_positions)
             # visualize the goal position of the finger tip
             position_goals.set_state(
-                finger.pinocchio_utils.forward_kinematics(
+                finger.kinematics.forward_kinematics(
                     desired_joint_positions
                 )
             )

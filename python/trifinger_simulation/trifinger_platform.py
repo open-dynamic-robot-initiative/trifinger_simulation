@@ -195,7 +195,7 @@ class TriFingerPlatform:
 
         # forward kinematics directly to simfinger
         self.forward_kinematics = (
-            self.simfinger.pinocchio_utils.forward_kinematics
+            self.simfinger.kinematics.forward_kinematics
         )
 
         # Initialize log
