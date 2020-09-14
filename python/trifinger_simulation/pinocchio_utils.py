@@ -1,16 +1,24 @@
-import numpy as np
+import typing
 
+import numpy as np
 import pinocchio
 
 
 class Kinematics:
-    """Forward and inverse kinematics for the finger platform."""
+    """Forward and inverse kinematics for arbitrary Finger robots.
 
-    def __init__(self, finger_urdf_path, tip_link_names):
-        """Initializes the finger model on which control's to be performed.
+    Provides forward and inverse kinematics functions for a Finger robot with
+    arbitrarily many independent fingers.
+    """
+
+    def __init__(
+        self, finger_urdf_path: str, tip_link_names: typing.Iterable[str]
+    ):
+        """Initializes the robot model.
 
         Args:
-            finger (SimFinger): An instance of the SimFinger class
+            finger_urdf_path:  Path to the URDF file describing the robot.
+            tip_link_names:  Names of the finger tip frames, one per finger.
         """
         self.robot_model = pinocchio.buildModelFromUrdf(finger_urdf_path)
         self.data = self.robot_model.createData()
@@ -19,12 +27,11 @@ class Kinematics:
             for link_name in tip_link_names
         ]
 
-    def forward_kinematics(self, joint_positions):
-        """Compute end effector positions for the given joint configuration.
+    def forward_kinematics(self, joint_positions) -> typing.List[np.ndarray]:
+        """Compute end-effector positions for the given joint configuration.
 
         Args:
-            finger (SimFinger): a SimFinger object
-            joint_positions (list): Flat list of angular joint positions.
+            joint_positions:  Flat list of angular joint positions.
 
         Returns:
             List of end-effector positions. Each position is given as an
@@ -41,7 +48,9 @@ class Kinematics:
             for link_id in self.tip_link_ids
         ]
 
-    def _inverse_kinematics_step(self, frame_id, xdes, q0):
+    def _inverse_kinematics_step(
+        self, frame_id: int, xdes: np.ndarray, q0: np.ndarray
+    ) -> typing.Tuple[np.ndarray, np.ndarray]:
         """Compute one IK iteration for a single finger."""
         dt = 1.0e-1
         pinocchio.computeJointJacobians(
@@ -72,12 +81,12 @@ class Kinematics:
 
     def inverse_kinematics_one_finger(
         self,
-        finger_idx,
-        tip_target_position,
-        joint_angles_guess,
-        tolerance=0.005,
-        max_iterations=1000,
-    ):
+        finger_idx: int,
+        tip_target_position: np.ndarray,
+        joint_angles_guess: np.ndarray,
+        tolerance: float = 0.005,
+        max_iterations: int = 1000,
+    ) -> typing.Tuple[np.ndarray, np.ndarray]:
         """Inverse kinematics for a single finger.
 
         Args:
@@ -92,7 +101,7 @@ class Kinematics:
         Returns:
             tuple: First element is the joint configuration (for joints that
                 are not part of the specified finger, the values from the
-                initial guess are kept.
+                initial guess are kept).
                 Second element is (x,y,z)-error of the tip position.
         """
         q = joint_angles_guess
@@ -107,11 +116,11 @@ class Kinematics:
 
     def inverse_kinematics(
         self,
-        tip_target_positions,
-        joint_angles_guess,
-        tolerance=0.005,
-        max_iterations=1000,
-    ):
+        tip_target_positions: typing.Iterable[np.ndarray],
+        joint_angles_guess: np.ndarray,
+        tolerance: float = 0.005,
+        max_iterations: int = 1000,
+    ) -> typing.Tuple[np.ndarray, typing.List[np.ndarray]]:
         """Inverse kinematics for the whole manipulator.
 
         Args:
@@ -120,6 +129,10 @@ class Kinematics:
             joint_angles_guess: See :meth:`inverse_kinematics_one_finger`.
             tolerance: See :meth:`inverse_kinematics_one_finger`.
             max_iterations: See :meth:`inverse_kinematics_one_finger`.
+
+        Returns:
+            tuple: First element is the joint configuration, second element is
+            a list of (x,y,z)-errors of the tip positions.
         """
         q = joint_angles_guess
         errors = []
