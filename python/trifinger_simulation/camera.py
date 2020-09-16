@@ -32,6 +32,11 @@ class Camera(object):
                 image.
             pybullet_client:  Client for accessing the simulation.  By default
                 the "pybullet" module is used directly.
+            field_of_view: Field of view of the camera
+            near_plane_distance: see OpenGL's documentation for details
+            far_plane_distance: see OpenGL's documentation for details
+            target_position: where should the camera be pointed at
+            camera_up_vector: the up axis of the camera
         """
         self._kwargs = kwargs
         self._pybullet_client = pybullet_client
@@ -60,6 +65,10 @@ class Camera(object):
 
     def get_image(self, renderer=None) -> np.ndarray:
         """Get a rendered image from the camera.
+
+        Args:
+            renderer: Specify which renderer is to be used, if None,
+                the display via X server will be used
 
         Returns:
             (array, shape=(height, width, 3)):  Rendered RGB image from the
