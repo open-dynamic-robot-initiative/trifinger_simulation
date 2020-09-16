@@ -23,7 +23,7 @@ def random_position_in_arena(
             The random position of the target set in the arena.
         """
     angle = random.uniform(*angle_limits)
-    radial_distance = random.uniform(*radius_limits)
+    radial_distance = max(radius_limits) * np.sqrt(random.random())
 
     if isinstance(height_limits, (int, float)):
         height_z = height_limits
