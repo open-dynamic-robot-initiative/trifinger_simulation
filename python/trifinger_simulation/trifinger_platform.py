@@ -162,7 +162,7 @@ class TriFingerPlatform:
             time_step=self._time_step,
             enable_visualization=visualization,
         )
-        _kwargs = {'physicsClientId': self.simfinger._pybullet_client_id}
+        _kwargs = {"physicsClientId": self.simfinger._pybullet_client_id}
         if initial_robot_position is None:
             initial_robot_position = self.spaces.robot_position.default
 
@@ -195,9 +195,7 @@ class TriFingerPlatform:
         self.get_robot_observation = self.simfinger.get_observation
 
         # forward kinematics directly to simfinger
-        self.forward_kinematics = (
-            self.simfinger.kinematics.forward_kinematics
-        )
+        self.forward_kinematics = self.simfinger.kinematics.forward_kinematics
 
         # Initialize log
         # ==============

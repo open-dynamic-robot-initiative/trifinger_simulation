@@ -63,7 +63,7 @@ class Camera(object):
                 simulated camera.
         """
         if renderer is None:
-            renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
+            renderer = pybullet.ER_BULLET_HARDWARE_OPENGL
         (_, _, img, _, _) = self._pybullet_client.getCameraImage(
             width=self._width,
             height=self._height,

@@ -72,7 +72,9 @@ class SimFinger:
 
         self.__create_link_lists()
         self.__set_urdf_path()
-        self._pybullet_client_id = self.__connect_to_pybullet(enable_visualization)
+        self._pybullet_client_id = self.__connect_to_pybullet(
+            enable_visualization
+        )
         self.__setup_pybullet_simulation()
 
         self.kinematics = pinocchio_utils.Kinematics(
@@ -388,9 +390,7 @@ class SimFinger:
         """
         Step the simulation to go to the next world state.
         """
-        pybullet.stepSimulation(
-            physicsClientId=self._pybullet_client_id,
-        )
+        pybullet.stepSimulation(physicsClientId=self._pybullet_client_id,)
 
     def _disconnect_from_pybullet(self):
         """Disconnect from the simulation.
@@ -399,9 +399,7 @@ class SimFinger:
         avoid any further function calls to it.
         """
         if pybullet.isConnected(physicsClientId=self._pybullet_client_id):
-            pybullet.disconnect(
-                physicsClientId=self._pybullet_client_id,
-            )
+            pybullet.disconnect(physicsClientId=self._pybullet_client_id,)
 
     def __set_pybullet_motor_torques(self, motor_torques):
 
@@ -549,14 +547,15 @@ class SimFinger:
             physicsClientId=self._pybullet_client_id,
         )
         pybullet.setGravity(
-            0, 0, -9.81,
-            physicsClientId=self._pybullet_client_id,
+            0, 0, -9.81, physicsClientId=self._pybullet_client_id,
         )
         pybullet.setTimeStep(
-            self.time_step_s, physicsClientId=self._pybullet_client_id)
+            self.time_step_s, physicsClientId=self._pybullet_client_id
+        )
 
         pybullet.loadURDF(
-            "plane_transparent.urdf", [0, 0, 0],
+            "plane_transparent.urdf",
+            [0, 0, 0],
             physicsClientId=self._pybullet_client_id,
         )
         self.__load_robot_urdf()
@@ -666,19 +665,19 @@ class SimFinger:
         # Source: https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=12728.
         link_name_to_index = {
             pybullet.getBodyInfo(
-                self.finger_id,
-                physicsClientId=self._pybullet_client_id,
+                self.finger_id, physicsClientId=self._pybullet_client_id,
             )[0].decode("UTF-8"): -1,
         }
-        for joint_idx in range(pybullet.getNumJoints(
-            self.finger_id, physicsClientId=self._pybullet_client_id,)):
+        for joint_idx in range(
+            pybullet.getNumJoints(
+                self.finger_id, physicsClientId=self._pybullet_client_id,
+            )
+        ):
             link_name = pybullet.getJointInfo(
                 self.finger_id,
                 joint_idx,
                 physicsClientId=self._pybullet_client_id,
-            )[
-                12
-            ].decode("UTF-8")
+            )[12].decode("UTF-8")
             link_name_to_index[link_name] = joint_idx
 
         self.pybullet_link_indices = [
