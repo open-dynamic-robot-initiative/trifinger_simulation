@@ -703,11 +703,19 @@ class SimFinger:
             )
 
         if self.finger_type in ["fingerone", "fingeredu"]:
+            # collision_objects.import_mesh(
+            #     mesh_path("Stage_simplified.stl"),
+            #     position=[0, 0, 0],
+            #     is_concave=True,
+            #     pybullet_client_id=self._pybullet_client_id,
+            # )
+            high_border_colour = (0.73, 0.68, 0.72, 1.0)
             collision_objects.import_mesh(
-                mesh_path("Stage_simplified.stl"),
-                position=[0, 0, 0],
-                is_concave=True,
-                pybullet_client_id=self._pybullet_client_id,
+                    mesh_path("high_table_boundary.stl"),
+                    position=[0, 0, 0],
+                    is_concave=True,
+                    color_rgba=high_border_colour,
+                    pybullet_client_id=self._pybullet_client_id,
             )
 
         elif self.finger_type in ["trifingerone", "trifingerpro"]:

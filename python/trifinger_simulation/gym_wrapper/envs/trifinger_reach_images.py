@@ -107,12 +107,6 @@ class TriFingerReachImages(gym.Env):
         self.prev_time = datetime.now()
         self.seed()
         self.reset()
-        # self.finger = SimFinger(
-        #     finger_type=finger_type,
-        #     enable_visualization=enable_visualization,
-        # )
-        # self.num_fingers = finger_types_data.get_number_of_fingers(
-        #     finger_type)
 
         self.distance_threshold = 0.0575
         # this would translate into a reaching error of 2.5 cm from
@@ -164,11 +158,11 @@ class TriFingerReachImages(gym.Env):
         multi_view_images = []
         # for theta in range(0, 360, 10):
         camera_eye_at = [
-                self.data_motion_zone["radius"] * np.cos(
-                    math.radians(self.viewing_angle)),
-                self.data_motion_zone["radius"] * np.sin(
-                    math.radians(self.viewing_angle)),
-                self.data_motion_zone["height"],
+            self.data_motion_zone["radius"] * np.cos(
+                math.radians(self.viewing_angle)),
+            self.data_motion_zone["radius"] * np.sin(
+                math.radians(self.viewing_angle)),
+            self.data_motion_zone["height"],
             ]
         sim_camera = camera.Camera(
             camera_position=camera_eye_at,
@@ -178,7 +172,7 @@ class TriFingerReachImages(gym.Env):
             ),
             target_position=[0, 0, 0],
             camera_up_vector=[0, 0, 1],
-            field_of_view=60,
+            field_of_view=60.0,
             near_plane_distance=0.1,
             far_plane_distance=3.1,
             physicsClientId=self.finger._pybullet_client_id,
@@ -195,6 +189,7 @@ class TriFingerReachImages(gym.Env):
             bgr_img_resized_normalized)
         # skimage.io.imsave('0.png', self.bgr_img_resized)
         observation_dict["representation"] = bgr_img_resized_normalized
+        # import ipdb; ipdb.set_trace()
         return observation_dict["representation"]
 
     def step(self, action):
@@ -227,6 +222,7 @@ class TriFingerReachImages(gym.Env):
     def reset(self):
         del self.finger
         del self.object
+
         self._elapsed_steps = 0
 
         self.finger = SimFinger(
