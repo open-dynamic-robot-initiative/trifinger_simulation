@@ -134,6 +134,7 @@ class TriFingerReachImages(gym.Env):
             skimage.io.imsave(
                 'NaN_joint_positions.png', self.bgr_img_resized
             )
+            raise Exception
         try:
             end_effector_positions = \
                 np.asarray(self.finger.kinematics.forward_kinematics(
@@ -147,6 +148,7 @@ class TriFingerReachImages(gym.Env):
             skimage.io.imsave(
                 'NaN_tip_positions.png', self.bgr_img_resized
             )
+            raise Exception
         distance_to_goal = utils.compute_distance(
             end_effector_positions, goal)
         reward = -distance_to_goal
