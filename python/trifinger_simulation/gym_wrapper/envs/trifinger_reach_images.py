@@ -30,7 +30,7 @@ class TriFingerReachImages(gym.Env):
         control_rate_s=0.02,
         representation_size=256,
         finger_type="fingerone",
-        enable_visualization=True,
+        enable_visualization=False,
         max_episode_steps=None,
         viewing_angle=25 * 10,
     ):
