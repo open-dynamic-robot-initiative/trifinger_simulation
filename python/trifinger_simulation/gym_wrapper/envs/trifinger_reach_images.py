@@ -67,14 +67,14 @@ class TriFingerReachImages(gym.Env):
             for key in self.observations_keys
             for value in self.upper_bounds[key]
         ]
-        self.observation_space = gym.spaces.Box(
+        self.unscaled_observation_space = gym.spaces.Box(
             low=-np.inf,
             high=+np.inf,
             shape=(64, 64, 3),
             # low=np.array(self.lower_bounds["representation"]),
             # high=np.array(self.upper_bounds["representation"])
         )
-        self.action_space = gym.spaces.Box(
+        self.unscaled_action_space = gym.spaces.Box(
             low=np.array(self.lower_bounds["action_joint_torques"]),
             high=np.array(self.upper_bounds["action_joint_torques"])
         )
@@ -85,6 +85,14 @@ class TriFingerReachImages(gym.Env):
                 slice_start, slice_start + self.observations_sizes[i]
             )
             slice_start += self.observations_sizes[i]
+        self.observation_space = gym.spaces.Box(
+            low=-np.ones_like(self.unscaled_observation_space.low),
+            high=np.ones_like(self.unscaled_observation_space.high),
+        )
+        self.action_space = gym.spaces.Box(
+            low=-np.ones_like(self.unscaled_action_space.low),
+            high=np.ones_like(self.unscaled_action_space.high),
+        )
 
         self.viewing_angle = viewing_angle
         self.data_motion_zone = dict(
@@ -190,7 +198,11 @@ class TriFingerReachImages(gym.Env):
         return observation_dict["representation"]
 
     def step(self, action):
-        assert self._elapsed_steps is not None, "Cannot call env.step() before calling reset()"
+        assert self._elapsed_steps is not None, \
+            "Cannot call env.step() before calling reset()"
+        action = utils.unscale(
+            action, self.unscaled_action_space
+        )
         finger_action = self.finger.Action(torque=action)
         state = None
         for _ in range(self.steps_per_control):
@@ -202,7 +214,9 @@ class TriFingerReachImages(gym.Env):
         if self._elapsed_steps >= self._max_episode_steps:
             done = True
         self._elapsed_steps += 1
-        return np.asarray(state), reward, done, info
+        state = np.asarray(
+            utils.scale(state, self.unscaled_observation_space))
+        return state, reward, done, info
 
     def is_success(self, dist):
         if dist < self.distance_threshold:
@@ -249,7 +263,8 @@ class TriFingerReachImages(gym.Env):
             color_rgba=[0, 0, 0, 1],
             physicsClientId=self.finger._pybullet_client_id,
         )
-        image = self._get_state()
+        image = utils.scale(
+            self._get_state(), self.unscaled_observation_space)
         # skimage.io.imsave('r0.png', self.bgr_img_resized)
         return image
 
