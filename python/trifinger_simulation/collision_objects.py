@@ -65,6 +65,7 @@ class Block:
         orientation=[0, 0, 0, 1],
         half_size=0.0325,
         mass=0.08,
+        color_rgba=[0, 0, 0, 1],
         **kwargs,
     ):
         """
@@ -102,6 +103,11 @@ class Block:
             spinningFriction=spinning_friction,
             restitution=restitution,
             **self._kwargs,
+        )
+        pybullet.changeVisualShape(
+            self.block,
+            -1,
+            rgbaColor=color_rgba,
         )
 
     def set_state(self, position, orientation):

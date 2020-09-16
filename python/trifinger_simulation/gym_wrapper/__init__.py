@@ -13,3 +13,8 @@ register(
     id="real_robot_challenge_phase_1-v1",
     entry_point="trifinger_simulation.gym_wrapper.envs.cube_env:CubeEnv",
 )
+
+register(
+    id="TriFingerReachImages-v1",
+    entry_point="trifinger_simulation.gym_wrapper.envs.trifinger_reach_images:TriFingerReachImages",
+)
