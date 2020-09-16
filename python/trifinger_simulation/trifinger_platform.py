@@ -162,7 +162,7 @@ class TriFingerPlatform:
             time_step=self._time_step,
             enable_visualization=visualization,
         )
-
+        _kwargs = {'physicsClientId': self.simfinger._pybullet_client_id}
         if initial_robot_position is None:
             initial_robot_position = self.spaces.robot_position.default
 
@@ -179,9 +179,10 @@ class TriFingerPlatform:
             initial_object_pose.position,
             initial_object_pose.orientation,
             mass=0.020,
+            **_kwargs,
         )
 
-        self.tricamera = camera.TriFingerCameras()
+        self.tricamera = camera.TriFingerCameras(**_kwargs)
 
         # Forward some methods for convenience
         # ====================================

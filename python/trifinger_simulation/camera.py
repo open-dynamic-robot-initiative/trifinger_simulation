@@ -14,6 +14,9 @@ class Camera(object):
         camera_orientation,
         image_size=(270, 270),
         pybullet_client=pybullet,
+        field_of_view=52,
+        near_plane_distance=0.001,
+        far_plane_distance=100.0,
     ):
         """Initialize.
 
@@ -42,25 +45,27 @@ class Camera(object):
         )
 
         self._proj_matrix = self._pybullet_client.computeProjectionMatrixFOV(
-            fov=52,
+            fov=field_of_view,
             aspect=float(self._width) / self._height,
-            nearVal=0.001,
-            farVal=100.0,
+            nearVal=near_plane_distance,
+            farVal=far_plane_distance,
         )
 
-    def get_image(self) -> np.ndarray:
+    def get_image(self, renderer=None) -> np.ndarray:
         """Get a rendered image from the camera.
 
         Returns:
             (array, shape=(height, width, 3)):  Rendered RGB image from the
                 simulated camera.
         """
+        if renderer is None:
+            renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
         (_, _, img, _, _) = self._pybullet_client.getCameraImage(
             width=self._width,
             height=self._height,
             viewMatrix=self._view_matrix,
             projectionMatrix=self._proj_matrix,
-            renderer=pybullet.ER_BULLET_HARDWARE_OPENGL,
+            renderer=renderer,
         )
         # remove the alpha channel
         return img[:, :, :3]
