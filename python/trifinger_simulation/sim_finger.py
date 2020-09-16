@@ -617,9 +617,11 @@ class SimFinger:
         the view of the camera.
         """
         if enable_visualization:
-            pybullet.connect(pybullet.GUI)
+            pybullet_client_id = pybullet.connect(pybullet.GUI)
         else:
-            pybullet.connect(pybullet.DIRECT)
+            pybullet_client_id = pybullet.connect(pybullet.DIRECT)
+
+        return pybullet_client_id
 
     def __set_urdf_path(self):
         """
