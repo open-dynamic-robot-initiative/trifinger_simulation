@@ -17,6 +17,8 @@ class Camera(object):
         field_of_view=52,
         near_plane_distance=0.001,
         far_plane_distance=100.0,
+        target_position=None,
+        camera_up_vector=None,
         **kwargs,
     ):
         """Initialize.
@@ -36,9 +38,10 @@ class Camera(object):
         self._width = image_size[0]
         self._height = image_size[1]
 
-        camera_rot = Rotation.from_quat(camera_orientation)
-        target_position = camera_rot.apply([0, 0, 1])
-        camera_up_vector = camera_rot.apply([0, -1, 0])
+        if target_position is None and camera_up_vector is None:
+            camera_rot = Rotation.from_quat(camera_orientation)
+            target_position = camera_rot.apply([0, 0, 1])
+            camera_up_vector = camera_rot.apply([0, -1, 0])
 
         self._view_matrix = self._pybullet_client.computeViewMatrix(
             cameraEyePosition=camera_position,
