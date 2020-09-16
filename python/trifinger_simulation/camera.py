@@ -11,7 +11,7 @@ class Camera(object):
     def __init__(
         self,
         camera_position,
-        camera_orientation,
+        camera_orientation=None,
         image_size=(270, 270),
         pybullet_client=pybullet,
         field_of_view=52,
