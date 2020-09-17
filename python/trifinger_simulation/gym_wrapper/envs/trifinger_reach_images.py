@@ -106,6 +106,7 @@ class TriFingerReachImages(gym.Env):
                 )
 
         self._start_time = datetime.now().strftime("%Y%m%d-%H%M%S-")
+        self._num_episodes = 0
 
         self.prev_time = datetime.now()
         self.seed()
@@ -117,7 +118,7 @@ class TriFingerReachImages(gym.Env):
         # but let's try with it for now.
         self._max_episode_steps = max_episode_steps
         self._elapsed_steps = None
-        self._num_episodes = 0
+
         self.steps_per_control = int(
             round(control_rate_s / self.finger.time_step_s))
         assert (
@@ -279,6 +280,7 @@ class TriFingerReachImages(gym.Env):
                 self._env_log_dir,
                 "env_at_episode_" + str(self._num_episodes)),
                 self.bgr_img_resized)
+        self._num_episodes += 1
         return image
 
     def seed(self, seed=None):
