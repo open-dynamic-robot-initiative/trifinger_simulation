@@ -278,7 +278,7 @@ class TriFingerReachImages(gym.Env):
                 os.makedirs(self._env_log_dir)
             skimage.io.imsave(os.path.join(
                 self._env_log_dir,
-                "env_at_episode_" + str(self._num_episodes)),
+                str(self._num_episodes)) + ".png",
                 self.bgr_img_resized)
         self._num_episodes += 1
         return image
