@@ -271,7 +271,7 @@ class TriFingerReachImages(gym.Env):
         if log:
             self._env_log_dir = os.path.join(
             str(self._start_time) +
-            self.finger._pybullet_client_id,
+            str(self.finger._pybullet_client_id),
             )
             if not os.path.isdir(self._env_log_dir):
                 os.makedirs(self._env_log_dir)
