@@ -171,17 +171,17 @@ class TriFingerReachImages(gym.Env):
             image_size=(
                 self.data_format["image_height"],
                 self.data_format["image_width"],
-            ),
+                ),
             target_position=[0, 0, 0],
             camera_up_vector=[0, 0, 1],
             field_of_view=60.0,
             near_plane_distance=0.1,
             far_plane_distance=3.1,
             physicsClientId=self.finger._pybullet_client_id,
-        )
+            )
         rgb_img_array = sim_camera.get_image(
             renderer=pybullet.ER_TINY_RENDERER
-        )
+            )
         rgb_img_resized = transform.resize(
             rgb_img_array, (64, 64))
         bgr_img_resized = rgb_img_resized[..., ::-1]
@@ -211,9 +211,9 @@ class TriFingerReachImages(gym.Env):
         if self._elapsed_steps >= self._max_episode_steps:
             done = True
         self._elapsed_steps += 1
-        state = np.asarray(
-            utils.scale(state, self.unscaled_observation_space))
-        return state, reward, done, info
+        # state = np.asarray(
+        #     utils.scale(state, self.unscaled_observation_space))
+        return np.asarray(state), reward, done, info
 
     def is_success(self, dist):
         if dist < self.distance_threshold:
@@ -261,8 +261,9 @@ class TriFingerReachImages(gym.Env):
             color_rgba=[0, 0, 0, 1],
             physicsClientId=self.finger._pybullet_client_id,
         )
-        image = utils.scale(
-            self._get_state(), self.unscaled_observation_space)
+        # image = utils.scale(
+        #     self._get_state(), self.unscaled_observation_space)
+        image = np.asarray(self._get_state())
         # skimage.io.imsave('r0.png', self.bgr_img_resized)
         return image
 
