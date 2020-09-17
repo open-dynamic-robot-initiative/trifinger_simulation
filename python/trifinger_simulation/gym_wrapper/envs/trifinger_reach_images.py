@@ -32,7 +32,7 @@ class TriFingerReachImages(gym.Env):
         representation_size=256,
         finger_type="fingerone",
         enable_visualization=False,
-        max_episode_steps=None,
+        max_episode_steps=100,
         viewing_angle=25 * 10,
     ):
         self.finger_type = finger_type
@@ -110,6 +110,15 @@ class TriFingerReachImages(gym.Env):
 
         self.prev_time = datetime.now()
         self.seed()
+        # self.finger = SimFinger(
+        #     finger_type=self.finger_type,
+        #     enable_visualization=self.enable_visualization,
+        # )
+        # self.object = collision_objects.Block(
+        #     # position=self.goal,
+        #     color_rgba=[0, 0, 0, 1],
+        #     physicsClientId=self.finger._pybullet_client_id,
+        # )
         self.reset()
 
         self.distance_threshold = 0.0575
@@ -226,7 +235,7 @@ class TriFingerReachImages(gym.Env):
         else:
             return False
 
-    def reset(self, log=True):
+    def reset(self, log=False):
         del self.finger
         del self.object
 
@@ -240,16 +249,13 @@ class TriFingerReachImages(gym.Env):
         action = sample.random_joint_positions(
             self.num_fingers
         )
-        observation = self.finger.reset_finger_positions_and_velocities(
-            action)
-        target_joint_config = np.asarray(
-            sample.random_joint_positions(
-                self.num_fingers
-            )
-        )
-        self.goal = self.finger.kinematics.forward_kinematics(
-            target_joint_config
-        )
+        # observation = self.finger.reset_finger_positions_and_velocities(
+        #     action)
+        # target_joint_config = np.asarray(
+        #     sample.random_joint_positions(
+        #         self.num_fingers
+        #     )
+        # )
         self.object_height_limits = 0.0325
         self.object_angle_limits = (-2 * math.pi, 2 * math.pi)
         self.object_radius_limits = (0.0, 0.15)
