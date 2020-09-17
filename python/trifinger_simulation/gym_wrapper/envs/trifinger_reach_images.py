@@ -13,8 +13,9 @@ from trifinger_simulation import (
 )
 import skimage.io
 from skimage import transform
-from datetime import datetime
+from datetime import date, datetime
 import pybullet
+import os
 # from scipy.misc import imresize
 # scipy==1.1.0 for image resize is lossless
 # newer versions- imageio
@@ -104,6 +105,8 @@ class TriFingerReachImages(gym.Env):
                 image_width=256,
                 )
 
+        self._start_time = datetime.now().strftime("%Y%m%d-%H%M%S-")
+
         self.prev_time = datetime.now()
         self.seed()
         self.reset()
@@ -114,6 +117,7 @@ class TriFingerReachImages(gym.Env):
         # but let's try with it for now.
         self._max_episode_steps = max_episode_steps
         self._elapsed_steps = None
+        self._num_episodes = 0
         self.steps_per_control = int(
             round(control_rate_s / self.finger.time_step_s))
         assert (
@@ -221,7 +225,7 @@ class TriFingerReachImages(gym.Env):
         else:
             return False
 
-    def reset(self):
+    def reset(self, log=True):
         del self.finger
         del self.object
 
@@ -264,7 +268,17 @@ class TriFingerReachImages(gym.Env):
         # image = utils.scale(
         #     self._get_state(), self.unscaled_observation_space)
         image = np.asarray(self._get_state())
-        # skimage.io.imsave('r0.png', self.bgr_img_resized)
+        if log:
+            self._env_log_dir = os.path.join(
+            str(self._start_time) +
+            self.finger._pybullet_client_id,
+            )
+            if not os.path.isdir(self._env_log_dir):
+                os.makedirs(self._env_log_dir)
+            skimage.io.imsave(os.path.join(
+                self._env_log_dir,
+                "env_at_episode_" + str(self._num_episodes)),
+                self.bgr_img_resized)
         return image
 
     def seed(self, seed=None):
