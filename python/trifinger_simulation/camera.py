@@ -60,19 +60,21 @@ class Camera(object):
             **self._kwargs,
         )
 
-    def get_image(self, renderer=None) -> np.ndarray:
+    def get_image(
+        self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL) -> np.ndarray:
         """Get a rendered image from the camera.
 
         Args:
-            renderer: Specify which renderer is to be used, if None,
-                the display via X server will be used
+            renderer: Specify which renderer is to be used. The renderer used
+                by default relies on X server. Note: this would need visualization
+                to have access to OpenGL. In order to use the renderer without
+                visualization, as in, in the "DIRECT" mode of connection, use
+                the ER_TINY_RENDERER.
 
         Returns:
             (array, shape=(height, width, 3)):  Rendered RGB image from the
                 simulated camera.
         """
-        if renderer is None:
-            renderer = pybullet.ER_BULLET_HARDWARE_OPENGL
         (_, _, img, _, _) = self._pybullet_client.getCameraImage(
             width=self._width,
             height=self._height,
