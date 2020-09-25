@@ -21,7 +21,10 @@ class TriFingerPush(gym.Env):
     """
 
     def __init__(
-        self, control_rate_s, finger_type, enable_visualization,
+        self,
+        control_rate_s,
+        finger_type,
+        enable_visualization,
     ):
         """Intializes the constituents of the pushing environment.
 
@@ -46,7 +49,8 @@ class TriFingerPush(gym.Env):
         #: an instance of the simulated robot depending on the desired
         #: robot type
         self.finger = SimFinger(
-            finger_type=finger_type, enable_visualization=enable_visualization,
+            finger_type=finger_type,
+            enable_visualization=enable_visualization,
         )
 
         self.num_fingers = finger_types_data.get_number_of_fingers(finger_type)

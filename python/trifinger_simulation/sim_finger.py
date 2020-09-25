@@ -31,7 +31,10 @@ class SimFinger:
     """
 
     def __init__(
-        self, finger_type, time_step=0.004, enable_visualization=False,
+        self,
+        finger_type,
+        time_step=0.004,
+        enable_visualization=False,
     ):
         """Constructor, initializes the physical world we will work in.
 
@@ -161,7 +164,8 @@ class SimFinger:
         # copy.copy(action) does **not** work for robot_interfaces
         # actions!
         self._desired_action_t = type(action)(
-            copy.copy(action.torque), copy.copy(action.position),
+            copy.copy(action.torque),
+            copy.copy(action.position),
         )
 
         self._applied_action_t = self._set_desired_action(action)
@@ -390,7 +394,9 @@ class SimFinger:
         """
         Step the simulation to go to the next world state.
         """
-        pybullet.stepSimulation(physicsClientId=self._pybullet_client_id,)
+        pybullet.stepSimulation(
+            physicsClientId=self._pybullet_client_id,
+        )
 
     def _disconnect_from_pybullet(self):
         """Disconnect from the simulation.
@@ -399,7 +405,9 @@ class SimFinger:
         avoid any further function calls to it.
         """
         if pybullet.isConnected(physicsClientId=self._pybullet_client_id):
-            pybullet.disconnect(physicsClientId=self._pybullet_client_id,)
+            pybullet.disconnect(
+                physicsClientId=self._pybullet_client_id,
+            )
 
     def __set_pybullet_motor_torques(self, motor_torques):
 
@@ -547,7 +555,10 @@ class SimFinger:
             physicsClientId=self._pybullet_client_id,
         )
         pybullet.setGravity(
-            0, 0, -9.81, physicsClientId=self._pybullet_client_id,
+            0,
+            0,
+            -9.81,
+            physicsClientId=self._pybullet_client_id,
         )
         pybullet.setTimeStep(
             self.time_step_s, physicsClientId=self._pybullet_client_id
@@ -665,12 +676,14 @@ class SimFinger:
         # Source: https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=12728.
         link_name_to_index = {
             pybullet.getBodyInfo(
-                self.finger_id, physicsClientId=self._pybullet_client_id,
+                self.finger_id,
+                physicsClientId=self._pybullet_client_id,
             )[0].decode("UTF-8"): -1,
         }
         for joint_idx in range(
             pybullet.getNumJoints(
-                self.finger_id, physicsClientId=self._pybullet_client_id,
+                self.finger_id,
+                physicsClientId=self._pybullet_client_id,
             )
         ):
             link_name = pybullet.getJointInfo(
