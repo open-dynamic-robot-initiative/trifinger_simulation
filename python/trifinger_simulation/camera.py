@@ -61,7 +61,8 @@ class Camera(object):
         )
 
     def get_image(
-        self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL) -> np.ndarray:
+        self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
+    ) -> np.ndarray:
         """Get a rendered image from the camera.
 
         Args:

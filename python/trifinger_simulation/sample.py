@@ -9,19 +9,19 @@ def random_position_in_arena(
     radius_limits=(0.0, 0.15),
 ):
     """
-        Set a new position in the arena for the interaction object, which
-        the finger has to reach.
+    Set a new position in the arena for the interaction object, which
+    the finger has to reach.
 
-        Args:
-            height_limits: the height range to sample from, or
-                a fixed height
-            angle_limits: the range of angles to sample from
-            radius_limits: distance range from the centre of the
-                arena at which a sampled point can lie
+    Args:
+        height_limits: the height range to sample from, or
+            a fixed height
+        angle_limits: the range of angles to sample from
+        radius_limits: distance range from the centre of the
+            arena at which a sampled point can lie
 
-        Returns:
-            The random position of the target set in the arena.
-        """
+    Returns:
+        The random position of the target set in the arena.
+    """
     angle = random.uniform(*angle_limits)
     radial_distance = max(radius_limits) * np.sqrt(random.random())
 

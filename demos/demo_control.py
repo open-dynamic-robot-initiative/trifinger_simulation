@@ -52,9 +52,7 @@ def main():
             finger_action = finger.Action(position=desired_joint_positions)
             # visualize the goal position of the finger tip
             position_goals.set_state(
-                finger.kinematics.forward_kinematics(
-                    desired_joint_positions
-                )
+                finger.kinematics.forward_kinematics(desired_joint_positions)
             )
         if args.control_mode == "torque":
             desired_joint_torques = [random.random()] * 3 * num_fingers

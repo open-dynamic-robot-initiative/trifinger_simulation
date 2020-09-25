@@ -56,7 +56,11 @@ def main():
     x = 0
 
     plt.rcParams.update(
-        {"font.size": 20, "font.weight": "bold", "axes.linewidth": 3,}
+        {
+            "font.size": 20,
+            "font.weight": "bold",
+            "axes.linewidth": 3,
+        }
     )
 
     if args.episode:

@@ -24,18 +24,21 @@ _min_height = _CUBE_WIDTH / 2
 _max_height = 0.1
 
 
-_cube_corners = np.array(
-    [
-        [-1, -1, -1],
-        [-1, -1, +1],
-        [-1, +1, -1],
-        [-1, +1, +1],
-        [+1, -1, -1],
-        [+1, -1, +1],
-        [+1, +1, -1],
-        [+1, +1, +1],
-    ]
-) * (_CUBE_WIDTH / 2)
+_cube_corners = (
+    np.array(
+        [
+            [-1, -1, -1],
+            [-1, -1, +1],
+            [-1, +1, -1],
+            [-1, +1, +1],
+            [+1, -1, -1],
+            [+1, -1, +1],
+            [+1, +1, -1],
+            [+1, +1, +1],
+        ]
+    )
+    * (_CUBE_WIDTH / 2)
+)
 
 
 class InvalidGoalError(Exception):
@@ -243,7 +246,9 @@ def validate_goal_file(filename):
 
     if "goal" in data:
         assert "position" in data["goal"], "goal does not contain 'position'"
-        assert "orientation" in data["goal"], "goal does not contain 'orientation'"
+        assert (
+            "orientation" in data["goal"]
+        ), "goal does not contain 'orientation'"
 
         goal = Pose.from_dict(data["goal"])
         validate_goal(goal)

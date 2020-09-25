@@ -49,7 +49,7 @@ class ExamplePushingTrainingEnv(gym.Env):
 
         Args:
             initializer: Initializer class for providing initial cube pose and
-                goal pose. If no initializer is provided, we will initialize in a way 
+                goal pose. If no initializer is provided, we will initialize in a way
                 which is be helpful for learning.
             action_type (ActionType): Specify which type of actions to use.
                 See :class:`ActionType` for details.

@@ -48,7 +48,10 @@ def import_mesh(
     # set colour
     if color_rgba is not None:
         pybullet.changeVisualShape(
-            obj, -1, rgbaColor=color_rgba, physicsClientId=pybullet_client_id,
+            obj,
+            -1,
+            rgbaColor=color_rgba,
+            physicsClientId=pybullet_client_id,
         )
 
     return obj
@@ -115,7 +118,10 @@ class Block:
             orientation: desired to be set
         """
         pybullet.resetBasePositionAndOrientation(
-            self.block, position, orientation, **self._kwargs,
+            self.block,
+            position,
+            orientation,
+            **self._kwargs,
         )
 
     def get_state(self):
@@ -124,7 +130,8 @@ class Block:
             Current position and orientation of the block.
         """
         position, orientation = pybullet.getBasePositionAndOrientation(
-            self.block, **self._kwargs,
+            self.block,
+            **self._kwargs,
         )
         return list(position), list(orientation)
 
@@ -134,7 +141,10 @@ class Block:
         """
         # At this point it may be that pybullet was already shut down. To avoid
         # an error, only remove the object if the simulation is still running.
-        if pybullet.isConnected(**self._kwargs,):
+        if pybullet.isConnected(
+            **self._kwargs,
+        ):
             pybullet.removeBody(
-                self.block, **self._kwargs,
+                self.block,
+                **self._kwargs,
             )
