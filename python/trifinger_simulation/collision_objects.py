@@ -7,6 +7,7 @@ def import_mesh(
     orientation=[0, 0, 0, 1],
     is_concave=False,
     color_rgba=None,
+    pybullet_client_id=None,
 ):
     """
     Create a collision object based on a mesh file.
@@ -30,7 +31,10 @@ def import_mesh(
         flags = 0
 
     object_id = pybullet.createCollisionShape(
-        shapeType=pybullet.GEOM_MESH, fileName=mesh_file_path, flags=flags
+        shapeType=pybullet.GEOM_MESH,
+        fileName=mesh_file_path,
+        flags=flags,
+        physicsClientId=pybullet_client_id,
     )
 
     obj = pybullet.createMultiBody(
@@ -38,11 +42,14 @@ def import_mesh(
         baseVisualShapeIndex=-1,
         basePosition=position,
         baseOrientation=orientation,
+        physicsClientId=pybullet_client_id,
     )
 
     # set colour
     if color_rgba is not None:
-        pybullet.changeVisualShape(obj, -1, rgbaColor=color_rgba)
+        pybullet.changeVisualShape(
+            obj, -1, rgbaColor=color_rgba, physicsClientId=pybullet_client_id,
+        )
 
     return obj
 
@@ -58,6 +65,7 @@ class Block:
         orientation=[0, 0, 0, 1],
         half_size=0.0325,
         mass=0.08,
+        **kwargs,
     ):
         """
         Import the block
@@ -69,14 +77,18 @@ class Block:
             half_size (float): how large should this block be
             mass (float): how heavy should this block be
         """
+        self._kwargs = kwargs
         self.block_id = pybullet.createCollisionShape(
-            shapeType=pybullet.GEOM_BOX, halfExtents=[half_size] * 3
+            shapeType=pybullet.GEOM_BOX,
+            halfExtents=[half_size] * 3,
+            **self._kwargs,
         )
         self.block = pybullet.createMultiBody(
             baseCollisionShapeIndex=self.block_id,
             basePosition=position,
             baseOrientation=orientation,
             baseMass=mass,
+            **self._kwargs,
         )
 
         # set dynamics of the block
@@ -89,6 +101,7 @@ class Block:
             lateralFriction=lateral_friction,
             spinningFriction=spinning_friction,
             restitution=restitution,
+            **self._kwargs,
         )
 
     def set_state(self, position, orientation):
@@ -102,7 +115,7 @@ class Block:
             orientation: desired to be set
         """
         pybullet.resetBasePositionAndOrientation(
-            self.block, position, orientation
+            self.block, position, orientation, **self._kwargs,
         )
 
     def get_state(self):
@@ -111,7 +124,7 @@ class Block:
             Current position and orientation of the block.
         """
         position, orientation = pybullet.getBasePositionAndOrientation(
-            self.block
+            self.block, **self._kwargs,
         )
         return list(position), list(orientation)
 
@@ -121,5 +134,7 @@ class Block:
         """
         # At this point it may be that pybullet was already shut down. To avoid
         # an error, only remove the object if the simulation is still running.
-        if pybullet.isConnected():
-            pybullet.removeBody(self.block)
+        if pybullet.isConnected(**self._kwargs,):
+            pybullet.removeBody(
+                self.block, **self._kwargs,
+            )

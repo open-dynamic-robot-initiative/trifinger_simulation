@@ -13,7 +13,11 @@ class Camera(object):
         camera_position,
         camera_orientation,
         image_size=(270, 270),
+        field_of_view=52,
+        near_plane_distance=0.001,
+        far_plane_distance=100.0,
         pybullet_client=pybullet,
+        **kwargs,
     ):
         """Initialize.
 
@@ -26,7 +30,13 @@ class Camera(object):
                 image.
             pybullet_client:  Client for accessing the simulation.  By default
                 the "pybullet" module is used directly.
+            field_of_view: Field of view of the camera
+            near_plane_distance: see OpenGL's documentation for details
+            far_plane_distance: see OpenGL's documentation for details
+            target_position: where should the camera be pointed at
+            camera_up_vector: the up axis of the camera
         """
+        self._kwargs = kwargs
         self._pybullet_client = pybullet_client
         self._width = image_size[0]
         self._height = image_size[1]
@@ -39,17 +49,27 @@ class Camera(object):
             cameraEyePosition=camera_position,
             cameraTargetPosition=target_position,
             cameraUpVector=camera_up_vector,
+            **self._kwargs,
         )
 
         self._proj_matrix = self._pybullet_client.computeProjectionMatrixFOV(
-            fov=52,
+            fov=field_of_view,
             aspect=float(self._width) / self._height,
-            nearVal=0.001,
-            farVal=100.0,
+            nearVal=near_plane_distance,
+            farVal=far_plane_distance,
+            **self._kwargs,
         )
 
-    def get_image(self) -> np.ndarray:
+    def get_image(
+        self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL) -> np.ndarray:
         """Get a rendered image from the camera.
+
+        Args:
+            renderer: Specify which renderer is to be used. The renderer used
+                by default relies on X server. Note: this would need visualization
+                to have access to OpenGL. In order to use the renderer without
+                visualization, as in, in the "DIRECT" mode of connection, use
+                the ER_TINY_RENDERER.
 
         Returns:
             (array, shape=(height, width, 3)):  Rendered RGB image from the
@@ -60,7 +80,8 @@ class Camera(object):
             height=self._height,
             viewMatrix=self._view_matrix,
             projectionMatrix=self._proj_matrix,
-            renderer=pybullet.ER_BULLET_HARDWARE_OPENGL,
+            renderer=renderer,
+            **self._kwargs,
         )
         # remove the alpha channel
         return img[:, :, :3]
@@ -69,22 +90,25 @@ class Camera(object):
 class TriFingerCameras:
     """Simulate the three cameras of the TriFinger platform."""
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.cameras = [
             # camera60
             Camera(
                 camera_position=[0.2496, 0.2458, 0.4190],
                 camera_orientation=[0.3760, 0.8690, -0.2918, -0.1354],
+                **kwargs,
             ),
             # camera180
             Camera(
                 camera_position=[0.0047, -0.2834, 0.4558],
                 camera_orientation=[0.9655, -0.0098, -0.0065, -0.2603],
+                **kwargs,
             ),
             # camera300
             Camera(
                 camera_position=[-0.2470, 0.2513, 0.3943],
                 camera_orientation=[-0.3633, 0.8686, -0.3141, 0.1220],
+                **kwargs,
             ),
         ]
 
