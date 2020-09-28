@@ -164,15 +164,18 @@ class CubeEnv(gym.GoalEnv):
 
     def compute_reward(self, achieved_goal, desired_goal, info):
         """Compute the reward for the given achieved and desired goal.
+
         Args:
             achieved_goal (dict): Current pose of the object.
             desired_goal (dict): Goal pose of the object.
             info (dict): An info dictionary containing a field "difficulty"
                 which specifies the difficulty level.
+
         Returns:
             float: The reward that corresponds to the provided achieved goal
             w.r.t. to the desired goal. Note that the following should always
             hold true::
+
                 ob, reward, done, info = env.step()
                 assert reward == env.compute_reward(
                     ob['achieved_goal'],
@@ -188,13 +191,17 @@ class CubeEnv(gym.GoalEnv):
 
     def step(self, action):
         """Run one timestep of the environment's dynamics.
+
         When end of episode is reached, you are responsible for calling
         ``reset()`` to reset this environment's state.
+
         Args:
             action: An action provided by the agent (depends on the selected
                 :class:`ActionType`).
+
         Returns:
             tuple:
+
             - observation (dict): agent's observation of the current
               environment.
             - reward (float) : amount of reward returned after previous action.
@@ -247,24 +254,32 @@ class CubeEnv(gym.GoalEnv):
     def reset(self):
         # reset simulation
         del self.platform
+
+        # initialize simulation
+        initial_robot_position = (
+            TriFingerPlatform.spaces.robot_position.default
+        )
+        initial_object_pose = self.initializer.get_initial_state()
+        goal_object_pose = self.initializer.get_goal()
+
         self.platform = TriFingerPlatform(
             visualization=self.visualization,
-            initial_robot_position=TriFingerPlatform.spaces.robot_position.default,
-            initial_object_pose=self.initializer.get_initial_state(),
+            initial_robot_position=initial_robot_position,
+            initial_object_pose=initial_object_pose,
         )
 
-        goal = self.initializer.get_goal()
         self.goal = {
-            "position": goal.position,
-            "orientation": goal.orientation,
+            "position": goal_object_pose.position,
+            "orientation": goal_object_pose.orientation,
         }
 
         # visualize the goal
         if self.visualization:
             self.goal_marker = visual_objects.CubeMarker(
                 width=0.065,
-                position=goal.position,
-                orientation=goal.orientation,
+                position=goal_object_pose.position,
+                orientation=goal_object_pose.orientation,
+                physicsClientId=self.platform.simfinger._pybullet_client_id,
             )
 
         self.info = {"difficulty": self.initializer.difficulty}
@@ -275,11 +290,14 @@ class CubeEnv(gym.GoalEnv):
 
     def seed(self, seed=None):
         """Sets the seed for this env’s random number generator.
+
         .. note::
+
            Spaces need to be seeded separately.  E.g. if you want to sample
            actions directly from the action space using
            ``env.action_space.sample()`` you can set a seed there using
            ``env.action_space.seed()``.
+
         Returns:
             List of seeds used by this environment.  This environment only uses
             a single seed, so the list contains only one element.

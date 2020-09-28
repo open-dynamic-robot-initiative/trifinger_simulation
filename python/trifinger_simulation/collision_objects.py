@@ -80,7 +80,9 @@ class Block:
             half_size (float): how large should this block be
             mass (float): how heavy should this block be
         """
+
         self._kwargs = kwargs
+
         self.block_id = pybullet.createCollisionShape(
             shapeType=pybullet.GEOM_BOX,
             halfExtents=[half_size] * 3,
@@ -141,10 +143,5 @@ class Block:
         """
         # At this point it may be that pybullet was already shut down. To avoid
         # an error, only remove the object if the simulation is still running.
-        if pybullet.isConnected(
-            **self._kwargs,
-        ):
-            pybullet.removeBody(
-                self.block,
-                **self._kwargs,
-            )
+        if pybullet.isConnected(**self._kwargs):
+            pybullet.removeBody(self.block, **self._kwargs)

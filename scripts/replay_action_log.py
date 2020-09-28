@@ -19,7 +19,7 @@ Both initial and goal pose are given as JSON strings with keys "position" and
 
 """
 import argparse
-import json
+import pickle
 import sys
 import numpy as np
 
@@ -64,15 +64,50 @@ def main():
     )
     args = parser.parse_args()
 
-    with open(args.logfile, "r") as fh:
-        log = json.load(fh)
+    with open(args.logfile, "rb") as fh:
+        log = pickle.load(fh)
 
     initial_object_pose = move_cube.Pose.from_json(args.initial_pose)
     goal_pose = move_cube.Pose.from_json(args.goal_pose)
 
+    # verify that the initial object pose matches with the one in the log file
+    try:
+        np.testing.assert_array_almost_equal(
+            initial_object_pose.position,
+            log["initial_object_pose"].position,
+            err_msg=(
+                "Given initial object position does not match with log file."
+            ),
+        )
+        np.testing.assert_array_almost_equal(
+            initial_object_pose.orientation,
+            log["initial_object_pose"].orientation,
+            err_msg=(
+                "Given initial object orientation does not match with log file."
+            ),
+        )
+    except AssertionError as e:
+        print("Failed.", file=sys.stderr)
+        print(e, file=sys.stderr)
+        sys.exit(1)
+
     platform = trifinger_platform.TriFingerPlatform(
         visualization=False, initial_object_pose=initial_object_pose
     )
+
+    # verify that the robot is initialized to the same position as in the log
+    # file
+    initial_robot_position = platform.get_robot_observation(0).position
+    try:
+        np.testing.assert_array_almost_equal(
+            initial_robot_position,
+            log["initial_robot_position"],
+            err_msg=("Initial robot position does not match with log file."),
+        )
+    except AssertionError as e:
+        print("Failed.", file=sys.stderr)
+        print(e, file=sys.stderr)
+        sys.exit(1)
 
     # verify that the number of logged actions matches with the episode length
     n_actions = len(log["actions"])
@@ -82,14 +117,11 @@ def main():
 
     accumulated_reward = 0
     for logged_action in log["actions"]:
-        action = platform.Action()
-        action.torque = np.array(logged_action["torque"])
-        action.position = np.array(logged_action["position"])
-        action.position_kp = np.array(logged_action["position_kp"])
-        action.position_kd = np.array(logged_action["position_kd"])
+        action = logged_action["action"]
 
         t = platform.append_desired_action(action)
 
+        robot_obs = platform.get_robot_observation(t)
         cube_pose = platform.get_object_pose(t)
         reward = -move_cube.evaluate_state(
             goal_pose, cube_pose, args.difficulty
@@ -98,8 +130,50 @@ def main():
 
         assert logged_action["t"] == t
 
+        np.testing.assert_array_almost_equal(
+            robot_obs.position,
+            logged_action["robot_observation"].position,
+            err_msg=(
+                "Step %d: Recorded robot position does not match with"
+                " the one achieved by the replay" % t
+            ),
+        )
+        np.testing.assert_array_almost_equal(
+            robot_obs.torque,
+            logged_action["robot_observation"].torque,
+            err_msg=(
+                "Step %d: Recorded robot torque does not match with"
+                " the one achieved by the replay" % t
+            ),
+        )
+        np.testing.assert_array_almost_equal(
+            robot_obs.velocity,
+            logged_action["robot_observation"].velocity,
+            err_msg=(
+                "Step %d: Recorded robot velocity does not match with"
+                " the one achieved by the replay" % t
+            ),
+        )
+
+        np.testing.assert_array_almost_equal(
+            cube_pose.position,
+            logged_action["object_pose"].position,
+            err_msg=(
+                "Step %d: Recorded object position does not match with"
+                " the one achieved by the replay" % t
+            ),
+        )
+        np.testing.assert_array_almost_equal(
+            cube_pose.orientation,
+            logged_action["object_pose"].orientation,
+            err_msg=(
+                "Step %d: Recorded object orientation does not match with"
+                " the one achieved by the replay" % t
+            ),
+        )
+
     cube_pose = platform.get_object_pose(t)
-    final_pose = log["final_object_pose"]
+    final_pose = log["final_object_pose"]["pose"]
 
     print("Accumulated Reward:", accumulated_reward)
 
@@ -107,7 +181,7 @@ def main():
     try:
         np.testing.assert_array_almost_equal(
             cube_pose.position,
-            final_pose["position"],
+            final_pose.position,
             decimal=3,
             err_msg=(
                 "Recorded object position does not match with the one"
@@ -116,7 +190,7 @@ def main():
         )
         np.testing.assert_array_almost_equal(
             cube_pose.orientation,
-            final_pose["orientation"],
+            final_pose.orientation,
             decimal=3,
             err_msg=(
                 "Recorded object orientation does not match with the one"

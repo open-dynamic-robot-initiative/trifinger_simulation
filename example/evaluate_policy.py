@@ -3,7 +3,7 @@
 
 This is an example evaluation script which loads a policy trained with PPO. If
 this script were moved into the top trifinger_simulation folder (since this is where
-we will execute the trifinger_evaluate command), it would consistute a valid
+we will execute the rrc_evaluate command), it would consistute a valid
 submission (naturally, imports below would have to be adjusted accordingly).
 
 This script will be executed in an automated procedure.  For this to work, make

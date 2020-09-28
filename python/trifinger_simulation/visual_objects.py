@@ -95,7 +95,9 @@ class CubeMarker:
             orientation: Orientation as quaternion (x, y, z, w)
             color: Color of the cube as a tuple (r, b, g, q)
         """
+
         self._kwargs = kwargs
+
         self.shape_id = pybullet.createVisualShape(
             shapeType=pybullet.GEOM_BOX,
             halfExtents=[width / 2] * 3,

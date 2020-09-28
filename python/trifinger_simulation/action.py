@@ -28,8 +28,8 @@ class Action:
             kp:  See :attr:`kp`.
             kd:  See :attr:`kd`.
         """
-        self.torque = torque
-        self.position = position
+        self.torque = np.asarray(torque)
+        self.position = np.asarray(position)
 
         if kp is None:
             self.position_kp = np.full_like(position, np.nan, dtype=float)

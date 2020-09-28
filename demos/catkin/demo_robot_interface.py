@@ -28,9 +28,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--finger-type",
-        choices=finger_types_data.get_valid_finger_types(),
         required=True,
-        help="""Specify valid finger type""",
+        choices=finger_types_data.get_valid_finger_types(),
+        help="Specify valid finger type.",
     )
     parser.add_argument(
         "--real-time-mode",
