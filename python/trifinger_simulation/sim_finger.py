@@ -36,12 +36,18 @@ class SimFinger:
         time_step=0.004,
         enable_visualization=False,
     ):
-        """Constructor, initializes the physical world we will work in.
+        """
+        Constructor, initializes the physical world we will work in.
 
         Args:
-            finger_type : See :attr:`finger_type`
-            time_step : See :attr:`time_step`
-            enable_visualization : See :attr:`enable_visualization`
+            finger_type (string): Name of the finger type.  Use
+                :meth:`get_valid_finger_types` to get a list of all supported
+                types.
+            time_step (float): Time (in seconds) between two simulation steps.
+                Don't set this to be larger than 1/60.  The gains etc. are set
+                according to a time_step of 0.004 s.
+            enable_visualization (bool): Set this to 'True' for a GUI interface
+                to the simulation.
         """
         self.finger_type = finger_types_data.check_finger_type(finger_type)
         self.number_of_fingers = finger_types_data.get_number_of_fingers(
@@ -278,6 +284,7 @@ class SimFinger:
 
     def _get_latest_observation(self):
         """Get observation of the current state.
+
         Returns:
             observation (Observation): the joint positions, velocities, and
             torques of the joints.
@@ -379,9 +386,7 @@ class SimFinger:
                 )
             )
 
-        applied_action.torque = self.__safety_check_torques(
-            torque_command.tolist()
-        )
+        applied_action.torque = self.__safety_check_torques(torque_command)
 
         self.__set_pybullet_motor_torques(applied_action.torque)
 
@@ -425,11 +430,11 @@ class SimFinger:
         the motors so that they do not exceed the safety torque limit
 
         Args:
-            desired_torques (list of floats): The torques desired to be
+            desired_torques (array): The torques desired to be
                 applied to the motors
 
         Returns:
-            applied_torques (list of floats): The torques that can be actually
+            applied_torques (array): The torques that can be actually
             applied to the motors (and will be applied)
         """
         applied_torques = np.clip(
@@ -448,12 +453,10 @@ class SimFinger:
         )
         applied_torques -= self.safety_kd * current_velocity
 
-        applied_torques = list(
-            np.clip(
-                np.asarray(applied_torques),
-                -self.max_motor_torque,
-                +self.max_motor_torque,
-            )
+        applied_torques = np.clip(
+            np.asarray(applied_torques),
+            -self.max_motor_torque,
+            +self.max_motor_torque,
         )
 
         return applied_torques
@@ -574,12 +577,6 @@ class SimFinger:
         self.__load_stage()
         self.__disable_pybullet_velocity_control()
 
-        # enable force sensor on tips
-        for joint_index in self.pybullet_tip_link_indices:
-            pybullet.enableJointForceTorqueSensor(
-                self.finger_id, joint_index, enableSensor=True
-            )
-
     def __set_pybullet_params(self):
         """
         To change properties of the robot such as its mass, friction, damping,
@@ -658,7 +655,9 @@ class SimFinger:
         Load the single/trifinger model from the corresponding urdf
         """
         finger_base_position = [0, 0, 0.0]
-        finger_base_orientation = pybullet.getQuaternionFromEuler([0, 0, 0])
+        finger_base_orientation = pybullet.getQuaternionFromEuler(
+            [0, 0, 0], physicsClientId=self._pybullet_client_id
+        )
 
         self.finger_id = pybullet.loadURDF(
             fileName=self.finger_urdf_path,

@@ -109,7 +109,7 @@ def main():
     runs_per_level = 10
 
     logfile_tmpl = os.path.join(
-        args.output_directory, "action_log_l{level}_i{iteration}.json"
+        args.output_directory, "action_log_l{level}_i{iteration}.p"
     )
 
     # generate n samples for each level

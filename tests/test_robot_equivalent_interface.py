@@ -151,6 +151,25 @@ class TestRobotEquivalentInterface(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.finger.get_observation(t2 + 2)
 
+    def test_observation_types(self):
+        """Verify that all fields of observation are np.ndarrays."""
+        # Apply a max torque action for one step
+        action = self.finger.Action(
+            torque=[
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+                -self.finger.max_motor_torque,
+            ]
+        )
+        t = self.finger.append_desired_action(action)
+        obs = self.finger.get_observation(t)
+
+        # verify types
+        self.assertIsInstance(obs.torque, np.ndarray)
+        self.assertIsInstance(obs.position, np.ndarray)
+        self.assertIsInstance(obs.velocity, np.ndarray)
+        self.assertIsInstance(obs.tip_force, np.ndarray)
+
     def test_get_desired_action(self):
         # verify that t < 0 is not accepted
         with self.assertRaises(ValueError):
@@ -164,6 +183,12 @@ class TestRobotEquivalentInterface(unittest.TestCase):
 
         np.testing.assert_array_equal(orig_action.torque, action.torque)
         np.testing.assert_array_equal(orig_action.position, action.position)
+
+        # verify types
+        self.assertIsInstance(action.torque, np.ndarray)
+        self.assertIsInstance(action.position, np.ndarray)
+        self.assertIsInstance(action.position_kd, np.ndarray)
+        self.assertIsInstance(action.position_kp, np.ndarray)
 
     def test_get_applied_action(self):
         # verify that t < 0 is not accepted
@@ -182,6 +207,12 @@ class TestRobotEquivalentInterface(unittest.TestCase):
                 self.finger.max_motor_torque,
             ],
         )
+
+        # verify types
+        self.assertIsInstance(applied_action.torque, np.ndarray)
+        self.assertIsInstance(applied_action.position, np.ndarray)
+        self.assertIsInstance(applied_action.position_kd, np.ndarray)
+        self.assertIsInstance(applied_action.position_kp, np.ndarray)
 
     def test_get_timestamp_ms_001(self):
         t = self.finger.append_desired_action(self.finger.Action())

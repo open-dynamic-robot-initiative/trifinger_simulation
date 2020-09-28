@@ -72,7 +72,7 @@ class Pose:
 
     def to_dict(self):
         """Convert to dictionary."""
-        return {"position": self.positions, "orientation": self.orientation}
+        return {"position": self.position, "orientation": self.orientation}
 
     def to_json(self):
         """Convert to JSON string."""
@@ -119,9 +119,9 @@ def sample_goal(difficulty):
 
     Returns:
         Pose: Goal pose of the cube relative to the world frame.  Note that
-            the pose always contains an orientation.  For difficulty levels
-            where the orientation is not considered, this is set to
-            ``[0, 0, 0, 1]`` and will be ignored when computing the reward.
+        the pose always contains an orientation.  For difficulty levels where
+        the orientation is not considered, this is set to ``[0, 0, 0, 1]`` and
+        will be ignored when computing the reward.
     """
     # difficulty -1 is for initialization
 
