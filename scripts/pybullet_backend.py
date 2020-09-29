@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Run robot_interfaces Backend for pyBullet using multi-process robot data."""
 import argparse
+import logging
 import math
+import pathlib
+import sys
+import time
 
 import robot_interfaces
 from trifinger_simulation import (
@@ -54,6 +58,13 @@ def main():
         """,
     )
     parser.add_argument(
+        "--camera-logfile",
+        type=str,
+        help="""Path to a file to which the camera data log is written.  If not
+            specified, no log is generated.
+        """,
+    )
+    parser.add_argument(
         "--add-cube",
         action="store_true",
         help="""Spawn a cube and run the object tracker backend.""",
@@ -70,6 +81,14 @@ def main():
         help="Run pyBullet's GUI for visualization.",
     )
     args = parser.parse_args()
+
+    # configure the logging module
+    log_handler = logging.StreamHandler(sys.stdout)
+    logging.basicConfig(
+        format="[SIM_TRIFINGER_BACKEND %(levelname)s %(asctime)s] %(message)s",
+        level=logging.DEBUG,
+        handlers=[log_handler]
+    )
 
     # select the correct types/functions based on which robot is used
     num_fingers = finger_types_data.get_number_of_fingers(args.finger_type)
@@ -94,7 +113,7 @@ def main():
         shared_memory_id, True, history_size=history_size
     )
 
-    logger = finger_types.Logger(robot_data)
+    robot_logger = finger_types.Logger(robot_data)
 
     backend = create_backend(
         robot_data,
@@ -105,10 +124,11 @@ def main():
     )
     backend.initialize()
 
+    #
     # Camera and Object Tracker Interface
     # Important:  These objects need to be created _after_ the simulation is
     # initialized (i.e. after the SimFinger instance is created).
-
+    #
     if args.cameras and not args.add_cube:
         # If cameras are enabled but not the object, use the normal
         # PyBulletTriCameraDriver.
@@ -134,16 +154,76 @@ def main():
         )
         camera_backend = tricamera.Backend(camera_driver, camera_data)  # noqa
 
+    #
+    # Camera/Object Logger
+    #
+    camera_logger = None
+    if args.camera_logfile:
+        try:
+            camera_data
+        except NameError:
+            logging.critical("Cannot create camera log camera is not running.")
+            return
+
+        # TODO
+        camera_fps = 10
+        robot_rate_hz = 1000
+        buffer_length_factor = 1.5
+        episode_length_s = args.max_number_of_actions / robot_rate_hz
+        # Compute camera log size based on number of robot actions plus some
+        # safety buffer
+        log_size = int(camera_fps * episode_length_s * buffer_length_factor)
+
+        logging.info("Initialize camera logger with buffer size %d", log_size)
+        camera_logger = tricamera.Logger(
+            camera_data, log_size
+        )
+
+    # if specified, create the "ready indicator" file to indicate that the
+    # backend is ready
+    #if args.ready_indicator:
+    #    pathlib.Path(args.ready_indicator).touch()
+
+    backend.wait_until_first_action()
+
+    if camera_logger:
+        camera_logger.start()
+        logging.info("Start camera logging")
+
     backend.wait_until_terminated()
 
+    # delete the ready indicator file to indicate that the backend has shut
+    # down
+    #if args.ready_indicator:
+    #    pathlib.Path(args.ready_indicator).unlink()
+
+    if camera_logger:
+        logging.info(
+            "Save recorded camera data to file %s", args.camera_logfile
+        )
+        camera_logger.stop_and_save(args.camera_logfile)
+
     if args.robot_logfile:
+        logging.info("Save robot data to file %s", args.robot_logfile)
         if args.max_number_of_actions:
             end_index = args.max_number_of_actions
         else:
             end_index = -1
-        logger.write_current_buffer(
+
+        # FIXME use binary log
+        robot_logger.write_current_buffer(
             args.robot_logfile, start_index=0, end_index=end_index
         )
+
+    # cleanup stuff before the simulation (backend) is terminated
+    if camera_data:
+        del camera_logger
+        del camera_backend
+        del camera_driver
+        del camera_data
+
+    if args.add_cube:
+        del cube
 
 
 if __name__ == "__main__":
