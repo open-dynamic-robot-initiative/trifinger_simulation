@@ -143,8 +143,9 @@ def rbg_to_bayer_bg(image: np.ndarray) -> np.ndarray:
         image: RGB image.
 
     Returns:
-        BG-Bayer pattern based on the input image.  Height and width are the
-        same as of the input image.
+        Bayer pattern based on the input image.  Height and width are the same
+        as of the input image.  The image can be converted using OpenCV's
+        `COLOR_BAYER_BG2*`.
     """
     # there is only one channel but it still needs the third dimension, so that
     # the conversion to a cv::Mat in C++ is easier
@@ -155,16 +156,16 @@ def rbg_to_bayer_bg(image: np.ndarray) -> np.ndarray:
     CHANNEL_GREEN = 1
     CHANNEL_BLUE = 2
 
-    # channel map to get the following pattern:
+    # channel map to get the following pattern (called "BG" in OpenCV):
     #
-    #   BG
-    #   GR
+    #   RG
+    #   GB
     #
     channel_map = {
-        (0, 0): CHANNEL_BLUE,
+        (0, 0): CHANNEL_RED,
         (1, 0): CHANNEL_GREEN,
         (0, 1): CHANNEL_GREEN,
-        (1, 1): CHANNEL_RED,
+        (1, 1): CHANNEL_BLUE,
     }
 
     for r in range(image.shape[0]):
