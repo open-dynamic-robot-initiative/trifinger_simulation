@@ -105,27 +105,33 @@ def main():
     )
     backend.initialize()
 
-    # Object and Object Tracker Interface
+    # Camera and Object Tracker Interface
     # Important:  These objects need to be created _after_ the simulation is
     # initialized (i.e. after the SimFinger instance is created).
-    if args.add_cube:
-        # only import when really needed
-        import trifinger_object_tracking.py_object_tracker as object_tracker
 
-        # spawn a cube in the arena
-        cube = collision_objects.Block()
-
-        # initialize the object tracker interface
-        object_tracker_data = object_tracker.Data("object_tracker", True)
-        object_tracker_backend = object_tracker.SimulationBackend(  # noqa
-            object_tracker_data, cube, args.real_time_mode
-        )
-
-    if args.cameras:
+    if args.cameras and not args.add_cube:
+        # If cameras are enabled but not the object, use the normal
+        # PyBulletTriCameraDriver.
         from trifinger_cameras import tricamera
 
         camera_data = tricamera.MultiProcessData("tricamera", True, 10)
         camera_driver = tricamera.PyBulletTriCameraDriver()
+        camera_backend = tricamera.Backend(camera_driver, camera_data)  # noqa
+
+    elif args.add_cube:
+        # If the cube is enabled, use the PyBulletTriCameraObjectTrackerDriver.
+        # In case the cameras are not requested, disable rendering of the
+        # images to save time.
+        import trifinger_object_tracking.py_tricamera_types as tricamera
+
+        # spawn a cube in the arena
+        cube = collision_objects.Block()
+        render_images = args.cameras
+
+        camera_data = tricamera.MultiProcessData("tricamera", True, 10)
+        camera_driver = tricamera.PyBulletTriCameraObjectTrackerDriver(
+            cube, render_images
+        )
         camera_backend = tricamera.Backend(camera_driver, camera_data)  # noqa
 
     backend.wait_until_terminated()
