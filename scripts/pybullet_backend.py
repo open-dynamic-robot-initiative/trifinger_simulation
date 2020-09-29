@@ -65,6 +65,14 @@ def main():
         """,
     )
     parser.add_argument(
+        "--ready-indicator",
+        type=str,
+        metavar="READY_INDICATOR_FILE",
+        help="""Path to a file that will be created once the backend is ready
+            and will be deleted again when it stops (before storing the logs).
+        """,
+    )
+    parser.add_argument(
         "--add-cube",
         action="store_true",
         help="""Spawn a cube and run the object tracker backend.""",
@@ -181,8 +189,8 @@ def main():
 
     # if specified, create the "ready indicator" file to indicate that the
     # backend is ready
-    #if args.ready_indicator:
-    #    pathlib.Path(args.ready_indicator).touch()
+    if args.ready_indicator:
+        pathlib.Path(args.ready_indicator).touch()
 
     backend.wait_until_first_action()
 
@@ -194,8 +202,8 @@ def main():
 
     # delete the ready indicator file to indicate that the backend has shut
     # down
-    #if args.ready_indicator:
-    #    pathlib.Path(args.ready_indicator).unlink()
+    if args.ready_indicator:
+        pathlib.Path(args.ready_indicator).unlink()
 
     if camera_logger:
         logging.info(
