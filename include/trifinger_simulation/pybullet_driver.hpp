@@ -53,7 +53,8 @@ public:
     typedef typename Observation::JointVector JointVector;
 
     BasePyBulletFingerDriver(bool real_time_mode, bool visualize)
-        : real_time_mode_(real_time_mode), visualize_(visualize)
+        : real_time_mode_(real_time_mode),
+          visualize_(visualize)
     {
         // initialize Python interpreter if not already done
         if (!Py_IsInitialized())
@@ -84,9 +85,10 @@ public:
 
     Action apply_action(const Action &desired_action) override
     {
+        Action applied_action;
+
         auto start_time = std::chrono::system_clock::now();
 
-        Action applied_action;
         {
             // wrap python calls in a block so GIL is only kept as long as it
             // is really needed
@@ -118,7 +120,7 @@ public:
     {
         py::gil_scoped_acquire acquire;
         // FIXME
-        //sim_finger_.attr("_disconnect_from_pybullet")();
+        // sim_finger_.attr("_disconnect_from_pybullet")();
     }
 };
 
@@ -196,7 +198,8 @@ public:
 
         JointVector initial_position;
         initial_position << 0, -0.7, -1.5;
-        sim_finger_.attr("reset_finger_positions_and_velocities")(initial_position);
+        sim_finger_.attr("reset_finger_positions_and_velocities")(
+            initial_position);
     }
 };
 
@@ -227,7 +230,8 @@ public:
 
         JointVector initial_position;
         initial_position << 0, 0.9, -1.7, 0, 0.9, -1.7, 0, 0.9, -1.7;
-        sim_finger_.attr("reset_finger_positions_and_velocities")(initial_position);
+        sim_finger_.attr("reset_finger_positions_and_velocities")(
+            initial_position);
     }
 };
 
