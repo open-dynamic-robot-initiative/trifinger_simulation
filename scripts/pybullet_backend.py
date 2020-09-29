@@ -46,10 +46,10 @@ def main():
         """,
     )
     parser.add_argument(
-        "--logfile",
+        "--robot-logfile",
         "-l",
         type=str,
-        help="""Path to a file to which the data log is written.  If not
+        help="""Path to a file to which the robot data log is written.  If not
             specified, no log is generated.
         """,
     )
@@ -136,13 +136,13 @@ def main():
 
     backend.wait_until_terminated()
 
-    if args.logfile:
+    if args.robot_logfile:
         if args.max_number_of_actions:
             end_index = args.max_number_of_actions
         else:
             end_index = -1
         logger.write_current_buffer(
-            args.logfile, start_index=0, end_index=end_index
+            args.robot_logfile, start_index=0, end_index=end_index
         )
 
 
