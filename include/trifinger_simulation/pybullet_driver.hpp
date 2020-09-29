@@ -117,7 +117,8 @@ public:
     void shutdown() override
     {
         py::gil_scoped_acquire acquire;
-        sim_finger_.attr("_disconnect_from_pybullet")();
+        // FIXME
+        //sim_finger_.attr("_disconnect_from_pybullet")();
     }
 };
 
