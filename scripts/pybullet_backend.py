@@ -94,7 +94,7 @@ def main():
     logging.basicConfig(
         format="[SIM_TRIFINGER_BACKEND %(levelname)s %(asctime)s] %(message)s",
         level=logging.DEBUG,
-        handlers=[log_handler]
+        handlers=[log_handler],
     )
 
     # select the correct types/functions based on which robot is used
@@ -182,9 +182,7 @@ def main():
         log_size = int(camera_fps * episode_length_s * buffer_length_factor)
 
         logging.info("Initialize camera logger with buffer size %d", log_size)
-        camera_logger = tricamera.Logger(
-            camera_data, log_size
-        )
+        camera_logger = tricamera.Logger(camera_data, log_size)
 
     # if specified, create the "ready indicator" file to indicate that the
     # backend is ready
