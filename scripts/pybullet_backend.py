@@ -5,7 +5,6 @@ import logging
 import math
 import pathlib
 import sys
-import time
 
 import robot_interfaces
 from trifinger_simulation import (
@@ -232,6 +231,8 @@ def main():
 
     if args.add_cube:
         del cube
+
+    logging.info("Done.")
 
 
 if __name__ == "__main__":
