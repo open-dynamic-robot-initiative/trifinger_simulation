@@ -222,8 +222,7 @@ def main():
         else:
             end_index = -1
 
-        # FIXME use binary log
-        robot_logger.write_current_buffer(
+        robot_logger.write_current_buffer_binary(
             args.robot_logfile, start_index=0, end_index=end_index
         )
 
