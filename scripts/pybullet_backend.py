@@ -210,6 +210,11 @@ def main():
         )
         camera_logger.stop_and_save(args.camera_logfile)
 
+    if camera_data:
+        # stop the camera backend
+        logging.info("Stop camera backend")
+        camera_backend.shutdown()
+
     if args.robot_logfile:
         logging.info("Save robot data to file %s", args.robot_logfile)
         if args.max_number_of_actions:
@@ -223,12 +228,6 @@ def main():
         )
 
     # cleanup stuff before the simulation (backend) is terminated
-    if camera_data:
-        del camera_logger
-        del camera_backend
-        del camera_driver
-        del camera_data
-
     if args.add_cube:
         del cube
 
