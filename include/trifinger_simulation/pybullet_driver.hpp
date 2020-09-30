@@ -222,10 +222,10 @@ public:
         py::module sim_finger =
             py::module::import("trifinger_simulation.sim_finger");
         sim_finger_ =
-            sim_finger.attr("SimFinger")("trifingerone", 0.001, visualize_);
+            sim_finger.attr("SimFinger")("trifingerpro", 0.001, visualize_);
 
         JointVector initial_position;
-        initial_position << 0, -0.7, -1.5, 0, -0.7, -1.5, 0, -0.7, -1.5;
+        initial_position << 0, 0.9, -1.7, 0, 0.9, -1.7, 0, 0.9, -1.7;
         sim_finger_.attr("reset_finger_positions_and_velocities")(initial_position);
     }
 };
