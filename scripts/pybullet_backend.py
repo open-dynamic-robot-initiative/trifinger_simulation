@@ -157,7 +157,7 @@ def main():
 
         camera_data = tricamera.MultiProcessData("tricamera", True, 10)
         camera_driver = tricamera.PyBulletTriCameraObjectTrackerDriver(
-            cube, render_images
+            cube, robot_data, render_images
         )
         camera_backend = tricamera.Backend(camera_driver, camera_data)  # noqa
 
