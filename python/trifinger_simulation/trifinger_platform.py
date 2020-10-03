@@ -148,8 +148,7 @@ class TriFingerPlatform:
         """
         #: Camera rate in frames per second.  Observations of camera and
         #: object pose will only be updated with this rate.
-        #: NOTE: This is currently not used!
-        self._camera_rate_fps = 30
+        self.camera_rate_fps = 10
 
         #: Set to true to render camera observations
         self.enable_cameras = enable_cameras
@@ -218,7 +217,7 @@ class TriFingerPlatform:
         return self._time_step
 
     def _compute_camera_update_step_interval(self):
-        return (1.0 / self._camera_rate_fps) / self._time_step
+        return (1.0 / self.camera_rate_fps) / self._time_step
 
     def append_desired_action(self, action):
         """
@@ -230,22 +229,15 @@ class TriFingerPlatform:
         """
         # update camera and object observations only with the rate of the
         # cameras
-        # next_t = self.get_current_timeindex() + 1
-        # has_camera_update = next_t >= self._next_camera_update_step
-        # if has_camera_update:
-        #     self._next_camera_update_step += (
-        #         self._compute_camera_update_step_interval()
-        #     )
-
-        #     self._object_pose_t = self._get_current_object_pose()
-        #     if self.enable_cameras:
-        #         self._camera_observation_t = (
-        #             self._get_current_camera_observation()
-        #         )
-
-        has_camera_update = True
-
-        self._camera_observation_t = self._get_current_camera_observation()
+        next_t = self.simfinger._t + 1
+        has_camera_update = next_t >= self._next_camera_update_step
+        if has_camera_update:
+            self._next_camera_update_step += (
+                self._compute_camera_update_step_interval()
+            )
+            self._camera_observation_t = (
+                self._get_current_camera_observation()
+            )
 
         t = self.simfinger.append_desired_action(action)
 
@@ -257,6 +249,7 @@ class TriFingerPlatform:
                 self._camera_observation_t.cameras[
                     i
                 ].timestamp = camera_timestamp_s
+            self._camera_observation_t.object_pose.timestamp = camera_timestamp_s
 
         # write the desired action to the log
         camera_obs = self.get_camera_observation(t)
@@ -351,7 +344,7 @@ class TriFingerPlatform:
             filename (str):  Path to the JSON file to which the log shall be
                 written.  If the file exists already, it will be overwritten.
         """
-        t = self.simfinger.get_current_timeindex()
+        t = self.get_current_timeindex()
         camera_obs = self.get_camera_observation(t)
         self._action_log["final_object_pose"] = {
             "t": t,
