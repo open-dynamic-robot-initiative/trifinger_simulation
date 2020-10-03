@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Run robot_interfaces Backend for pyBullet using multi-process robot data."""
 import argparse
+import logging
 import math
+import pathlib
+import sys
 
 import robot_interfaces
 from trifinger_simulation import (
@@ -46,11 +49,26 @@ def main():
         """,
     )
     parser.add_argument(
-        "--logfile",
+        "--robot-logfile",
         "-l",
         type=str,
-        help="""Path to a file to which the data log is written.  If not
+        help="""Path to a file to which the robot data log is written.  If not
             specified, no log is generated.
+        """,
+    )
+    parser.add_argument(
+        "--camera-logfile",
+        type=str,
+        help="""Path to a file to which the camera data log is written.  If not
+            specified, no log is generated.
+        """,
+    )
+    parser.add_argument(
+        "--ready-indicator",
+        type=str,
+        metavar="READY_INDICATOR_FILE",
+        help="""Path to a file that will be created once the backend is ready
+            and will be deleted again when it stops (before storing the logs).
         """,
     )
     parser.add_argument(
@@ -70,6 +88,14 @@ def main():
         help="Run pyBullet's GUI for visualization.",
     )
     args = parser.parse_args()
+
+    # configure the logging module
+    log_handler = logging.StreamHandler(sys.stdout)
+    logging.basicConfig(
+        format="[SIM_TRIFINGER_BACKEND %(levelname)s %(asctime)s] %(message)s",
+        level=logging.DEBUG,
+        handlers=[log_handler],
+    )
 
     # select the correct types/functions based on which robot is used
     num_fingers = finger_types_data.get_number_of_fingers(args.finger_type)
@@ -94,7 +120,7 @@ def main():
         shared_memory_id, True, history_size=history_size
     )
 
-    logger = finger_types.Logger(robot_data)
+    robot_logger = finger_types.Logger(robot_data)
 
     backend = create_backend(
         robot_data,
@@ -105,39 +131,104 @@ def main():
     )
     backend.initialize()
 
-    # Object and Object Tracker Interface
+    #
+    # Camera and Object Tracker Interface
     # Important:  These objects need to be created _after_ the simulation is
     # initialized (i.e. after the SimFinger instance is created).
-    if args.add_cube:
-        # only import when really needed
-        import trifinger_object_tracking.py_object_tracker as object_tracker
-
-        # spawn a cube in the arena
-        cube = collision_objects.Block()
-
-        # initialize the object tracker interface
-        object_tracker_data = object_tracker.Data("object_tracker", True)
-        object_tracker_backend = object_tracker.SimulationBackend(  # noqa
-            object_tracker_data, cube, args.real_time_mode
-        )
-
-    if args.cameras:
+    #
+    if args.cameras and not args.add_cube:
+        # If cameras are enabled but not the object, use the normal
+        # PyBulletTriCameraDriver.
         from trifinger_cameras import tricamera
 
         camera_data = tricamera.MultiProcessData("tricamera", True, 10)
         camera_driver = tricamera.PyBulletTriCameraDriver()
         camera_backend = tricamera.Backend(camera_driver, camera_data)  # noqa
 
+    elif args.add_cube:
+        # If the cube is enabled, use the PyBulletTriCameraObjectTrackerDriver.
+        # In case the cameras are not requested, disable rendering of the
+        # images to save time.
+        import trifinger_object_tracking.py_tricamera_types as tricamera
+
+        # spawn a cube in the arena
+        cube = collision_objects.Block()
+        render_images = args.cameras
+
+        camera_data = tricamera.MultiProcessData("tricamera", True, 10)
+        camera_driver = tricamera.PyBulletTriCameraObjectTrackerDriver(
+            cube, robot_data, render_images
+        )
+        camera_backend = tricamera.Backend(camera_driver, camera_data)  # noqa
+
+    #
+    # Camera/Object Logger
+    #
+    camera_logger = None
+    if args.camera_logfile:
+        try:
+            camera_data
+        except NameError:
+            logging.critical("Cannot create camera log camera is not running.")
+            return
+
+        # TODO
+        camera_fps = 10
+        robot_rate_hz = 1000
+        buffer_length_factor = 1.5
+        episode_length_s = args.max_number_of_actions / robot_rate_hz
+        # Compute camera log size based on number of robot actions plus some
+        # safety buffer
+        log_size = int(camera_fps * episode_length_s * buffer_length_factor)
+
+        logging.info("Initialize camera logger with buffer size %d", log_size)
+        camera_logger = tricamera.Logger(camera_data, log_size)
+
+    # if specified, create the "ready indicator" file to indicate that the
+    # backend is ready
+    if args.ready_indicator:
+        pathlib.Path(args.ready_indicator).touch()
+
+    backend.wait_until_first_action()
+
+    if camera_logger:
+        camera_logger.start()
+        logging.info("Start camera logging")
+
     backend.wait_until_terminated()
 
-    if args.logfile:
+    # delete the ready indicator file to indicate that the backend has shut
+    # down
+    if args.ready_indicator:
+        pathlib.Path(args.ready_indicator).unlink()
+
+    if camera_logger:
+        logging.info(
+            "Save recorded camera data to file %s", args.camera_logfile
+        )
+        camera_logger.stop_and_save(args.camera_logfile)
+
+    if camera_data:
+        # stop the camera backend
+        logging.info("Stop camera backend")
+        camera_backend.shutdown()
+
+    if args.robot_logfile:
+        logging.info("Save robot data to file %s", args.robot_logfile)
         if args.max_number_of_actions:
             end_index = args.max_number_of_actions
         else:
             end_index = -1
-        logger.write_current_buffer(
-            args.logfile, start_index=0, end_index=end_index
+
+        robot_logger.write_current_buffer_binary(
+            args.robot_logfile, start_index=0, end_index=end_index
         )
+
+    # cleanup stuff before the simulation (backend) is terminated
+    if args.add_cube:
+        del cube
+
+    logging.info("Done.")
 
 
 if __name__ == "__main__":
