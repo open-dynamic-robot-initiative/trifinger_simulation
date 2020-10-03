@@ -125,6 +125,7 @@ class TriFingerPlatform:
         initial_robot_position=None,
         initial_object_pose=None,
         enable_cameras=False,
+        time_step_s=0.004,
     ):
         """Initialize.
 
@@ -139,6 +140,7 @@ class TriFingerPlatform:
                 By default this is disabled as rendering of images takes a lot
                 of computational power.  Therefore the cameras should only be
                 enabled if the images are actually used.
+            time_step_s (float):  Simulation time step duration in seconds.
         """
         #: Camera rate in frames per second.  Observations of camera and
         #: object pose will only be updated with this rate.
@@ -149,7 +151,7 @@ class TriFingerPlatform:
         self.enable_cameras = enable_cameras
 
         #: Simulation time step
-        self._time_step = 0.004
+        self._time_step = time_step_s
 
         # first camera update in the first step
         self._next_camera_update_step = 0
