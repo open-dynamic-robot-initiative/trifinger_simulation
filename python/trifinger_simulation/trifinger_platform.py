@@ -232,9 +232,7 @@ class TriFingerPlatform:
             self._next_camera_update_step += (
                 self._compute_camera_update_step_interval()
             )
-            self._camera_observation_t = (
-                self._get_current_camera_observation()
-            )
+            self._camera_observation_t = self._get_current_camera_observation()
 
         t = self.simfinger.append_desired_action(action)
 
@@ -246,7 +244,9 @@ class TriFingerPlatform:
                 self._camera_observation_t.cameras[
                     i
                 ].timestamp = camera_timestamp_s
-            self._camera_observation_t.object_pose.timestamp = camera_timestamp_s
+            self._camera_observation_t.object_pose.timestamp = (
+                camera_timestamp_s
+            )
 
         # write the desired action to the log
         camera_obs = self.get_camera_observation(t)
