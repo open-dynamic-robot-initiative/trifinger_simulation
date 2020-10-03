@@ -10,8 +10,8 @@ from scipy.spatial.transform import Rotation
 random = np.random.RandomState()
 
 
-#: Number of time steps in one episode (3750 steps per 0.004s = 15s)
-episode_length = 3750
+#: Number of time steps in one episode
+episode_length = 2 * 60 * 1000
 
 
 _CUBE_WIDTH = 0.065
