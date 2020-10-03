@@ -1,7 +1,6 @@
 """Gym environment for the Real Robot Challenge Phase 1 (Simulation)."""
 import enum
 
-import numpy as np
 import gym
 
 from trifinger_simulation import TriFingerPlatform
@@ -308,7 +307,8 @@ class CubeEnv(gym.GoalEnv):
 
     def _create_observation(self, t):
         robot_observation = self.platform.get_robot_observation(t)
-        object_observation = self.platform.get_object_pose(t)
+        camera_observation = self.platform.get_camera_observation(t)
+        object_observation = camera_observation.object_pose
 
         observation = {
             "observation": {
