@@ -1,13 +1,16 @@
 {
-    "position": [
-        0.01,
-        0.01,
-        0.035
-    ],
-    "orientation": [
-        0,
-        0,
-        0,
-        1
-    ]
+    "difficulty": 3,
+    "goal": {
+        "position": [
+            0,
+            0.1,
+            0.06
+        ],
+        "orientation": [
+            0,
+            0,
+            0,
+            1
+        ]
+    }
 }
