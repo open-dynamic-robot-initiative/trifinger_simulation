@@ -1,0 +1,8 @@
+Bootstrap: localimage
+From: ./realrobotchallenge.sif
+
+%post
+
+    pip3 install torch torchvision    
+    pip3 install stable-baselines3
+    pip3 install gym
