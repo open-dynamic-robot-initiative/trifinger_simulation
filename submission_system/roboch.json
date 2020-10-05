@@ -1,5 +1,5 @@
 {
-    "repository": "git@github.com:open-dynamic-robot-initiative/trifinger_simulation.git",
+    "repository": "https://github.com/open-dynamic-robot-initiative/trifinger_simulation.git",
     "branch": "sjoshi/submission_testing",
     "email": "shrutijoshi98@gmail.com",
     "git_deploy_key": "github_deploy_key",
