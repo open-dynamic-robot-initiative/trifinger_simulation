@@ -6,5 +6,5 @@ from .trifinger_platform import (  # noqa
     TriFingerPlatform,
     ObjectPose,
     CameraObservation,
-    TriCameraObservation,
+    TriCameraObjectObservation,
 )
