@@ -57,11 +57,10 @@ def main():
         robot_observation = platform.get_robot_observation(t)
         print("Finger0 Position: %s" % robot_observation.position[:3])
 
-        cube_pose = platform.get_object_pose(t)
-        print("Cube Position: %s" % cube_pose.position)
+        camera_observation = platform.get_camera_observation(t)
+        print("Cube Position: %s" % camera_observation.object_pose.position)
 
         if platform.enable_cameras:
-            camera_observation = platform.get_camera_observation(t)
             for i, name in enumerate(("camera60", "camera180", "camera300")):
                 # simulation provides images in RGB but OpenCV expects BGR
                 img = cv2.cvtColor(

@@ -75,7 +75,7 @@ class SimFinger:
         self.safety_kd = np.array([0.08, 0.08, 0.04] * self.number_of_fingers)
 
         #: The maximum allowable torque that can be applied to each motor.
-        self.max_motor_torque = 0.36
+        self.max_motor_torque = 0.396
 
         self._t = -1
 
