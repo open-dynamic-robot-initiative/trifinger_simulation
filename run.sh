@@ -1,1 +1,0 @@
-python3 submission_system/train_real_finger.py
