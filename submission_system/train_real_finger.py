@@ -7,7 +7,7 @@ print("imports done")
 env = gym.make(
     'trifinger_simulation.gym_wrapper:reach-v0',
     control_rate_s=0.02,
-    finger_type="trifingerone",
+    finger_type="trifingerpro",
     enable_visualization=False,
     use_real_robot=True,
     finger_config_suffix="0",

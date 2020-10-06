@@ -93,6 +93,12 @@ class RealFinger:
                     "config",
                     "trifingeredu.yml",
                 )
+            elif finger_type == "trifingerpro":
+                config_file_path = os.path.join(
+                    rospkg.RosPack().get_path("robot_fingers"),
+                    "config",
+                    "trifingerpro.yml",
+                )
             finger_data = robot_interfaces.trifinger.SingleProcessData()
             self.real_finger_backend = robot_fingers.create_trifinger_backend(
                 finger_data, config_file_path
