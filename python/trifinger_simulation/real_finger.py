@@ -51,7 +51,7 @@ class RealFinger:
                 enable_visualization=True,
             )
         self.time_step_s = 0.001
-
+        self.finger_type = finger_type
         number_of_fingers = finger_types_data.get_number_of_fingers(
             finger_type
         )
