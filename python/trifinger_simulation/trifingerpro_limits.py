@@ -7,7 +7,13 @@ from .tasks import move_cube
 
 n_joints = 9
 n_fingers = 3
-max_torque_Nm = 0.36
+# Note: The actual max. torque is 0.396 but due to different rounding errors
+# between float32 and float64, setting the exact value can result in failues
+# when checking the limits (because `np.float64(0.396) > np.float32(0.396)`).
+# Therefore add a bit of safety margin here.  If a user sets a too high torque
+# due to this, nothing bad will happen, it will just get capped to the actual
+# max. value internally.
+max_torque_Nm = 0.397
 max_velocity_radps = 10
 
 
