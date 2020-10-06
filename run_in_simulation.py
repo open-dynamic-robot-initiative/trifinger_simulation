@@ -384,7 +384,7 @@ class SubmissionRunner:
             returncode = proc.returncode
         except subprocess.CalledProcessError as e:
             logging.error(
-                "User code exited with non-zero exist status: %d",
+                "User code exited with non-zero exit status: %d",
                 e.returncode,
             )
             stdout = e.stdout

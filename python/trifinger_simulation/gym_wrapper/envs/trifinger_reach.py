@@ -77,6 +77,7 @@ class TriFingerReach(gym.Env):
                 finger_config_suffix=finger_config_suffix,
                 enable_visualization=enable_visualization,
             )
+            print("real finger initialized")
 
         else:
             self.finger = SimFinger(
