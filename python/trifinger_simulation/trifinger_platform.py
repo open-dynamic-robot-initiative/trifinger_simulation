@@ -1,14 +1,12 @@
 import pickle
 import warnings
 import numpy as np
-
-
-from trifinger_simulation.tasks import move_cube
-from trifinger_simulation.sim_finger import SimFinger
-from trifinger_simulation import camera, collision_objects
+import gym
 from types import SimpleNamespace
 
-import gym
+from .tasks import move_cube
+from .sim_finger import SimFinger
+from . import camera, collision_objects, trifingerpro_limits
 
 
 class ObjectPose:
@@ -67,39 +65,12 @@ class TriFingerPlatform:
     # Create the action and observation spaces
     # ========================================
 
-    _n_joints = 9
-    _n_fingers = 3
-    _max_torque_Nm = 0.36
-    _max_velocity_radps = 10
-
     spaces = SimpleNamespace()
-
-    spaces.robot_torque = SimpleNamespace(
-        low=np.full(_n_joints, -_max_torque_Nm, dtype=np.float32),
-        high=np.full(_n_joints, _max_torque_Nm, dtype=np.float32),
-        default=np.zeros(_n_joints, dtype=np.float32),
-    )
-    spaces.robot_position = SimpleNamespace(
-        low=np.array([-0.33, 0.0, -2.7] * _n_fingers, dtype=np.float32),
-        high=np.array([1.0, 1.57, 0.0] * _n_fingers, dtype=np.float32),
-        default=np.array([0.0, 0.9, -1.7] * _n_fingers, dtype=np.float32),
-    )
-    spaces.robot_velocity = SimpleNamespace(
-        low=np.full(_n_joints, -_max_velocity_radps, dtype=np.float32),
-        high=np.full(_n_joints, _max_velocity_radps, dtype=np.float32),
-        default=np.zeros(_n_joints, dtype=np.float32),
-    )
-    spaces.object_position = SimpleNamespace(
-        low=np.array([-0.3, -0.3, 0], dtype=np.float32),
-        high=np.array([0.3, 0.3, 0.3], dtype=np.float32),
-        default=np.array([0, 0, move_cube._min_height], dtype=np.float32),
-    )
-
-    spaces.object_orientation = SimpleNamespace(
-        low=-np.ones(4, dtype=np.float32),
-        high=np.ones(4, dtype=np.float32),
-        default=move_cube.Pose().orientation,
-    )
+    spaces.robot_torque = trifingerpro_limits.robot_torque
+    spaces.robot_position = trifingerpro_limits.robot_position
+    spaces.robot_velocity = trifingerpro_limits.robot_velocity
+    spaces.object_position = trifingerpro_limits.object_position
+    spaces.object_orientation = trifingerpro_limits.object_orientation
 
     # for convenience, we also create the respective gym spaces
     spaces.robot_torque.gym = gym.spaces.Box(
