@@ -3,5 +3,5 @@
     "branch": "sjoshi/submission_testing",
     "email": "shrutijoshi98@gmail.com",
     "git_deploy_key": "github_deploy_key",
-    "singularity_image": "realrobotchallenge.sif"
+    "singularity_image": "userrealrobotchallenge.sif"
 }
