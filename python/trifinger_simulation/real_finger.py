@@ -55,6 +55,7 @@ class RealFinger:
         number_of_fingers = finger_types_data.get_number_of_fingers(
             finger_type
         )
+        self.number_of_fingers= number_of_fingers
         print("finger type num fingers", finger_type, number_of_fingers)
 
         if number_of_fingers == 1:
