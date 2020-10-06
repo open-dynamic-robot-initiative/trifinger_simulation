@@ -41,7 +41,7 @@ class TestParallelInstances(unittest.TestCase):
         robot2.reset_finger_positions_and_velocities(start_position)
 
         action1 = robot1.Action(position=[0.5, 0.7, -1.5] * 3)
-        action2 = robot2.Action(position=[-0.5, 0.7, -1.5] * 3)
+        action2 = robot2.Action(position=[-0.1, 0.7, -1.5] * 3)
 
         for i in range(1000):
             t1 = robot1.append_desired_action(action1)
