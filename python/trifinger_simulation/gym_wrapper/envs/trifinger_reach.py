@@ -319,7 +319,6 @@ class TriFingerReach(gym.Env):
         scaled_observation = utils.scale(
             state, self.unscaled_observation_space
         )
-        import ipdb; ipdb.set_trace()
         return scaled_observation, reward, done, info
 
     def reset(self):
