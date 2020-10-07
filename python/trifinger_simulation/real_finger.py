@@ -57,67 +57,67 @@ class RealFinger:
         )
         self.number_of_fingers= number_of_fingers
         print("finger type num fingers", finger_type, number_of_fingers)
-        self.robot = robot_fingers.TriFingerPlatformFrontend()
-        self.Action = robot_interfaces.trifinger.Action
-        self.tip_link_names = [
-                "finger_tip_link_0",
-                "finger_tip_link_120",
-                "finger_tip_link_240",
-            ]
-
-        # if number_of_fingers == 1:
-        #     if finger_type == "fingerone":
-        #         config_file_path = os.path.join(
-        #             rospkg.RosPack().get_path("robot_fingers"),
-        #             "config",
-        #             "finger_%s.yml" % finger_config_suffix,
-        #         )
-        #     elif finger_type == "fingeredu":
-        #         config_file_path = os.path.join(
-        #             rospkg.RosPack().get_path("robot_fingers"),
-        #             "config",
-        #             "fingeredu_%s.yml" % finger_config_suffix,
-        #         )
-        #     finger_data = robot_interfaces.finger.SingleProcessData()
-        #     self.real_finger_backend = (
-        #         robot_fingers.create_real_finger_backend(
-        #             finger_data, config_file_path
-        #         )
-        #     )
-        #     self.robot = robot_interfaces.finger.Frontend(finger_data)
-        #     self.Action = robot_interfaces.finger.Action
-        #     self.tip_link_names = ["finger_tip_link"]
-        # elif number_of_fingers == 3:
-        #     if finger_type == "trifingerone":
-        #         config_file_path = os.path.join(
-        #             rospkg.RosPack().get_path("robot_fingers"),
-        #             "config",
-        #             "trifinger.yml",
-        #         )
-        #     elif finger_type == "trifingeredu":
-        #         config_file_path = os.path.join(
-        #             rospkg.RosPack().get_path("robot_fingers"),
-        #             "config",
-        #             "trifingeredu.yml",
-        #         )
-        #     elif finger_type == "trifingerpro":
-        #         config_file_path = os.path.join(
-        #             rospkg.RosPack().get_path("robot_fingers"),
-        #             "config",
-        #             "trifingerpro.yml",
-        #         )
-        #     finger_data = robot_interfaces.trifinger.SingleProcessData()
-        #     self.real_finger_backend = robot_fingers.create_trifinger_backend(
-        #         finger_data, config_file_path
-        #     )
-        #     self.robot = robot_interfaces.trifinger.Frontend(finger_data)
-        #     self.Action = robot_interfaces.trifinger.Action
-        #     self.tip_link_names = [
+        # self.robot = robot_fingers.TriFingerPlatformFrontend()
+        # self.Action = robot_interfaces.trifinger.Action
+        # self.tip_link_names = [
         #         "finger_tip_link_0",
         #         "finger_tip_link_120",
         #         "finger_tip_link_240",
         #     ]
-        # self.real_finger_backend.initialize()
+
+        if number_of_fingers == 1:
+            if finger_type == "fingerone":
+                config_file_path = os.path.join(
+                    rospkg.RosPack().get_path("robot_fingers"),
+                    "config",
+                    "finger_%s.yml" % finger_config_suffix,
+                )
+            elif finger_type == "fingeredu":
+                config_file_path = os.path.join(
+                    rospkg.RosPack().get_path("robot_fingers"),
+                    "config",
+                    "fingeredu_%s.yml" % finger_config_suffix,
+                )
+            finger_data = robot_interfaces.finger.SingleProcessData()
+            self.real_finger_backend = (
+                robot_fingers.create_real_finger_backend(
+                    finger_data, config_file_path
+                )
+            )
+            self.robot = robot_interfaces.finger.Frontend(finger_data)
+            self.Action = robot_interfaces.finger.Action
+            self.tip_link_names = ["finger_tip_link"]
+        elif number_of_fingers == 3:
+            if finger_type == "trifingerone":
+                config_file_path = os.path.join(
+                    rospkg.RosPack().get_path("robot_fingers"),
+                    "config",
+                    "trifinger.yml",
+                )
+            elif finger_type == "trifingeredu":
+                config_file_path = os.path.join(
+                    rospkg.RosPack().get_path("robot_fingers"),
+                    "config",
+                    "trifingeredu.yml",
+                )
+            elif finger_type == "trifingerpro":
+                config_file_path = os.path.join(
+                    rospkg.RosPack().get_path("robot_fingers"),
+                    "config",
+                    "trifingerpro.yml",
+                )
+            finger_data = robot_interfaces.trifinger.SingleProcessData()
+            self.real_finger_backend = robot_fingers.create_trifinger_backend(
+                finger_data, config_file_path
+            )
+            self.robot = robot_interfaces.trifinger.Frontend(finger_data)
+            self.Action = robot_interfaces.trifinger.Action
+            self.tip_link_names = [
+                "finger_tip_link_0",
+                "finger_tip_link_120",
+                "finger_tip_link_240",
+            ]
+        self.real_finger_backend.initialize()
 
         self.__set_urdf_path()
         self.kinematics = pinocchio_utils.Kinematics(
