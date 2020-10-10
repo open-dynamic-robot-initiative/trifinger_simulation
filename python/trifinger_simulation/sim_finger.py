@@ -665,7 +665,6 @@ class SimFinger:
             color_rgba: A list of RGBA values.
             texture_file_path: Path to a texture that is to be loaded onto
                 the object
-
         """
         self.check_link_id_validity(link_id)
         self._change_texture(
@@ -673,6 +672,12 @@ class SimFinger:
         )
 
     def change_floor_texture(self, color_rgba=None, texture_file_path=None):
+        """Changes the color/texture of the plane
+        Args:
+            color_rgba: A list of RGBA values.
+            texture_file_path: Path to a texture that is to be loaded onto
+                the object
+        """
         self._change_texture(self.floor, -1, color_rgba, texture_file_path)
 
     def _change_texture(
