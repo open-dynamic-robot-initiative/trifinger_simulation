@@ -20,10 +20,10 @@ class TriFingerReach(gym.Env):
 
     def __init__(
         self,
-        control_rate_s,
-        finger_type,
-        enable_visualization,
-        smoothing_params,
+        control_rate_s=0.02,
+        finger_type="fingerone",
+        enable_visualization=False,
+        smoothing_params=None,
         use_real_robot=False,
         finger_config_suffix="0",
         synchronize=False,
@@ -70,7 +70,7 @@ class TriFingerReach(gym.Env):
         #: an instance of a simulated, or a real robot depending on
         #: what is desired.
         if use_real_robot:
-            from pybullet_fingers.real_finger import RealFinger
+            from trifinger_simulation.real_finger import RealFinger
 
             self.finger = RealFinger(
                 finger_type=finger_type,
@@ -138,30 +138,33 @@ class TriFingerReach(gym.Env):
         self.logger = DataLogger()
 
         # sets up smooothing
-        if "is_test" in smoothing_params:
-            self.smoothing_start_episode = 0
-            self.smoothing_alpha = smoothing_params["final_alpha"]
-            self.smoothing_increase_step = 0
-            self.smoothing_stop_episode = math.inf
+        if smoothing_params is not None:
+            if "is_test" in smoothing_params:
+                self.smoothing_start_episode = 0
+                self.smoothing_alpha = smoothing_params["final_alpha"]
+                self.smoothing_increase_step = 0
+                self.smoothing_stop_episode = math.inf
+            else:
+                self.smoothing_stop_episode = int(
+                    smoothing_params["num_episodes"]
+                    * smoothing_params["stop_after"]
+                )
+
+                self.smoothing_start_episode = int(
+                    smoothing_params["num_episodes"]
+                    * smoothing_params["start_after"]
+                )
+                num_smoothing_increase_steps = (
+                    self.smoothing_stop_episode - self.smoothing_start_episode
+                )
+                self.smoothing_alpha = 0
+                self.smoothing_increase_step = (
+                    smoothing_params["final_alpha"] / num_smoothing_increase_steps
+                )
+            self.smoothing = True
         else:
-            self.smoothing_stop_episode = int(
-                smoothing_params["num_episodes"]
-                * smoothing_params["stop_after"]
-            )
-
-            self.smoothing_start_episode = int(
-                smoothing_params["num_episodes"]
-                * smoothing_params["start_after"]
-            )
-            num_smoothing_increase_steps = (
-                self.smoothing_stop_episode - self.smoothing_start_episode
-            )
-            self.smoothing_alpha = 0
-            self.smoothing_increase_step = (
-                smoothing_params["final_alpha"] / num_smoothing_increase_steps
-            )
-
-        self.smoothed_action = None
+            self.smoothing = False
+            self.smoothed_action = None
         self.episode_count = 0
 
         #: a marker to visualize where the target goal position for the episode
@@ -281,19 +284,23 @@ class TriFingerReach(gym.Env):
         # smooth the action by taking a weighted average with the previous
         # action, where the weight, ie, the smoothing_alpha is gradually
         # increased at every episode reset (see the reset method for details)
-        if self.smoothed_action is None:
-            # start with current position
-            # self.smoothed_action = self.finger.observation.position
-            self.smoothed_action = unscaled_action
+        if self.smoothing:
+            if self.smoothed_action is None:
+                # start with current position
+                # self.smoothed_action = self.finger.observation.position
+                self.smoothed_action = unscaled_action
 
-        self.smoothed_action = (
-            self.smoothing_alpha * self.smoothed_action
-            + (1 - self.smoothing_alpha) * unscaled_action
-        )
+            self.smoothed_action = (
+                self.smoothing_alpha * self.smoothed_action
+                + (1 - self.smoothing_alpha) * unscaled_action
+            )
+            action_to_apply = self.smoothed_action
+        else:
+            action_to_apply = unscaled_action
 
         # this is the control loop to send the actions for a few timesteps
         # which depends on the actual control rate
-        finger_action = self.finger.Action(position=self.smoothed_action)
+        finger_action = self.finger.Action(position=action_to_apply)
         state = None
         for _ in range(self.steps_per_control):
             t = self.finger.append_desired_action(finger_action)
@@ -302,7 +309,7 @@ class TriFingerReach(gym.Env):
             # first time)
             if state is None:
                 state = self._get_state(
-                    observation, self.smoothed_action, True
+                    observation, action_to_apply, True
                 )
             if self.synchronize:
                 self.observation = observation
@@ -335,9 +342,10 @@ class TriFingerReach(gym.Env):
             self.next_start_time += datetime.timedelta(seconds=4)
 
         # updates smoothing parameters
-        self.update_smoothing()
+        if self.smoothing:
+            self.update_smoothing()
+            self.smoothed_action = None
         self.episode_count += 1
-        self.smoothed_action = None
 
         # resets the finger to a random position
         action = sample.feasible_random_joint_positions_for_reaching(
