@@ -159,7 +159,8 @@ class TriFingerReach(gym.Env):
                 )
                 self.smoothing_alpha = 0
                 self.smoothing_increase_step = (
-                    smoothing_params["final_alpha"] / num_smoothing_increase_steps
+                    smoothing_params["final_alpha"]
+                    / num_smoothing_increase_steps
                 )
             self.smoothing = True
         else:
@@ -308,9 +309,7 @@ class TriFingerReach(gym.Env):
             # get observation from first iteration (when action is applied the
             # first time)
             if state is None:
-                state = self._get_state(
-                    observation, action_to_apply, True
-                )
+                state = self._get_state(observation, action_to_apply, True)
             if self.synchronize:
                 self.observation = observation
         reward, done = self._compute_reward(state, self.goal)

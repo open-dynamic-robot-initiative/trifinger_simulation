@@ -51,8 +51,7 @@ class Marker:
                 _,
                 self.goal_orientations[i],
             ) = pybullet.getBasePositionAndOrientation(
-                self.goal_ids[i],
-                **self._kwargs,
+                self.goal_ids[i], **self._kwargs,
             )
 
     def set_state(self, positions):
@@ -68,10 +67,7 @@ class Marker:
             self.goal_ids, self.goal_orientations, positions
         ):
             pybullet.resetBasePositionAndOrientation(
-                goal_id,
-                position,
-                orientation,
-                **self._kwargs,
+                goal_id, position, orientation, **self._kwargs,
             )
 
 
@@ -79,12 +75,7 @@ class CubeMarker:
     """Visualize a cube."""
 
     def __init__(
-        self,
-        width,
-        position,
-        orientation,
-        color=(0, 1, 0, 0.5),
-        **kwargs,
+        self, width, position, orientation, color=(0, 1, 0, 0.5), **kwargs,
     ):
         """
         Create a cube marker for visualization
@@ -119,8 +110,5 @@ class CubeMarker:
             orientation: Orientation as quaternion (x, y, z, w)
         """
         pybullet.resetBasePositionAndOrientation(
-            self.body_id,
-            position,
-            orientation,
-            **self._kwargs,
+            self.body_id, position, orientation, **self._kwargs,
         )

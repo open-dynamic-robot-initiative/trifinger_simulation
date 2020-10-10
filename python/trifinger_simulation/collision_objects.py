@@ -48,10 +48,7 @@ def import_mesh(
     # set colour
     if color_rgba is not None:
         pybullet.changeVisualShape(
-            obj,
-            -1,
-            rgbaColor=color_rgba,
-            physicsClientId=pybullet_client_id,
+            obj, -1, rgbaColor=color_rgba, physicsClientId=pybullet_client_id,
         )
 
     return obj
@@ -120,10 +117,7 @@ class Block:
             orientation: desired to be set
         """
         pybullet.resetBasePositionAndOrientation(
-            self.block,
-            position,
-            orientation,
-            **self._kwargs,
+            self.block, position, orientation, **self._kwargs,
         )
 
     def get_state(self):
@@ -132,8 +126,7 @@ class Block:
             Current position and orientation of the block.
         """
         position, orientation = pybullet.getBasePositionAndOrientation(
-            self.block,
-            **self._kwargs,
+            self.block, **self._kwargs,
         )
         return list(position), list(orientation)
 
@@ -207,9 +200,7 @@ class Object:
             )
         elif type == "sphere":
             self.object_id = pybullet.createCollisionShape(
-                shapeType=pybullet.GEOM_SPHERE,
-                radius=radius,
-                **self._kwargs,
+                shapeType=pybullet.GEOM_SPHERE, radius=radius, **self._kwargs,
             )
         elif type == "capsule":
             self.object_id = pybullet.createCollisionShape(
@@ -227,8 +218,10 @@ class Object:
             )
         elif type == "custom":
             if mesh_file_path is None:
-                raise ValueError("Please pass a mesh file to import the custom"
-                                "desired object from. :)")
+                raise ValueError(
+                    "Please pass a mesh file to import the custom"
+                    "desired object from. :)"
+                )
             if is_concave:
                 flags = pybullet.GEOM_FORCE_CONCAVE_TRIMESH
             else:
@@ -250,9 +243,7 @@ class Object:
 
         # sets visual properties of the object
         if color_rgba is not None:
-            self.change_texture(
-                color_rgba=color_rgba
-            )
+            self.change_texture(color_rgba=color_rgba)
 
         # sets dynamics of the object
         self.change_dynamics(
@@ -262,10 +253,8 @@ class Object:
         )
 
     def change_dynamics(
-            self,
-            lateral_friction=1,
-            spinning_friction=0.001,
-            restitution=0):
+        self, lateral_friction=1, spinning_friction=0.001, restitution=0
+    ):
         """Allows to change the dynamics properties of the object.
 
         Args:
@@ -303,23 +292,19 @@ class Object:
         """
         if texture_file_path is None:
             if color_rgba is None:
-                raise ValueError("This method was called without any values"
-                                "for the desired visual attribute")
+                raise ValueError(
+                    "This method was called without any values"
+                    "for the desired visual attribute"
+                )
             else:
                 pybullet.changeVisualShape(
-                    self.object,
-                    -1,
-                    rgbaColor=color_rgba,
-                    **self._kwargs,
+                    self.object, -1, rgbaColor=color_rgba, **self._kwargs,
                 )
         else:
             texture_id = pybullet.loadTexture(texture_file_path)
             pybullet.changeVisualShape(
-                    self.object,
-                    -1,
-                    textureUniqueId=texture_id,
-                    **self._kwargs,
-                )
+                self.object, -1, textureUniqueId=texture_id, **self._kwargs,
+            )
 
     def set_state(self, position, orientation=None):
         """Resets the object state to the provided position and
@@ -333,8 +318,7 @@ class Object:
         if orientation is None:
             orientation = [1, 1, 1, 1]
         pybullet.resetBasePositionAndOrientation(
-            self.object, position, orientation,
-            **self._kwargs,
+            self.object, position, orientation, **self._kwargs,
         )
 
     def get_state(self):
@@ -354,6 +338,5 @@ class Object:
         # an error, only remove the object if the simulation is still running.
         if pybullet.isConnected():
             pybullet.removeBody(
-                self.object,
-                **self._kwargs,
+                self.object, **self._kwargs,
             )

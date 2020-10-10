@@ -22,10 +22,7 @@ class RealFinger:
     """
 
     def __init__(
-        self,
-        finger_type,
-        finger_config_suffix,
-        enable_visualization=False,
+        self, finger_type, finger_config_suffix, enable_visualization=False,
     ):
         """
         Constructor, initializes the physical world we will work in.
@@ -55,7 +52,7 @@ class RealFinger:
         number_of_fingers = finger_types_data.get_number_of_fingers(
             finger_type
         )
-        self.number_of_fingers= number_of_fingers
+        self.number_of_fingers = number_of_fingers
 
         if number_of_fingers == 1:
             if finger_type == "fingerone":
@@ -71,10 +68,8 @@ class RealFinger:
                     "fingeredu_%s.yml" % finger_config_suffix,
                 )
             finger_data = robot_interfaces.finger.SingleProcessData()
-            self.real_finger_backend = (
-                robot_fingers.create_real_finger_backend(
-                    finger_data, config_file_path
-                )
+            self.real_finger_backend = robot_fingers.create_real_finger_backend(
+                finger_data, config_file_path
             )
             self.robot = robot_interfaces.finger.Frontend(finger_data)
             self.Action = robot_interfaces.finger.Action

@@ -31,10 +31,7 @@ class SimFinger:
     """
 
     def __init__(
-        self,
-        finger_type,
-        time_step=0.004,
-        enable_visualization=False,
+        self, finger_type, time_step=0.004, enable_visualization=False,
     ):
         """
         Constructor, initializes the physical world we will work in.
@@ -170,8 +167,7 @@ class SimFinger:
         # copy.copy(action) does **not** work for robot_interfaces
         # actions!
         self._desired_action_t = type(action)(
-            copy.copy(action.torque),
-            copy.copy(action.position),
+            copy.copy(action.torque), copy.copy(action.position),
         )
 
         self._applied_action_t = self._set_desired_action(action)
@@ -399,9 +395,7 @@ class SimFinger:
         """
         Step the simulation to go to the next world state.
         """
-        pybullet.stepSimulation(
-            physicsClientId=self._pybullet_client_id,
-        )
+        pybullet.stepSimulation(physicsClientId=self._pybullet_client_id,)
 
     def _disconnect_from_pybullet(self):
         """Disconnect from the simulation.
@@ -410,9 +404,7 @@ class SimFinger:
         avoid any further function calls to it.
         """
         if pybullet.isConnected(physicsClientId=self._pybullet_client_id):
-            pybullet.disconnect(
-                physicsClientId=self._pybullet_client_id,
-            )
+            pybullet.disconnect(physicsClientId=self._pybullet_client_id,)
 
     def __set_pybullet_motor_torques(self, motor_torques):
 
@@ -558,10 +550,7 @@ class SimFinger:
             physicsClientId=self._pybullet_client_id,
         )
         pybullet.setGravity(
-            0,
-            0,
-            -9.81,
-            physicsClientId=self._pybullet_client_id,
+            0, 0, -9.81, physicsClientId=self._pybullet_client_id,
         )
         pybullet.setTimeStep(
             self.time_step_s, physicsClientId=self._pybullet_client_id
@@ -607,23 +596,23 @@ class SimFinger:
         if index not in self.pybullet_link_indices:
             raise ValueError(
                 "Please pass a valid finger link id."
-                " Valid finger ids are = {}".format(
-                self.pybullet_link_indices)
+                " Valid finger ids are = {}".format(self.pybullet_link_indices)
             )
 
     def change_link_dynamics(
-            self,
-            link_id,
-            max_joint_velocity=1e3,
-            restitution=0.8,
-            joint_damping=0.0,
-            lateral_friction=0.1,
-            spinning_friction=0.1,
-            rolling_friction=0.1,
-            linear_damping=0.5,
-            angular_damping=0.5,
-            contact_stiffness=0.1,
-            contact_damping=0.05):
+        self,
+        link_id,
+        max_joint_velocity=1e3,
+        restitution=0.8,
+        joint_damping=0.0,
+        lateral_friction=0.1,
+        spinning_friction=0.1,
+        rolling_friction=0.1,
+        linear_damping=0.5,
+        angular_damping=0.5,
+        contact_stiffness=0.1,
+        contact_damping=0.05,
+    ):
         """Changes the dynamics properties of one link at a time.
         Please refer to the ``pybullet.changeDynamics()`` for details
         on the arguments.
@@ -663,10 +652,8 @@ class SimFinger:
         )
 
     def change_link_texture(
-            self,
-            link_id,
-            color_rgba=None,
-            texture_file_path=None):
+        self, link_id, color_rgba=None, texture_file_path=None
+    ):
         """Changes the color of any link on the robot, or load a texture image
         onto it one link at a time.
 
@@ -686,29 +673,33 @@ class SimFinger:
         )
 
     def change_floor_texture(self, color_rgba=None, texture_file_path=None):
-        self._change_texture(
-            self.floor, -1, color_rgba, texture_file_path
-        )
+        self._change_texture(self.floor, -1, color_rgba, texture_file_path)
 
-    def _change_texture(self, body_id, link_id, color_rgba=None, texture_file_path=None):
+    def _change_texture(
+        self, body_id, link_id, color_rgba=None, texture_file_path=None
+    ):
         if not texture_file_path and not color_rgba:
             raise ValueError(
                 "This method was called without any"
-                "values for the desired visual attribute")
+                "values for the desired visual attribute"
+            )
         elif texture_file_path:
             texture_id = pybullet.loadTexture(
-                texture_file_path, physicsClientId=self._pybullet_client_id)
+                texture_file_path, physicsClientId=self._pybullet_client_id
+            )
             pybullet.changeVisualShape(
                 body_id,
                 link_id,
                 textureUniqueId=texture_id,
-                physicsClientId=self._pybullet_client_id)
+                physicsClientId=self._pybullet_client_id,
+            )
         elif color_rgba:
             pybullet.changeVisualShape(
                 body_id,
                 link_id,
                 rgbaColor=color_rgba,
-                physicsClientId=self._pybullet_client_id)
+                physicsClientId=self._pybullet_client_id,
+            )
 
     def __disable_pybullet_velocity_control(self):
         """
@@ -786,14 +777,12 @@ class SimFinger:
         # Source: https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=12728.
         link_name_to_index = {
             pybullet.getBodyInfo(
-                self.finger_id,
-                physicsClientId=self._pybullet_client_id,
+                self.finger_id, physicsClientId=self._pybullet_client_id,
             )[0].decode("UTF-8"): -1,
         }
         for joint_idx in range(
             pybullet.getNumJoints(
-                self.finger_id,
-                physicsClientId=self._pybullet_client_id,
+                self.finger_id, physicsClientId=self._pybullet_client_id,
             )
         ):
             link_name = pybullet.getJointInfo(
