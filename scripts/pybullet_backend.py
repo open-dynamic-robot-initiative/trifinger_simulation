@@ -151,8 +151,8 @@ def main():
         # images to save time.
         import trifinger_object_tracking.py_tricamera_types as tricamera
 
-        # spawn a cube in the arena
-        cube = collision_objects.Block()
+        # spawn a cube in the centre of the arena
+        cube = collision_objects.Block(position=[0.0, 0.0, 0.035])
         render_images = args.cameras
 
         camera_data = tricamera.MultiProcessData("tricamera", True, 10)
