@@ -79,9 +79,9 @@ TEST(TestPyBulletDriver, trifinger)
     typedef robot_interfaces::TriFingerTypes::Action Action;
 
     std::array<Action::Vector, 3> goals;
-    goals[0] << 0.27, -0.72, -1.03, 0.53, -0.26, -1.67, -0.10, 0.10, -1.36;
-    goals[1] << 0.38, -0.28, -1.91, 0.22, 0.02, -0.03, 0.00, 0.28, -0.03;
-    goals[2] << 0.14, 0.27, -0.03, 0.08, -0.08, -0.03, 0.53, -0.00, -0.96;
+    goals[0] << 0, 0.9, -1.7, 0, 0.9, -1.7, 0, 0.9, -1.7;
+    goals[1] << -0.05,  0.82, -1.2 , -0.06,  0.83, -1.2 , -0.07,  0.84, -1.2;
+    goals[2] << 0.5 ,  1.18, -2.39,  0.5 ,  1.18, -2.4 ,  0.5 ,  1.18, -2.4;
 
     for (Action::Vector goal : goals)
     {
@@ -96,7 +96,10 @@ TEST(TestPyBulletDriver, trifinger)
         // check if desired position is reached
         auto actual_position = frontend.get_observation(t).position;
         // std::cout << actual_position.transpose() << std::endl;
-        ASSERT_TRUE(actual_position.isApprox(goal, POSITION_TOLERANCE));
+        ASSERT_TRUE(actual_position.isApprox(goal, POSITION_TOLERANCE))
+            << std::setprecision(3)
+            << "Expected position: " << goal.transpose()
+            << "\nActual position: " << actual_position.transpose();
     }
 }
 
