@@ -31,10 +31,7 @@ class SimFinger:
     """
 
     def __init__(
-        self,
-        finger_type,
-        time_step=0.004,
-        enable_visualization=False,
+        self, finger_type, time_step=0.004, enable_visualization=False,
     ):
         """
         Constructor, initializes the physical world we will work in.
@@ -170,8 +167,7 @@ class SimFinger:
         # copy.copy(action) does **not** work for robot_interfaces
         # actions!
         self._desired_action_t = type(action)(
-            copy.copy(action.torque),
-            copy.copy(action.position),
+            copy.copy(action.torque), copy.copy(action.position),
         )
 
         self._applied_action_t = self._set_desired_action(action)
@@ -399,9 +395,7 @@ class SimFinger:
         """
         Step the simulation to go to the next world state.
         """
-        pybullet.stepSimulation(
-            physicsClientId=self._pybullet_client_id,
-        )
+        pybullet.stepSimulation(physicsClientId=self._pybullet_client_id,)
 
     def _disconnect_from_pybullet(self):
         """Disconnect from the simulation.
@@ -410,9 +404,7 @@ class SimFinger:
         avoid any further function calls to it.
         """
         if pybullet.isConnected(physicsClientId=self._pybullet_client_id):
-            pybullet.disconnect(
-                physicsClientId=self._pybullet_client_id,
-            )
+            pybullet.disconnect(physicsClientId=self._pybullet_client_id,)
 
     def __set_pybullet_motor_torques(self, motor_torques):
 
@@ -558,16 +550,13 @@ class SimFinger:
             physicsClientId=self._pybullet_client_id,
         )
         pybullet.setGravity(
-            0,
-            0,
-            -9.81,
-            physicsClientId=self._pybullet_client_id,
+            0, 0, -9.81, physicsClientId=self._pybullet_client_id,
         )
         pybullet.setTimeStep(
             self.time_step_s, physicsClientId=self._pybullet_client_id
         )
 
-        pybullet.loadURDF(
+        self.floor = pybullet.loadURDF(
             "plane_transparent.urdf",
             [0, 0, 0],
             physicsClientId=self._pybullet_client_id,
@@ -583,19 +572,137 @@ class SimFinger:
         maximum joint velocities etc.
         """
         for link_id in self.pybullet_link_indices:
-            pybullet.changeDynamics(
-                bodyUniqueId=self.finger_id,
-                linkIndex=link_id,
-                maxJointVelocity=10,
+            self.change_link_dynamics(
+                link_id,
+                max_joint_velocity=1e3,
                 restitution=0.8,
-                jointDamping=0.0,
-                lateralFriction=0.1,
-                spinningFriction=0.1,
-                rollingFriction=0.1,
-                linearDamping=0.5,
-                angularDamping=0.5,
-                contactStiffness=0.1,
-                contactDamping=0.05,
+                joint_damping=0.0,
+                lateral_friction=0.1,
+                spinning_friction=0.1,
+                rolling_friction=0.1,
+                linear_damping=0.5,
+                angular_damping=0.5,
+                contact_stiffness=0.1,
+                contact_damping=0.05,
+            )
+
+    def check_link_id_validity(self, index):
+        """Checks if an index is a valid link id.
+
+        Args:
+            index (int): The index that is to be
+                checked.
+        """
+        if index not in self.pybullet_link_indices:
+            raise ValueError(
+                "Please pass a valid finger link id."
+                " Valid finger ids are = {}".format(self.pybullet_link_indices)
+            )
+
+    def change_link_dynamics(
+        self,
+        link_id,
+        max_joint_velocity=1e3,
+        restitution=0.8,
+        joint_damping=0.0,
+        lateral_friction=0.1,
+        spinning_friction=0.1,
+        rolling_friction=0.1,
+        linear_damping=0.5,
+        angular_damping=0.5,
+        contact_stiffness=0.1,
+        contact_damping=0.05,
+    ):
+        """Changes the dynamics properties of one link at a time.
+        Please refer to the ``pybullet.changeDynamics()`` for details
+        on the arguments.
+
+        Args:
+            link_id (int): The index of the link whose dynamics are to be
+                changed. Default behaviour is to change the properties of all
+                links.
+            max_joint_velocity (double)
+            restitution (double)
+            joint_damping (double)
+            lateral_friction (double)
+            spinning_friction (double)
+            rolling_friction (double)
+            linear_damping (double)
+            angular_damping (double)
+            contact_stiffness (double)
+            contact_damping (double)
+
+        Note: more parameters can be added to the list as needed
+        """
+        self.check_link_id_validity(link_id)
+        pybullet.changeDynamics(
+            bodyUniqueId=self.finger_id,
+            linkIndex=link_id,
+            maxJointVelocity=max_joint_velocity,
+            restitution=restitution,
+            jointDamping=joint_damping,
+            lateralFriction=lateral_friction,
+            spinningFriction=spinning_friction,
+            rollingFriction=rolling_friction,
+            linearDamping=linear_damping,
+            angularDamping=angular_damping,
+            contactStiffness=contact_stiffness,
+            contactDamping=contact_damping,
+            physicsClientId=self._pybullet_client_id,
+        )
+
+    def change_link_texture(
+        self, link_id, color_rgba=None, texture_file_path=None
+    ):
+        """Changes the color of any link on the robot, or load a texture image
+        onto it one link at a time.
+
+        A texture image will get loaded on top of a color.
+
+        Args:
+
+            link_id: a valid link id
+            color_rgba: A list of RGBA values.
+            texture_file_path: Path to a texture that is to be loaded onto
+                the object
+        """
+        self.check_link_id_validity(link_id)
+        self._change_texture(
+            self.finger_id, link_id, color_rgba, texture_file_path
+        )
+
+    def change_floor_texture(self, color_rgba=None, texture_file_path=None):
+        """Changes the color/texture of the plane
+        Args:
+            color_rgba: A list of RGBA values.
+            texture_file_path: Path to a texture that is to be loaded onto
+                the object
+        """
+        self._change_texture(self.floor, -1, color_rgba, texture_file_path)
+
+    def _change_texture(
+        self, body_id, link_id, color_rgba=None, texture_file_path=None
+    ):
+        if not texture_file_path and not color_rgba:
+            raise ValueError(
+                "This method was called without any"
+                "values for the desired visual attribute"
+            )
+        elif texture_file_path:
+            texture_id = pybullet.loadTexture(
+                texture_file_path, physicsClientId=self._pybullet_client_id
+            )
+            pybullet.changeVisualShape(
+                body_id,
+                link_id,
+                textureUniqueId=texture_id,
+                physicsClientId=self._pybullet_client_id,
+            )
+        elif color_rgba:
+            pybullet.changeVisualShape(
+                body_id,
+                link_id,
+                rgbaColor=color_rgba,
                 physicsClientId=self._pybullet_client_id,
             )
 
@@ -675,14 +782,12 @@ class SimFinger:
         # Source: https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=12728.
         link_name_to_index = {
             pybullet.getBodyInfo(
-                self.finger_id,
-                physicsClientId=self._pybullet_client_id,
+                self.finger_id, physicsClientId=self._pybullet_client_id,
             )[0].decode("UTF-8"): -1,
         }
         for joint_idx in range(
             pybullet.getNumJoints(
-                self.finger_id,
-                physicsClientId=self._pybullet_client_id,
+                self.finger_id, physicsClientId=self._pybullet_client_id,
             )
         ):
             link_name = pybullet.getJointInfo(

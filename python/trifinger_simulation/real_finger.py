@@ -10,7 +10,7 @@ import rospkg
 
 import robot_interfaces
 import robot_fingers
-from trifinger_simulation import finger_types_data
+from trifinger_simulation import finger_types_data, pinocchio_utils
 from trifinger_simulation.sim_finger import SimFinger
 
 
@@ -22,10 +22,7 @@ class RealFinger:
     """
 
     def __init__(
-        self,
-        finger_type,
-        finger_config_suffix,
-        enable_visualization=False,
+        self, finger_type, finger_config_suffix, enable_visualization=False,
     ):
         """
         Constructor, initializes the physical world we will work in.
@@ -50,10 +47,12 @@ class RealFinger:
                 time_step=0.001,  # todo: not sure if this is correct
                 enable_visualization=True,
             )
-
+        self.time_step_s = 0.001
+        self.finger_type = finger_type
         number_of_fingers = finger_types_data.get_number_of_fingers(
             finger_type
         )
+        self.number_of_fingers = number_of_fingers
 
         if number_of_fingers == 1:
             if finger_type == "fingerone":
@@ -69,13 +68,12 @@ class RealFinger:
                     "fingeredu_%s.yml" % finger_config_suffix,
                 )
             finger_data = robot_interfaces.finger.SingleProcessData()
-            self.real_finger_backend = (
-                robot_fingers.create_real_finger_backend(
-                    finger_data, config_file_path
-                )
+            self.real_finger_backend = robot_fingers.create_real_finger_backend(
+                finger_data, config_file_path
             )
             self.robot = robot_interfaces.finger.Frontend(finger_data)
             self.Action = robot_interfaces.finger.Action
+            self.tip_link_names = ["finger_tip_link"]
         elif number_of_fingers == 3:
             if finger_type == "trifingerone":
                 config_file_path = os.path.join(
@@ -89,14 +87,29 @@ class RealFinger:
                     "config",
                     "trifingeredu.yml",
                 )
+            elif finger_type == "trifingerpro":
+                config_file_path = os.path.join(
+                    rospkg.RosPack().get_path("robot_fingers"),
+                    "config",
+                    "trifingerpro.yml",
+                )
             finger_data = robot_interfaces.trifinger.SingleProcessData()
             self.real_finger_backend = robot_fingers.create_trifinger_backend(
                 finger_data, config_file_path
             )
             self.robot = robot_interfaces.trifinger.Frontend(finger_data)
             self.Action = robot_interfaces.trifinger.Action
-
+            self.tip_link_names = [
+                "finger_tip_link_0",
+                "finger_tip_link_120",
+                "finger_tip_link_240",
+            ]
         self.real_finger_backend.initialize()
+
+        self.__set_urdf_path()
+        self.kinematics = pinocchio_utils.Kinematics(
+            self.finger_urdf_path, self.tip_link_names
+        )
 
     def append_desired_action(self, action):
         """
@@ -131,7 +144,7 @@ class RealFinger:
 
         return observation
 
-    def reset_finger(self, joint_positions):
+    def reset_finger_positions_and_velocities(self, joint_positions):
         """
         Move the finger(s) to a random position (sampled in the joint space).
         The sampled random position is set as target and the robot is stepped
@@ -142,3 +155,23 @@ class RealFinger:
             t = self.append_desired_action(action)
             observation = self.get_observation(t)
         return observation
+
+    def __set_urdf_path(self):
+        """
+        Sets the paths for the URDFs to use depending upon the finger type
+        """
+        try:
+            import rospkg
+
+            self.robot_properties_path = rospkg.RosPack().get_path(
+                "robot_properties_fingers"
+            )
+        except Exception:
+            self.robot_properties_path = os.path.join(
+                os.path.dirname(__file__), "robot_properties_fingers"
+            )
+
+        urdf_file = finger_types_data.get_finger_urdf(self.finger_type)
+        self.finger_urdf_path = os.path.join(
+            self.robot_properties_path, "urdf", urdf_file
+        )
