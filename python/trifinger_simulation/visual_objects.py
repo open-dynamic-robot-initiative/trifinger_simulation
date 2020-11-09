@@ -1,3 +1,4 @@
+import numpy as np
 import pybullet
 
 
@@ -75,40 +76,41 @@ class Marker:
             )
 
 
-class CubeMarker:
-    """Visualize a cube."""
+class ObjectMarker:
 
     def __init__(
         self,
-        width,
+        shape_type,
         position,
         orientation,
         color=(0, 1, 0, 0.5),
+        pybullet_client_id=0,
         **kwargs,
     ):
         """
         Create a cube marker for visualization
 
         Args:
-            width (float): Length of one side of the cube.
+            shape_type: Shape type of the object (e.g. pybullet.GEOM_BOX).
             position: Position (x, y, z)
             orientation: Orientation as quaternion (x, y, z, w)
-            color: Color of the cube as a tuple (r, b, g, q)
+            kwargs: Keyword arguments that are passed to
+                pybullet.createVisualShape.  Use this to specify
+                shape-type-specify parameters like the object size.
         """
-
-        self._kwargs = kwargs
+        self._pybullet_client_id = pybullet_client_id
 
         self.shape_id = pybullet.createVisualShape(
             shapeType=pybullet.GEOM_BOX,
-            halfExtents=[width / 2] * 3,
             rgbaColor=color,
-            **self._kwargs,
+            physicsClientId=self._pybullet_client_id,
+            **kwargs,
         )
         self.body_id = pybullet.createMultiBody(
             baseVisualShapeIndex=self.shape_id,
             basePosition=position,
             baseOrientation=orientation,
-            **self._kwargs,
+            physicsClientId=self._pybullet_client_id,
         )
 
     def set_state(self, position, orientation):
@@ -122,5 +124,56 @@ class CubeMarker:
             self.body_id,
             position,
             orientation,
-            **self._kwargs,
+            physicsClientId=self._pybullet_client_id,
         )
+
+
+class CuboidMarker(ObjectMarker):
+    """Visualize a Cuboid."""
+
+    def __init__(
+        self,
+        size,
+        position,
+        orientation,
+        color=(0, 1, 0, 0.5),
+        pybullet_client_id=0,
+    ):
+        """
+        Create a cube marker for visualization
+
+        Args:
+            size (list): Lengths of the cuboid sides.
+            position: Position (x, y, z)
+            orientation: Orientation as quaternion (x, y, z, w)
+            color: Color of the cube as a tuple (r, b, g, a)
+        """
+        size = np.asarray(size)
+        super().__init__(pybullet.GEOM_BOX, position, orientation, color,
+                         pybullet_client_id, halfExtents=size / 2,
+                         )
+
+
+class CubeMarker(CuboidMarker):
+    """Visualize a cube."""
+
+    def __init__(
+        self,
+        width,
+        position,
+        orientation,
+        color=(0, 1, 0, 0.5),
+        pybullet_client_id=0,
+    ):
+        """
+        Create a cube marker for visualization
+
+        Args:
+            width (float): Length of one side of the cube.
+            position: Position (x, y, z)
+            orientation: Orientation as quaternion (x, y, z, w)
+            color: Color of the cube as a tuple (r, b, g, a)
+        """
+        super().__init__([width] * 3, position, orientation, color,
+                         pybullet_client_id,
+                         )

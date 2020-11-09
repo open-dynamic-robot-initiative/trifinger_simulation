@@ -274,11 +274,11 @@ class CubeEnv(gym.GoalEnv):
 
         # visualize the goal
         if self.visualization:
-            self.goal_marker = visual_objects.CubeMarker(
-                width=0.065,
+            self.goal_marker = visual_objects.CuboidMarker(
+                size=(0.02, 0.08, 0.02),
                 position=goal_object_pose.position,
                 orientation=goal_object_pose.orientation,
-                physicsClientId=self.platform.simfinger._pybullet_client_id,
+                pybullet_client_id=self.platform.simfinger._pybullet_client_id,
             )
 
         self.info = {"difficulty": self.initializer.difficulty}
