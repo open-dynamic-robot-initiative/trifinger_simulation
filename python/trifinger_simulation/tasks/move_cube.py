@@ -38,7 +38,8 @@ _cube_corners = (
             [+1, +1, -1],
             [+1, +1, +1],
         ]
-    ) * _CUBOID_HALF_SIZE
+    )
+    * _CUBOID_HALF_SIZE
 )
 
 

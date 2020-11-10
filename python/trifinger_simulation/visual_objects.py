@@ -77,7 +77,6 @@ class Marker:
 
 
 class ObjectMarker:
-
     def __init__(
         self,
         shape_type,
@@ -149,9 +148,14 @@ class CuboidMarker(ObjectMarker):
             color: Color of the cube as a tuple (r, b, g, a)
         """
         size = np.asarray(size)
-        super().__init__(pybullet.GEOM_BOX, position, orientation, color,
-                         pybullet_client_id, halfExtents=size / 2,
-                         )
+        super().__init__(
+            pybullet.GEOM_BOX,
+            position,
+            orientation,
+            color,
+            pybullet_client_id,
+            halfExtents=size / 2,
+        )
 
 
 class CubeMarker(CuboidMarker):
@@ -174,6 +178,10 @@ class CubeMarker(CuboidMarker):
             orientation: Orientation as quaternion (x, y, z, w)
             color: Color of the cube as a tuple (r, b, g, a)
         """
-        super().__init__([width] * 3, position, orientation, color,
-                         pybullet_client_id,
-                         )
+        super().__init__(
+            [width] * 3,
+            position,
+            orientation,
+            color,
+            pybullet_client_id,
+        )

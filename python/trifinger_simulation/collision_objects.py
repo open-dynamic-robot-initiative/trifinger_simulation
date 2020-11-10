@@ -144,6 +144,7 @@ class Cuboid:
 
 class Cube(Cuboid):
     """A cube object."""
+
     def __init__(
         self,
         position=[0.15, 0.0, 0.0425],
@@ -152,8 +153,9 @@ class Cube(Cuboid):
         mass=0.08,
         pybullet_client_id=0,
     ):
-        super().__init__(position, orientation, [half_width] * 3, mass,
-                         pybullet_client_id)
+        super().__init__(
+            position, orientation, [half_width] * 3, mass, pybullet_client_id
+        )
 
 
 # For backward compatibility

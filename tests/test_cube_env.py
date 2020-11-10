@@ -20,8 +20,10 @@ class TestSample(unittest.TestCase):
             action = env.action_space.sample()
             observation, _, _, _ = env.step(action)
 
-            self.assertTrue(env.observation_space.contains(observation),
-                            msg="Invalid observation: {}".format(observation))
+            self.assertTrue(
+                env.observation_space.contains(observation),
+                msg="Invalid observation: {}".format(observation),
+            )
 
 
 if __name__ == "__main__":
