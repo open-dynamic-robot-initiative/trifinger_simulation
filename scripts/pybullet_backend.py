@@ -152,7 +152,13 @@ def main():
         import trifinger_object_tracking.py_tricamera_types as tricamera
 
         # spawn a cube in the centre of the arena
-        cube = collision_objects.Block(position=[0.0, 0.0, 0.035])
+        cube = collision_objects.Cuboid(
+            position=[0.0, 0.0, 0.01],
+            orientation=[0, 0, 0, 1],
+            half_extends=[0.01, 0.04, 0.01],
+            mass=0.016,
+        )
+
         render_images = args.cameras
 
         camera_data = tricamera.MultiProcessData("tricamera", True, 10)
