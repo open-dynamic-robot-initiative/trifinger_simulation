@@ -100,7 +100,7 @@ class ObjectMarker:
         self._pybullet_client_id = pybullet_client_id
 
         self.shape_id = pybullet.createVisualShape(
-            shapeType=pybullet.GEOM_BOX,
+            shapeType=shape_type,
             rgbaColor=color,
             physicsClientId=self._pybullet_client_id,
             **kwargs,
