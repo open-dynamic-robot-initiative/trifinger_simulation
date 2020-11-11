@@ -150,11 +150,13 @@ class TriFingerPlatform:
                 position=self.spaces.object_position.default,
                 orientation=self.spaces.object_orientation.default,
             )
-        self.cube = collision_objects.Block(
-            initial_object_pose.position,
-            initial_object_pose.orientation,
-            mass=0.020,
-            **_kwargs,
+
+        self.cube = collision_objects.Cuboid(
+            position=initial_object_pose.position,
+            orientation=initial_object_pose.orientation,
+            half_extents=[0.01, 0.04, 0.01],
+            mass=0.016,
+            pybullet_client_id=self.simfinger._pybullet_client_id,
         )
 
         self.tricamera = camera.TriFingerCameras(**_kwargs)

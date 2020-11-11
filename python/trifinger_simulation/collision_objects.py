@@ -57,43 +57,40 @@ def import_mesh(
     return obj
 
 
-class Block:
-    """
-    To interact with a block object
-    """
+class Cuboid:
+    """A cuboid which can be interacted with."""
 
     def __init__(
         self,
-        position=[0.15, 0.0, 0.0425],
-        orientation=[0, 0, 0, 1],
-        half_size=0.0325,
-        mass=0.08,
-        **kwargs,
+        position,
+        orientation,
+        half_extents,
+        mass,
+        pybullet_client_id=0,
     ):
         """
         Import the block
 
         Args:
-            position (list): where in xyz space should the block
-                be imported
-            orientation (list): initial orientation quaternion of the block
-            half_size (float): how large should this block be
-            mass (float): how heavy should this block be
+            position (list): Initial xyz-position of the cuboid.
+            orientation (list): Initial orientation quaternion (x, y, z, w) of
+                the cuboid.
+            half_extents (list): Half-extends of the cuboid in x/y/z-direction.
+            mass (float): Mass of the cuboid in kg.
         """
-
-        self._kwargs = kwargs
+        self._pybullet_client_id = pybullet_client_id
 
         self.block_id = pybullet.createCollisionShape(
             shapeType=pybullet.GEOM_BOX,
-            halfExtents=[half_size] * 3,
-            **self._kwargs,
+            halfExtents=half_extents,
+            physicsClientId=self._pybullet_client_id,
         )
         self.block = pybullet.createMultiBody(
             baseCollisionShapeIndex=self.block_id,
             basePosition=position,
             baseOrientation=orientation,
             baseMass=mass,
-            **self._kwargs,
+            physicsClientId=self._pybullet_client_id,
         )
 
         # set dynamics of the block
@@ -106,42 +103,60 @@ class Block:
             lateralFriction=lateral_friction,
             spinningFriction=spinning_friction,
             restitution=restitution,
-            **self._kwargs,
+            physicsClientId=self._pybullet_client_id,
         )
 
     def set_state(self, position, orientation):
         """
-        Resets the block state to the provided position and
-        orientation
+        Resets the cuboid to the provided position and orientation
 
         Args:
-            position: the position to which the block is to be
-                set
-            orientation: desired to be set
+            position: New position.
+            orientation: New orientation.
         """
         pybullet.resetBasePositionAndOrientation(
             self.block,
             position,
             orientation,
-            **self._kwargs,
+            physicsClientId=self._pybullet_client_id,
         )
 
     def get_state(self):
         """
         Returns:
-            Current position and orientation of the block.
+            Current position and orientation of the cuboid.
         """
         position, orientation = pybullet.getBasePositionAndOrientation(
             self.block,
-            **self._kwargs,
+            physicsClientId=self._pybullet_client_id,
         )
         return list(position), list(orientation)
 
     def __del__(self):
         """
-        Removes the block from the environment
+        Removes the cuboid from the environment.
         """
         # At this point it may be that pybullet was already shut down. To avoid
         # an error, only remove the object if the simulation is still running.
-        if pybullet.isConnected(**self._kwargs):
-            pybullet.removeBody(self.block, **self._kwargs)
+        if pybullet.isConnected(self._pybullet_client_id):
+            pybullet.removeBody(self.block, self._pybullet_client_id)
+
+
+class Cube(Cuboid):
+    """A cube object."""
+
+    def __init__(
+        self,
+        position=[0.15, 0.0, 0.0425],
+        orientation=[0, 0, 0, 1],
+        half_width=0.0325,
+        mass=0.08,
+        pybullet_client_id=0,
+    ):
+        super().__init__(
+            position, orientation, [half_width] * 3, mass, pybullet_client_id
+        )
+
+
+# For backward compatibility
+Block = Cube
