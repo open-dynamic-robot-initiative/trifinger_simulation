@@ -155,7 +155,7 @@ def main():
         cube = collision_objects.Cuboid(
             position=[0.0, 0.0, 0.01],
             orientation=[0, 0, 0, 1],
-            half_extends=[0.01, 0.04, 0.01],
+            half_extents=[0.01, 0.04, 0.01],
             mass=0.016,
         )
 

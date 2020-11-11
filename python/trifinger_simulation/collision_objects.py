@@ -64,7 +64,7 @@ class Cuboid:
         self,
         position,
         orientation,
-        half_extends,
+        half_extents,
         mass,
         pybullet_client_id=0,
     ):
@@ -75,14 +75,14 @@ class Cuboid:
             position (list): Initial xyz-position of the cuboid.
             orientation (list): Initial orientation quaternion (x, y, z, w) of
                 the cuboid.
-            half_extends (list): Half-extends of the cuboid in x/y/z-direction.
+            half_extents (list): Half-extends of the cuboid in x/y/z-direction.
             mass (float): Mass of the cuboid in kg.
         """
         self._pybullet_client_id = pybullet_client_id
 
         self.block_id = pybullet.createCollisionShape(
             shapeType=pybullet.GEOM_BOX,
-            halfExtents=half_extends,
+            halfExtents=half_extents,
             physicsClientId=self._pybullet_client_id,
         )
         self.block = pybullet.createMultiBody(
