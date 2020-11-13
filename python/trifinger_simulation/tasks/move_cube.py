@@ -293,8 +293,14 @@ def evaluate_state(goal_pose, actual_pose, difficulty):
         # https://stackoverflow.com/a/21905553
         goal_rot = Rotation.from_quat(goal_pose.orientation)
         actual_rot = Rotation.from_quat(actual_pose.orientation)
-        error_rot = goal_rot.inv() * actual_rot
-        orientation_error = error_rot.magnitude()
+
+        y_axis = [0, 1, 0]
+        goal_direction_vector = goal_rot.apply(y_axis)
+        actual_direction_vector = actual_rot.apply(y_axis)
+
+        orientation_error = np.arccos(
+            goal_direction_vector.dot(actual_direction_vector)
+        )
 
         # scale both position and orientation error to be within [0, 1] for
         # their expected ranges

@@ -269,6 +269,36 @@ class TestMoveCube(unittest.TestCase):
             move_cube.evaluate_state(pose_origin, pose_both, difficulty), 0
         )
 
+    def test_evaluate_state_difficulty_4_rotation_around_y(self):
+        difficulty = 4
+        pose_origin = move_cube.Pose()
+        pose_rot_only_y = move_cube.Pose(
+            orientation=Rotation.from_euler("y", 0.42).as_quat()
+        )
+        pose_rot_without_y = move_cube.Pose(
+            orientation=Rotation.from_euler("yz", [0.0, 0.42]).as_quat()
+        )
+        pose_rot_with_y = move_cube.Pose(
+            orientation=Rotation.from_euler("yz", [0.2, 0.42]).as_quat()
+        )
+
+        # needs to be zero for exact match
+        cost = move_cube.evaluate_state(pose_origin, pose_origin, difficulty)
+        self.assertEqual(cost, 0)
+
+        cost_only_y = move_cube.evaluate_state(
+            pose_origin, pose_rot_only_y, difficulty
+        )
+        self.assertEqual(cost_only_y, 0)
+
+        cost_without_y = move_cube.evaluate_state(
+            pose_origin, pose_rot_without_y, difficulty
+        )
+        cost_with_y = move_cube.evaluate_state(
+            pose_origin, pose_rot_with_y, difficulty
+        )
+        self.assertAlmostEqual(cost_without_y, cost_with_y)
+
     def test_validate_goal(self):
         on_ground_height = move_cube._CUBOID_HALF_SIZE[2]
         yaw_rotation = Rotation.from_euler("z", 0.42).as_quat()
