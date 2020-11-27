@@ -8,9 +8,6 @@
 #include <chrono>
 #include <thread>
 
-#include <pybind11/eigen.h>
-#include <pybind11/embed.h>
-
 #include <robot_interfaces/finger_types.hpp>
 
 namespace trifinger_simulation

@@ -6,7 +6,7 @@
 # among other scattered sources.
 # -------------------------------------------------------------------------------------------------
 import os
-import rospkg
+from ament_index_python.packages import get_package_share_directory
 
 import robot_interfaces
 import robot_fingers
@@ -58,13 +58,13 @@ class RealFinger:
         if number_of_fingers == 1:
             if finger_type == "fingerone":
                 config_file_path = os.path.join(
-                    rospkg.RosPack().get_path("robot_fingers"),
+                    get_package_share_directory("robot_fingers"),
                     "config",
                     "finger_%s.yml" % finger_config_suffix,
                 )
             elif finger_type == "fingeredu":
                 config_file_path = os.path.join(
-                    rospkg.RosPack().get_path("robot_fingers"),
+                    get_package_share_directory("robot_fingers"),
                     "config",
                     "fingeredu_%s.yml" % finger_config_suffix,
                 )
@@ -79,13 +79,13 @@ class RealFinger:
         elif number_of_fingers == 3:
             if finger_type == "trifingerone":
                 config_file_path = os.path.join(
-                    rospkg.RosPack().get_path("robot_fingers"),
+                    get_package_share_directory("robot_fingers"),
                     "config",
                     "trifinger.yml",
                 )
             elif finger_type == "trifingeredu":
                 config_file_path = os.path.join(
-                    rospkg.RosPack().get_path("robot_fingers"),
+                    get_package_share_directory("robot_fingers"),
                     "config",
                     "trifingeredu.yml",
                 )
