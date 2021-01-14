@@ -35,6 +35,7 @@ class SimFinger:
         finger_type,
         time_step=0.004,
         enable_visualization=False,
+        sim_joint_friction=0.
     ):
         """
         Constructor, initializes the physical world we will work in.
@@ -48,6 +49,9 @@ class SimFinger:
                 according to a time_step of 0.004 s.
             enable_visualization (bool): Set this to 'True' for a GUI interface
                 to the simulation.
+            sim_joint_friction (float or float array): Set this to non-zero 
+                to apply negative forces on applied torques to simulate joint
+                friction 
         """
         self.finger_type = finger_types_data.check_finger_type(finger_type)
         self.number_of_fingers = finger_types_data.get_number_of_fingers(
@@ -89,6 +93,7 @@ class SimFinger:
         self.kinematics = pinocchio_utils.Kinematics(
             self.finger_urdf_path, self.tip_link_names
         )
+        self.sim_joint_friction = sim_joint_friction
 
     def Action(self, torque=None, position=None):
         """
