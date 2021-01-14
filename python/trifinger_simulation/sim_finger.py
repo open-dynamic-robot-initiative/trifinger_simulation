@@ -640,9 +640,9 @@ class SimFinger:
         Sets the paths for the URDFs to use depending upon the finger type
         """
         try:
-            import rospkg
+            from ament_index_python.packages import get_package_share_directory
 
-            self.robot_properties_path = rospkg.RosPack().get_path(
+            self.robot_properties_path = get_package_share_directory(
                 "robot_properties_fingers"
             )
         except Exception:
