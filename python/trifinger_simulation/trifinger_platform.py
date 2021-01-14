@@ -96,6 +96,7 @@ class TriFingerPlatform:
         initial_object_pose=None,
         enable_cameras=False,
         time_step_s=0.004,
+        object_mass=0.016
     ):
         """Initialize.
 
@@ -113,7 +114,9 @@ class TriFingerPlatform:
                 computational power.  Therefore the cameras should only be
                 enabled if the images are actually used.
             time_step_s (float):  Simulation time step duration in seconds.
+            object_mass (float):  Mass of object loaded into simulator
         """
+        object_mass = object_mass or 0.016
         #: Camera rate in frames per second.  Observations of camera and
         #: object pose will only be updated with this rate.
         self.camera_rate_fps = 10
@@ -155,7 +158,7 @@ class TriFingerPlatform:
             position=initial_object_pose.position,
             orientation=initial_object_pose.orientation,
             half_extents=[0.01, 0.04, 0.01],
-            mass=0.016,
+            mass=object_mass,
             pybullet_client_id=self.simfinger._pybullet_client_id,
         )
 
