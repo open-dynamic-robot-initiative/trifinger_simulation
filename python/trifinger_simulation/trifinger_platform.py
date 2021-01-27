@@ -96,7 +96,8 @@ class TriFingerPlatform:
         initial_object_pose=None,
         enable_cameras=False,
         time_step_s=0.004,
-        object_mass=0.016
+        object_mass=None,
+        joint_friction=None
     ):
         """Initialize.
 
@@ -115,8 +116,12 @@ class TriFingerPlatform:
                 enabled if the images are actually used.
             time_step_s (float):  Simulation time step duration in seconds.
             object_mass (float):  Mass of object loaded into simulator
+            joint_friction (np.ndarray(shape=(9,), dtype=float)):
+                friction in individual joints which reduces applied torques
+
         """
         object_mass = object_mass or 0.016
+        self.joint_friction = joint_friction
         #: Camera rate in frames per second.  Observations of camera and
         #: object pose will only be updated with this rate.
         self.camera_rate_fps = 10
@@ -210,6 +215,8 @@ class TriFingerPlatform:
             )
             self._camera_observation_t = self._get_current_camera_observation()
 
+        if self.joint_friction is not None:
+            action.torque -= self.joint_friction
         t = self.simfinger.append_desired_action(action)
 
         # The correct timestamp can only be acquired now that t is given.
