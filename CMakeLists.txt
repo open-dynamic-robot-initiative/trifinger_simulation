@@ -40,18 +40,18 @@ install_scripts(
 
 # Tests
 if (BUILD_TESTING)
-    find_package(ament_cmake_nose REQUIRED)
+    find_package(ament_cmake_pytest REQUIRED)
 
     # Python tests
-    ament_add_nose_test(test_cube_env tests/test_cube_env.py)
-    ament_add_nose_test(test_determinism tests/test_determinism.py)
-    ament_add_nose_test(test_loading_urdfs tests/test_loading_urdfs.py)
-    ament_add_nose_test(test_parallel_instances tests/test_parallel_instances.py)
-    ament_add_nose_test(test_reset_joints tests/test_reset_joints.py)
-    ament_add_nose_test(test_robot_equivalent_interface tests/test_robot_equivalent_interface.py)
-    ament_add_nose_test(test_sample tests/test_sample.py)
-    ament_add_nose_test(test_tasks_move_cube tests/test_tasks_move_cube.py)
-    ament_add_nose_test(test_trifinger_platform tests/test_trifinger_platform.py)
+    ament_add_pytest_test(test_cube_env tests/test_cube_env.py)
+    ament_add_pytest_test(test_determinism tests/test_determinism.py)
+    ament_add_pytest_test(test_loading_urdfs tests/test_loading_urdfs.py)
+    ament_add_pytest_test(test_parallel_instances tests/test_parallel_instances.py)
+    ament_add_pytest_test(test_reset_joints tests/test_reset_joints.py)
+    ament_add_pytest_test(test_robot_equivalent_interface tests/test_robot_equivalent_interface.py)
+    ament_add_pytest_test(test_sample tests/test_sample.py)
+    ament_add_pytest_test(test_tasks_move_cube tests/test_tasks_move_cube.py)
+    ament_add_pytest_test(test_trifinger_platform tests/test_trifinger_platform.py)
 
 endif()
 
