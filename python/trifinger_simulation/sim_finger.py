@@ -730,9 +730,7 @@ class SimFinger:
         """
 
         def mesh_path(filename):
-            return os.path.join(
-                self.robot_properties_path, "meshes", "stl", filename
-            )
+            return os.path.join(self.robot_properties_path, "meshes", filename)
 
         if self.finger_type in ["fingerone", "fingeredu"]:
             collision_objects.import_mesh(
@@ -770,7 +768,7 @@ class SimFinger:
                 )
         elif self.finger_type == "trifingerpro":
             table_colour = np.array((53.0, 58.0, 50.0, 255.0)) / 255.0
-            high_border_colour = int_to_rgba(0x8f8d95)
+            high_border_colour = int_to_rgba(0x8F8D95)
 
             collision_objects.import_mesh(
                 mesh_path("trifinger_table_without_border.stl"),
