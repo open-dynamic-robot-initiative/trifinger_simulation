@@ -43,6 +43,7 @@ if (BUILD_TESTING)
     find_package(ament_cmake_pytest REQUIRED)
 
     # Python tests
+    ament_add_pytest_test(test_camera tests/test_camera.py)
     ament_add_pytest_test(test_cube_env tests/test_cube_env.py)
     ament_add_pytest_test(test_determinism tests/test_determinism.py)
     ament_add_pytest_test(test_loading_urdfs tests/test_loading_urdfs.py)

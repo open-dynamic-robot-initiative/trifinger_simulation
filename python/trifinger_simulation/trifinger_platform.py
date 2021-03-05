@@ -159,7 +159,9 @@ class TriFingerPlatform:
             pybullet_client_id=self.simfinger._pybullet_client_id,
         )
 
-        self.tricamera = camera.TriFingerCameras(**_kwargs)
+        self.tricamera = camera.TriFingerCameras(
+            pybullet_client_id=self.simfinger._pybullet_client_id
+        )
 
         # Forward some methods for convenience
         # ====================================
