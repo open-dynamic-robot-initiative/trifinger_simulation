@@ -16,7 +16,7 @@
   <exec_depend>ament_index_python</exec_depend>
   <exec_depend>robot_properties_fingers</exec_depend>
 
-  <test_depend>ament_cmake_nose</test_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
 
   <export>
       <build_type>ament_cmake</build_type>

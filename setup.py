@@ -10,7 +10,7 @@ d = generate_distutils_setup(
     package_dir={"": "python"},
     package_data={
         "": [
-            "robot_properties_fingers/meshes/stl/*",
+            "robot_properties_fingers/meshes/*",
             "robot_properties_fingers/urdf/*",
         ]
     },

@@ -1,12 +1,32 @@
+"""Simulated cameras for rendering images."""
+import itertools
 import typing
+import pathlib
 
+import yaml
 import numpy as np
 import pybullet
 from scipy.spatial.transform import Rotation
 
 
-class Camera(object):
-    """Represents a camera in the simulation environment."""
+def calib_data_to_matrix(data: dict) -> np.ndarray:
+    """Extract a matrix from a camera parameter dict (as loaded from YAML)."""
+    return np.array(data["data"]).reshape(data["rows"], data["cols"])
+
+
+class BaseCamera:
+    def get_image(
+        self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
+    ) -> np.ndarray:
+        raise NotImplementedError()
+
+
+class Camera(BaseCamera):
+    """Represents a camera in the simulation environment.
+
+    Note:  This class uses a simplified camera model.  For images that better
+    match with the real cameras, use ``CalibratedCamera``.
+    """
 
     def __init__(
         self,
@@ -16,8 +36,7 @@ class Camera(object):
         field_of_view=52,
         near_plane_distance=0.001,
         far_plane_distance=100.0,
-        pybullet_client=pybullet,
-        **kwargs,
+        pybullet_client_id=0,
     ):
         """Initialize.
 
@@ -28,16 +47,15 @@ class Camera(object):
                 orientation of the camera.
             image_size:  Tuple (width, height) specifying the size of the
                 image.
-            pybullet_client:  Client for accessing the simulation.  By default
-                the "pybullet" module is used directly.
             field_of_view: Field of view of the camera
             near_plane_distance: see OpenGL's documentation for details
             far_plane_distance: see OpenGL's documentation for details
             target_position: where should the camera be pointed at
             camera_up_vector: the up axis of the camera
+            pybullet_client_id:  Id of the pybullet client (needed when multiple
+                clients are running in parallel).
         """
-        self._kwargs = kwargs
-        self._pybullet_client = pybullet_client
+        self._pybullet_client_id = pybullet_client_id
         self._width = image_size[0]
         self._height = image_size[1]
 
@@ -45,19 +63,19 @@ class Camera(object):
         target_position = camera_rot.apply([0, 0, 1])
         camera_up_vector = camera_rot.apply([0, -1, 0])
 
-        self._view_matrix = self._pybullet_client.computeViewMatrix(
+        self._view_matrix = pybullet.computeViewMatrix(
             cameraEyePosition=camera_position,
             cameraTargetPosition=target_position,
             cameraUpVector=camera_up_vector,
-            **self._kwargs,
+            physicsClientId=self._pybullet_client_id,
         )
 
-        self._proj_matrix = self._pybullet_client.computeProjectionMatrixFOV(
+        self._proj_matrix = pybullet.computeProjectionMatrixFOV(
             fov=field_of_view,
             aspect=float(self._width) / self._height,
             nearVal=near_plane_distance,
             farVal=far_plane_distance,
-            **self._kwargs,
+            physicsClientId=self._pybullet_client_id,
         )
 
     def get_image(
@@ -76,23 +94,354 @@ class Camera(object):
             (array, shape=(height, width, 3)):  Rendered RGB image from the
                 simulated camera.
         """
-        (_, _, img, _, _) = self._pybullet_client.getCameraImage(
+        (_, _, img, _, _) = pybullet.getCameraImage(
             width=self._width,
             height=self._height,
             viewMatrix=self._view_matrix,
             projectionMatrix=self._proj_matrix,
             renderer=renderer,
-            **self._kwargs,
+            physicsClientId=self._pybullet_client_id,
         )
         # remove the alpha channel
         return img[:, :, :3]
 
 
-class TriFingerCameras:
-    """Simulate the three cameras of the TriFinger platform."""
+class CalibratedCamera(BaseCamera):
+    r"""Simulate a camera based on calibration parameters.
+
+    This class renders images from the simulation, using calibration parameters
+    from a real camera.  It uses a more accurate projection matrix as
+    ``Camera`` and also takes distortion into account.
+
+    Args:
+        camera_matrix:  Camera matrix containing focal length and centre point:
+
+            .. math::
+                \begin{bmatrix}
+                  f_x &  0  & c_x \\
+                   0  & f_y & c_y \\
+                   0  &  0  &  0
+                \end{matrix}
+
+        distortion_coefficients:  Distortion coefficients
+            ``(k_1, k_2, p_1, p_2, k_3)``
+        tf_world_to_camera:  Homogeneous transformation matrix from world to
+            camera frame.
+        image_size:  Size of the image given as ``(width, height)``.
+        near_plane_distance:  Minimum distance to camera for objects to be
+            rendered.  Objects that are closer to the camera are clipped.
+        far_plane_distance:  Maximum distance to the camera for objects to be
+            rendered.  Objects that are further away are clipped.
+        pybullet_client_id:  Id of the pybullet client (needed when multiple
+            clients are running in parallel).
+    """
+
+    # How this class works internally
+    # ===============================
+    #
+    # The "projection" and "view" matrices required by pyBullet are computed in
+    # __init__ based on the given camera_matrix and tf_world_to_camera.
+    #
+    # The distortion cannot be directly integrated there, so it is applied
+    # after rendering, using the given distortion_coefficients.
+    #
+    # When distorting the rendered image, there is the problem that the images
+    # shrinks a bit, that is, when the size of the image should be preserved,
+    # some pixels close to the edge will be empty.
+    # To avoid this, some padding is added for the rendering, i.e.  the
+    # rendered image is a bit larger then the desired output.  After
+    # distortion, the padding is removed again, so that the resulting image has
+    # the desired size.
+
+    def __init__(
+        self,
+        camera_matrix,
+        distortion_coefficients,
+        tf_world_to_camera,
+        image_size,
+        near_plane_distance,
+        far_plane_distance,
+        pybullet_client_id=0,
+    ):
+        self._pybullet_client_id = pybullet_client_id
+
+        #: Width of the output images.
+        self._output_width = image_size[0]
+        #: Height of the output images
+        self._output_height = image_size[1]
+
+        # Padding that is added to the rendered image
+        self._padding = (
+            round(self._output_width * 0.1),
+            round(self._output_height * 0.1),
+        )
+
+        # size of the rendered (undistorted) image
+        self._render_width = self._output_width + 2 * self._padding[0]
+        self._render_height = self._output_height + 2 * self._padding[1]
+
+        # adjust the centre point in the camera matrix to the padding
+        center_offset = np.array(
+            [[0, 0, self._padding[0]], [0, 0, self._padding[1]], [0, 0, 0]]
+        )
+
+        self._camera_matrix = camera_matrix + center_offset
+        self._distortion_coefficients = distortion_coefficients
+
+        # In OpenGL the camera is looking into negative z-direction, so we need
+        # to rotate the camera pose by 180 degree around x.
+        rot_x_180 = np.array(
+            [
+                [1, 0, 0, 0],
+                [0, -1, 0, 0],
+                [0, 0, -1, 0],
+                [0, 0, 0, 1],
+            ]
+        )
+        tf_mat = rot_x_180 @ tf_world_to_camera
+        self._view_matrix = tf_mat.flatten(order="F")
+
+        # pyBullet's computeProjectionMatrix() makes some simplifying
+        # assumptions (f_x == f_y, c_x, c_y = image_size / 2) which are not
+        # generally true.  Therefore compute the projection matrix manually.
+        #
+        # https://stackoverflow.com/a/60450420/2095383
+        # https://www.songho.ca/opengl/gl_projectionmatrix.html
+        # https://amytabb.com/ts/2019_06_28/
+
+        # get focal length and centre point from camera matrix
+        f_x = self._camera_matrix[0, 0]
+        f_y = self._camera_matrix[1, 1]
+        c_x = self._camera_matrix[0, 2]
+        c_y = self._camera_matrix[1, 2]
+
+        x_scale = 2 / self._render_width * f_x
+        y_scale = 2 / self._render_height * f_y
+        near = near_plane_distance
+        far = far_plane_distance
+
+        x_shift = 1 - 2 * c_x / self._render_width
+        y_shift = (2 * c_y - self._render_height) / self._render_height
+        proj_mat = np.array(
+            [
+                [x_scale, 0, x_shift, 0],
+                [0, y_scale, y_shift, 0],
+                [
+                    0,
+                    0,
+                    (near + far) / (near - far),
+                    2 * near * far / (near - far),
+                ],
+                [0, 0, -1, 0],
+            ]
+        )
+        self._proj_matrix = proj_mat.flatten(order="F")
+
+    def distort_image(self, image):
+        """Distort an image based on the cameras distortion coefficients.
+
+        Args:
+            image:  The undistorted image.
+
+        Returns:
+            The distorted image.
+        """
+
+        # this function is based on the formulas from here:
+        # https://stackoverflow.com/a/58131157/2095383
+        # Computations are done on numpy arrays as much as possible for
+        # performance reasons.
+
+        distorted_image = np.zeros_like(image)
+
+        f_x = self._camera_matrix[0, 0]
+        f_y = self._camera_matrix[1, 1]
+        c_x = self._camera_matrix[0, 2]
+        c_y = self._camera_matrix[1, 2]
+        k_1, k_2, p_1, p_2, k_3 = self._distortion_coefficients[0]
+
+        f = np.array([f_y, f_x])
+        c = np.array([c_y, c_x])
+
+        image_points = np.array(
+            tuple(
+                itertools.product(
+                    range(self._render_height), range(self._render_width)
+                )
+            )
+        )
+
+        # normalize the image coordinates
+        norm_points = (image_points - c) / f
+        norm_points_square = norm_points ** 2
+        norm_points_xy = norm_points.prod(axis=1)
+
+        # determining the radial distortion
+        r2 = np.sum(norm_points_square, axis=1)
+        icdist = 1 / (1 - ((k_3 * r2 + k_2) * r2 + k_1) * r2)
+
+        # determining the tangential distortion
+        p = np.array([[p_2, p_1]])
+
+        r2_plus_2_point_sq = r2[:, None] + 2 * norm_points_square
+        delta = 2 * p * norm_points_xy[:, None] + p[::-1] * r2_plus_2_point_sq
+
+        distorted_points = (norm_points + delta) * icdist[:, None]
+
+        # un-normalise
+        distorted_points = distorted_points * f + c
+
+        # float to int
+        distorted_points = distorted_points.round().astype(int)
+
+        # filter out points that are outside the image
+        in_image_idx = np.all(
+            np.logical_and(
+                (0, 0) <= distorted_points,
+                distorted_points < (self._render_width, self._render_height),
+            ),
+            axis=1,
+        )
+        distorted_points = distorted_points[in_image_idx]
+        image_points = image_points[in_image_idx]
+
+        # finally construct the distorted image
+        distorted_image[tuple(distorted_points.T)] = image[
+            tuple(image_points.T)
+        ]
+
+        return distorted_image
+
+    def get_image(
+        self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
+    ) -> np.ndarray:
+        """Get a rendered image from the camera.
+
+        Args:
+            renderer: Specify which renderer is to be used. The renderer used
+                by default relies on X server. Note: this would need
+                visualization to have access to OpenGL. In order to use the
+                renderer without visualization, as in, in the "DIRECT" mode of
+                connection, use the ER_TINY_RENDERER.
+
+        Returns:
+            array, shape=(height, width, 3):  Rendered RGB image from the
+                simulated camera.
+        """
+        (_, _, img, _, _) = pybullet.getCameraImage(
+            width=self._render_width,
+            height=self._render_height,
+            viewMatrix=self._view_matrix,
+            projectionMatrix=self._proj_matrix,
+            renderer=renderer,
+            physicsClientId=self._pybullet_client_id,
+        )
+        # remove the alpha channel
+        img = img[:, :, :3]
+
+        # distort image
+        img = self.distort_image(img)
+
+        # remove the padding
+        img = img[
+            self._padding[1] : -self._padding[1],
+            self._padding[0] : -self._padding[0],
+        ]
+
+        return img
+
+
+class CameraArray:
+    """Array of an arbitrary number of cameras.
+
+    Args:
+        cameras (Camera): List of cameras.
+    """
+
+    def __init__(self, cameras: typing.List[BaseCamera]):
+        self.cameras = cameras
+
+    def get_images(
+        self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
+    ) -> typing.List[np.ndarray]:
+        """Get images.
+
+        See Camera.get_image() for details.
+
+        Returns:
+            List of RGB images, one per camera.
+        """
+        return [c.get_image(renderer=renderer) for c in self.cameras]
+
+    def get_bayer_images(
+        self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
+    ) -> typing.List[np.ndarray]:
+        """Get Bayer images.
+
+        Same as get_images() but returning the images as BG-Bayer patterns
+        instead of RGB.
+        """
+        return [rbg_to_bayer_bg(img) for img in self.get_images(renderer)]
+
+
+def create_trifinger_camera_array_from_config(
+    config_dir: pathlib.Path,
+    calib_filename_pattern="camera{id}.yml",
+    pybullet_client_id=0,
+) -> CameraArray:
+    """Create a TriFinger camera array using camera calibration files.
+
+    Loads camera calibration files from the given directory and uses them to
+    create a :class:`CameraArray` of :class:`CalibratedCamera`s.
+
+    Args:
+        config_dir:  Directory containing the camera calibration files.
+        calib_filename_pattern:  Template for the camera calibration file
+            names.  '{id}' will be replaced with the camera id (60, 180, 300).
+            Default: %(default)s
+        pybullet_client_id:  Id of the pybullet client (needed when multiple
+            clients are running in parallel).
+
+    Returns:
+        CameraArray with three cameras.
+    """
+    camera_ids = (60, 180, 300)
+
+    cameras = []
+    for id in camera_ids:
+        with open(config_dir / calib_filename_pattern.format(id=id)) as fh:
+            params = yaml.safe_load(fh)
+
+        camera_matrix = calib_data_to_matrix(params["camera_matrix"])
+        distortion_coefficients = calib_data_to_matrix(
+            params["distortion_coefficients"]
+        )
+        tf_mat = calib_data_to_matrix(params["tf_world_to_camera"])
+        image_size = (params["image_width"], params["image_height"])
+
+        camera = CalibratedCamera(
+            camera_matrix,
+            distortion_coefficients,
+            tf_mat,
+            image_size=image_size,
+            near_plane_distance=0.02,
+            far_plane_distance=2.0,
+            pybullet_client_id=pybullet_client_id,
+        )
+        cameras.append(camera)
+
+    return CameraArray(cameras)
+
+
+class TriFingerCameras(CameraArray):
+    """Simulate the three cameras of the TriFinger platform.
+
+    Note: To get more accurate cameras (i.e. matching more closely the real
+    cameras) use :func:`create_trifinger_camera_array_from_config` instead.
+    """
 
     def __init__(self, **kwargs):
-        self.cameras = [
+        cameras = [
             # camera60
             Camera(
                 camera_position=[0.2496, 0.2458, 0.4190],
@@ -113,22 +462,7 @@ class TriFingerCameras:
             ),
         ]
 
-    def get_images(self) -> typing.List[np.ndarray]:
-        """Get images.
-
-        Returns:
-            List of RGB images, one per camera.  Order is [camera60, camera180,
-            camera300].  See Camera.get_image() for details.
-        """
-        return [c.get_image() for c in self.cameras]
-
-    def get_bayer_images(self) -> typing.List[np.ndarray]:
-        """Get Bayer images.
-
-        Same as get_images() but returning the images as BG-Bayer patterns
-        instead of RGB.
-        """
-        return [rbg_to_bayer_bg(c.get_image()) for c in self.cameras]
+        super().__init__(cameras)
 
 
 def rbg_to_bayer_bg(image: np.ndarray) -> np.ndarray:

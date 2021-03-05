@@ -2,6 +2,7 @@ import copy
 import os
 import numpy as np
 import warnings
+import typing
 
 import pybullet
 import pybullet_data
@@ -11,6 +12,25 @@ from trifinger_simulation.observation import Observation
 from trifinger_simulation import collision_objects
 from trifinger_simulation import pinocchio_utils
 from trifinger_simulation import finger_types_data
+
+
+def int_to_rgba(color: int, alpha: int = 0xFF) -> typing.Tuple[float]:
+    """Convert an 24-bit integer to an rgba tuple.
+
+    Converts color given as a single 24-bit integer (e.g. a hex value 0xFF0011)
+    to an rgba tuple where each value is in the range [0, 1].
+
+    Args:
+        color: An RGB colour given as single number (e.g. 0xFF0011).
+        alpha: Optional alpha value in the interval [0, 0xFF].
+
+    Returns:
+        tuple: The colour as a tuple (r, g, b, a) where each element is in
+        [0.0, 1.0].
+    """
+    return tuple(
+        (x & 0xFF) / 0xFF for x in (color >> 16, color >> 8, color, alpha)
+    )
 
 
 class SimFinger:
@@ -710,9 +730,7 @@ class SimFinger:
         """
 
         def mesh_path(filename):
-            return os.path.join(
-                self.robot_properties_path, "meshes", "stl", filename
-            )
+            return os.path.join(self.robot_properties_path, "meshes", filename)
 
         if self.finger_type in ["fingerone", "fingeredu"]:
             collision_objects.import_mesh(
@@ -722,7 +740,7 @@ class SimFinger:
                 pybullet_client_id=self._pybullet_client_id,
             )
 
-        elif self.finger_type in ["trifingerone", "trifingerpro"]:
+        elif self.finger_type == "trifingerone":
             table_colour = (0.18, 0.15, 0.19, 1.0)
             high_border_colour = (0.73, 0.68, 0.72, 1.0)
             if high_border:
@@ -748,6 +766,25 @@ class SimFinger:
                     color_rgba=table_colour,
                     pybullet_client_id=self._pybullet_client_id,
                 )
+        elif self.finger_type == "trifingerpro":
+            table_colour = np.array((53.0, 58.0, 50.0, 255.0)) / 255.0
+            high_border_colour = int_to_rgba(0x8F8D95)
+
+            collision_objects.import_mesh(
+                mesh_path("trifinger_table_without_border.stl"),
+                position=[0, 0, 0],
+                is_concave=False,
+                color_rgba=table_colour,
+                pybullet_client_id=self._pybullet_client_id,
+            )
+            collision_objects.import_mesh(
+                mesh_path("high_table_boundary.stl"),
+                position=[0, 0, 0],
+                is_concave=True,
+                color_rgba=high_border_colour,
+                pybullet_client_id=self._pybullet_client_id,
+            )
+
         elif self.finger_type == "trifingeredu":
             table_colour = (0.95, 0.95, 0.95, 1.0)
             high_border_colour = (0.95, 0.95, 0.95, 1.0)

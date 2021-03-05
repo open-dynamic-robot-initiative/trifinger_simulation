@@ -1,8 +1,8 @@
 #!/bin/bash
 # Update the local robot_properties_fingers files
 
-trifinger_simulation=$(rospack find trifinger_simulation)
-robot_properties_fingers=$(rospack find robot_properties_fingers)
+trifinger_simulation=$(dirname "$0")
+robot_properties_fingers=$(ros2 pkg prefix robot_properties_fingers)/share/robot_properties_fingers
 local_properties=${trifinger_simulation}/python/trifinger_simulation/robot_properties_fingers
 
 rm -rf ${local_properties}/*
