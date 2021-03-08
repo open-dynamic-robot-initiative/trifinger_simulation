@@ -14,13 +14,15 @@ random = np.random.RandomState()
 episode_length = 2 * 60 * 1000
 
 
-_CUBE_WIDTH = 0.065
+_CUBOID_SIZE = np.array((0.02, 0.08, 0.02))
+_CUBOID_HALF_SIZE = _CUBOID_SIZE / 2
+
 _ARENA_RADIUS = 0.195
 
-_cube_3d_radius = _CUBE_WIDTH * np.sqrt(3) / 2
+_cube_3d_radius = np.linalg.norm(_CUBOID_HALF_SIZE)
 _max_cube_com_distance_to_center = _ARENA_RADIUS - _cube_3d_radius
 
-_min_height = _CUBE_WIDTH / 2
+_min_height = min(_CUBOID_HALF_SIZE)
 _max_height = 0.1
 
 
@@ -37,7 +39,7 @@ _cube_corners = (
             [+1, +1, +1],
         ]
     )
-    * (_CUBE_WIDTH / 2)
+    * _CUBOID_HALF_SIZE
 )
 
 
@@ -144,12 +146,12 @@ def sample_goal(difficulty):
     if difficulty == -1:  # for initialization
         # on the ground, random yaw
         x, y = random_xy()
-        z = _CUBE_WIDTH / 2
+        z = _min_height
         orientation = random_yaw_orientation()
 
     elif difficulty == 1:
         x, y = random_xy()
-        z = _CUBE_WIDTH / 2
+        z = _min_height
         orientation = np.array([0, 0, 0, 1])
 
     elif difficulty == 2:
@@ -291,8 +293,14 @@ def evaluate_state(goal_pose, actual_pose, difficulty):
         # https://stackoverflow.com/a/21905553
         goal_rot = Rotation.from_quat(goal_pose.orientation)
         actual_rot = Rotation.from_quat(actual_pose.orientation)
-        error_rot = goal_rot.inv() * actual_rot
-        orientation_error = error_rot.magnitude()
+
+        y_axis = [0, 1, 0]
+        goal_direction_vector = goal_rot.apply(y_axis)
+        actual_direction_vector = actual_rot.apply(y_axis)
+
+        orientation_error = np.arccos(
+            goal_direction_vector.dot(actual_direction_vector)
+        )
 
         # scale both position and orientation error to be within [0, 1] for
         # their expected ranges
