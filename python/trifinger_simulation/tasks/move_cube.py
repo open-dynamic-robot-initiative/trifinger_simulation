@@ -41,6 +41,18 @@ _cube_corners = (
 )
 
 
+# base orientations of the cube (one for each face up)
+_one_sqrt_2th = 1 / np.sqrt(2)
+_base_orientations = [
+    Rotation.from_quat((0, 0, 0, 1)),  # blue up
+    Rotation.from_quat((_one_sqrt_2th, 0.0, 0.0, _one_sqrt_2th)),  # green up
+    Rotation.from_quat((1, 0, 0, 0)),  # cyan up
+    Rotation.from_quat((-_one_sqrt_2th, 0.0, 0.0, _one_sqrt_2th)),  # yellow up
+    Rotation.from_quat((0.0, -_one_sqrt_2th, 0.0, _one_sqrt_2th)),  # red up
+    Rotation.from_quat((0.0, _one_sqrt_2th, 0.0, _one_sqrt_2th)),  # magenta up
+]
+
+
 class InvalidGoalError(Exception):
     """Exception used to indicate that the given goal is invalid."""
 
@@ -126,7 +138,8 @@ def sample_goal(difficulty):
     # difficulty -1 is for initialization
 
     def random_xy():
-        # sample uniform position in circle (https://stackoverflow.com/a/50746409)
+        # sample uniform position in circle
+        # (https://stackoverflow.com/a/50746409)
         radius = _max_cube_com_distance_to_center * np.sqrt(random.random())
         theta = random.uniform(0, 2 * np.pi)
 
@@ -137,8 +150,14 @@ def sample_goal(difficulty):
         return x, y
 
     def random_yaw_orientation():
-        yaw = random.uniform(0, 2 * np.pi)
-        orientation = Rotation.from_euler("z", yaw)
+        # first "roll the die" to see which face is pointing upward
+        up_face = random.choice(range(len(_base_orientations)))
+        up_face_rot = _base_orientations[up_face]
+        # then draw a random yaw rotation
+        yaw_angle = random.uniform(0, 2 * np.pi)
+        yaw_rot = Rotation.from_euler("z", yaw_angle)
+        # and combine them
+        orientation = yaw_rot * up_face_rot
         return orientation.as_quat()
 
     if difficulty == -1:  # for initialization
