@@ -418,6 +418,21 @@ class CameraArray:
         return [rbg_to_bayer_bg(img) for img in self.get_images(renderer)]
 
 
+def load_camera_parameters(
+    config_dir: pathlib.Path,
+    filename_pattern: str = "camera{id}.yml",
+) -> typing.Tuple[CameraParameters, ...]:
+    camera_ids = (60, 180, 300)
+
+    def load_params(id):
+        with open(config_dir / filename_pattern.format(id=id)) as f:
+            return CameraParameters.load(f)
+
+    camera_parameters = tuple(load_params(id) for id in camera_ids)
+
+    return camera_parameters
+
+
 def create_trifinger_camera_array_from_config(
     config_dir: pathlib.Path,
     calib_filename_pattern="camera{id}.yml",

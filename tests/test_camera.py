@@ -1,5 +1,6 @@
 """Unit tests for the camera module."""
 import os
+import pathlib
 import pytest
 import numpy as np
 
@@ -85,3 +86,16 @@ def test_camera_parameters_load():
     np.testing.assert_array_almost_equal(
         params.tf_world_to_camera, expected_tf_mat
     )
+
+
+def test_load_camera_parameters():
+    params = camera.load_camera_parameters(
+        pathlib.Path(TEST_DATA_DIR), "camera{id}_full.yml"
+    )
+
+    # loading in general is already covered above, so only verify correct order
+    # here
+    assert len(params) == 3
+    assert params[0].name == "camera60"
+    assert params[1].name == "camera180"
+    assert params[2].name == "camera300"
