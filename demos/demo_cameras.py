@@ -73,7 +73,9 @@ def main():
             cv2.imshow("camera60", images[0])
             cv2.imshow("camera180", images[1])
             cv2.imshow("camera300", images[2])
-            cv2.waitKey(int(time_step * 1000))
+            key = cv2.waitKey(int(time_step * 1000))
+            if key == ord("q"):
+                return
 
 
 if __name__ == "__main__":
