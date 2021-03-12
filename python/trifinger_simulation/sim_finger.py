@@ -589,7 +589,7 @@ class SimFinger:
 
         pybullet.loadURDF(
             "plane_transparent.urdf",
-            [0, 0, 0],
+            [0, 0, -0.01],
             physicsClientId=self._pybullet_client_id,
         )
         self.__load_robot_urdf()
