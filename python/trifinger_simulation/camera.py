@@ -14,6 +14,40 @@ def calib_data_to_matrix(data: dict) -> np.ndarray:
     return np.array(data["data"]).reshape(data["rows"], data["cols"])
 
 
+# TODO: this is more or less a duplicate of trifinger_cameras/CameraParameters
+class CameraParameters(typing.NamedTuple):
+    """Represents intrinsic and extrinsic parameters of a camera."""
+
+    #: Name of the camera.
+    name: str
+    #: Width of the images.
+    width: int
+    #: Height of the images.
+    height: int
+    #: Camera projection matrix.  Shape = (3, 3)
+    camera_matrix: np.ndarray
+    #: Distortion coefficients.  Shape = (5,)
+    distortion_coefficients: np.ndarray
+    #: Transformation matrix from world to camera frame.  Shape = (4, 4)
+    tf_world_to_camera: np.ndarray
+
+    @classmethod
+    def load(cls, stream: typing.TextIO) -> "CameraParameters":
+        """Load camera parameters from a YAML stream."""
+        data = yaml.safe_load(stream)
+
+        name = data["camera_name"]
+        width = data["image_width"]
+        height = data["image_height"]
+        camera_matrix = calib_data_to_matrix(data["camera_matrix"])
+        dist_coeffs = calib_data_to_matrix(data["distortion_coefficients"])[0]
+        tf_world_to_camera = calib_data_to_matrix(data["tf_world_to_camera"])
+
+        return cls(
+            name, width, height, camera_matrix, dist_coeffs, tf_world_to_camera
+        )
+
+
 class BaseCamera:
     def get_image(
         self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
@@ -52,8 +86,8 @@ class Camera(BaseCamera):
             far_plane_distance: see OpenGL's documentation for details
             target_position: where should the camera be pointed at
             camera_up_vector: the up axis of the camera
-            pybullet_client_id:  Id of the pybullet client (needed when multiple
-                clients are running in parallel).
+            pybullet_client_id:  Id of the pybullet client (needed when
+                multiple clients are running in parallel).
         """
         self._pybullet_client_id = pybullet_client_id
         self._width = image_size[0]
@@ -85,10 +119,10 @@ class Camera(BaseCamera):
 
         Args:
             renderer: Specify which renderer is to be used. The renderer used
-                by default relies on X server. Note: this would need visualization
-                to have access to OpenGL. In order to use the renderer without
-                visualization, as in, in the "DIRECT" mode of connection, use
-                the ER_TINY_RENDERER.
+                by default relies on X server. Note: this would need
+                visualization to have access to OpenGL. In order to use the
+                renderer without visualization, as in, in the "DIRECT" mode of
+                connection, use the ER_TINY_RENDERER.
 
         Returns:
             (array, shape=(height, width, 3)):  Rendered RGB image from the
@@ -258,7 +292,7 @@ class CalibratedCamera(BaseCamera):
         f_y = self._camera_matrix[1, 1]
         c_x = self._camera_matrix[0, 2]
         c_y = self._camera_matrix[1, 2]
-        k_1, k_2, p_1, p_2, k_3 = self._distortion_coefficients[0]
+        k_1, k_2, p_1, p_2, k_3 = self._distortion_coefficients
 
         f = np.array([f_y, f_x])
         c = np.array([c_y, c_x])
@@ -358,7 +392,7 @@ class CameraArray:
         cameras (Camera): List of cameras.
     """
 
-    def __init__(self, cameras: typing.List[BaseCamera]):
+    def __init__(self, cameras: typing.Sequence[BaseCamera]):
         self.cameras = cameras
 
     def get_images(
@@ -384,6 +418,66 @@ class CameraArray:
         return [rbg_to_bayer_bg(img) for img in self.get_images(renderer)]
 
 
+def create_trifinger_camera_array(
+    camera_parameters: typing.Iterable[CameraParameters],
+    pybullet_client_id=0,
+) -> CameraArray:
+    """Create a TriFinger camera array using camera calibration parameters.
+
+    Args:
+        camera_parameters:  List of camera calibration parameters for the three
+            cameras.
+        pybullet_client_id:  Id of the pybullet client (needed when multiple
+            clients are running in parallel).
+
+    Returns:
+        CameraArray with three cameras.
+    """
+    camera_ids = (60, 180, 300)
+
+    cameras = []
+    for camera_id, params in zip(camera_ids, camera_parameters):
+        # Sanity check to verify the camera parameters are given in the correct
+        # order.
+        camera_name = "camera{}".format(camera_id)
+        if params.name != camera_name:
+            raise ValueError(
+                "Expected parameters for camera {} but got {}".format(
+                    camera_name, params.name
+                )
+            )
+
+        image_size = (params.width, params.height)
+
+        camera = CalibratedCamera(
+            params.camera_matrix,
+            params.distortion_coefficients,
+            params.tf_world_to_camera,
+            image_size=image_size,
+            near_plane_distance=0.02,
+            far_plane_distance=2.0,
+            pybullet_client_id=pybullet_client_id,
+        )
+        cameras.append(camera)
+
+    return CameraArray(cameras)
+
+
+def load_camera_parameters(
+    config_dir: pathlib.Path,
+    filename_pattern: str = "camera{id}.yml",
+) -> typing.Tuple[CameraParameters, ...]:
+    camera_ids = (60, 180, 300)
+
+    def load_params(id):
+        with open(config_dir / filename_pattern.format(id=id)) as f:
+            return CameraParameters.load(f)
+
+    camera_parameters = tuple(load_params(id) for id in camera_ids)
+
+    return camera_parameters
+
+
 def create_trifinger_camera_array_from_config(
     config_dir: pathlib.Path,
     calib_filename_pattern="camera{id}.yml",
@@ -405,32 +499,11 @@ def create_trifinger_camera_array_from_config(
     Returns:
         CameraArray with three cameras.
     """
-    camera_ids = (60, 180, 300)
+    camera_parameters = load_camera_parameters(
+        config_dir, calib_filename_pattern
+    )
 
-    cameras = []
-    for id in camera_ids:
-        with open(config_dir / calib_filename_pattern.format(id=id)) as fh:
-            params = yaml.safe_load(fh)
-
-        camera_matrix = calib_data_to_matrix(params["camera_matrix"])
-        distortion_coefficients = calib_data_to_matrix(
-            params["distortion_coefficients"]
-        )
-        tf_mat = calib_data_to_matrix(params["tf_world_to_camera"])
-        image_size = (params["image_width"], params["image_height"])
-
-        camera = CalibratedCamera(
-            camera_matrix,
-            distortion_coefficients,
-            tf_mat,
-            image_size=image_size,
-            near_plane_distance=0.02,
-            far_plane_distance=2.0,
-            pybullet_client_id=pybullet_client_id,
-        )
-        cameras.append(camera)
-
-    return CameraArray(cameras)
+    return create_trifinger_camera_array(camera_parameters, pybullet_client_id)
 
 
 class TriFingerCameras(CameraArray):
