@@ -20,7 +20,9 @@ def test_calib_data_to_matrix_1x1():
     }
     expected = np.array([[42]])
 
-    np.testing.assert_array_equal(sim_camera.calib_data_to_matrix(data), expected)
+    np.testing.assert_array_equal(
+        sim_camera.calib_data_to_matrix(data), expected
+    )
 
 
 @pytest.mark.calib_data_to_matrix
@@ -32,7 +34,9 @@ def test_calib_data_to_matrix_3x3():
     }
     expected = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
-    np.testing.assert_array_equal(sim_camera.calib_data_to_matrix(data), expected)
+    np.testing.assert_array_equal(
+        sim_camera.calib_data_to_matrix(data), expected
+    )
 
 
 @pytest.mark.calib_data_to_matrix
@@ -44,7 +48,9 @@ def test_calib_data_to_matrix_2x4():
     }
     expected = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])
 
-    np.testing.assert_array_equal(sim_camera.calib_data_to_matrix(data), expected)
+    np.testing.assert_array_equal(
+        sim_camera.calib_data_to_matrix(data), expected
+    )
 
 
 def test_camera_parameters_load():
