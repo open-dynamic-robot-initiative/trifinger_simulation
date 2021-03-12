@@ -86,8 +86,8 @@ class Camera(BaseCamera):
             far_plane_distance: see OpenGL's documentation for details
             target_position: where should the camera be pointed at
             camera_up_vector: the up axis of the camera
-            pybullet_client_id:  Id of the pybullet client (needed when multiple
-                clients are running in parallel).
+            pybullet_client_id:  Id of the pybullet client (needed when
+                multiple clients are running in parallel).
         """
         self._pybullet_client_id = pybullet_client_id
         self._width = image_size[0]
@@ -119,10 +119,10 @@ class Camera(BaseCamera):
 
         Args:
             renderer: Specify which renderer is to be used. The renderer used
-                by default relies on X server. Note: this would need visualization
-                to have access to OpenGL. In order to use the renderer without
-                visualization, as in, in the "DIRECT" mode of connection, use
-                the ER_TINY_RENDERER.
+                by default relies on X server. Note: this would need
+                visualization to have access to OpenGL. In order to use the
+                renderer without visualization, as in, in the "DIRECT" mode of
+                connection, use the ER_TINY_RENDERER.
 
         Returns:
             (array, shape=(height, width, 3)):  Rendered RGB image from the
