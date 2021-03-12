@@ -14,6 +14,40 @@ def calib_data_to_matrix(data: dict) -> np.ndarray:
     return np.array(data["data"]).reshape(data["rows"], data["cols"])
 
 
+# TODO: this is more or less a duplicate of trifinger_cameras/CameraParameters
+class CameraParameters(typing.NamedTuple):
+    """Represents intrinsic and extrinsic parameters of a camera."""
+
+    #: Name of the camera.
+    name: str
+    #: Width of the images.
+    width: int
+    #: Height of the images.
+    height: int
+    #: Camera projection matrix.  Shape = (3, 3)
+    camera_matrix: np.ndarray
+    #: Distortion coefficients.  Shape = (5,)
+    distortion_coefficients: np.ndarray
+    #: Transformation matrix from world to camera frame.  Shape = (4, 4)
+    tf_world_to_camera: np.ndarray
+
+    @classmethod
+    def load(cls, stream: typing.TextIO) -> "CameraParameters":
+        """Load camera parameters from a YAML stream."""
+        data = yaml.safe_load(stream)
+
+        name = data["camera_name"]
+        width = data["image_width"]
+        height = data["image_height"]
+        camera_matrix = calib_data_to_matrix(data["camera_matrix"])
+        dist_coeffs = calib_data_to_matrix(data["distortion_coefficients"])[0]
+        tf_world_to_camera = calib_data_to_matrix(data["tf_world_to_camera"])
+
+        return cls(
+            name, width, height, camera_matrix, dist_coeffs, tf_world_to_camera
+        )
+
+
 class BaseCamera:
     def get_image(
         self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
