@@ -11,7 +11,6 @@ from trifinger_simulation import camera as sim_camera
 TEST_DATA_DIR, _ = os.path.splitext(__file__)
 
 
-@pytest.mark.calib_data_to_matrix
 def test_calib_data_to_matrix_1x1():
     data = {
         "rows": 1,
@@ -25,7 +24,6 @@ def test_calib_data_to_matrix_1x1():
     )
 
 
-@pytest.mark.calib_data_to_matrix
 def test_calib_data_to_matrix_3x3():
     data = {
         "rows": 3,
@@ -39,7 +37,6 @@ def test_calib_data_to_matrix_3x3():
     )
 
 
-@pytest.mark.calib_data_to_matrix
 def test_calib_data_to_matrix_2x4():
     data = {
         "rows": 2,
@@ -92,6 +89,35 @@ def test_camera_parameters_load():
     )
     np.testing.assert_array_almost_equal(
         params.tf_world_to_camera, expected_tf_mat
+    )
+
+
+def test_camera_parameters_dump(tmpdir):
+    # load the test data
+    config_file = os.path.join(TEST_DATA_DIR, "camera180_full.yml")
+    with open(config_file, "r") as f:
+        params = sim_camera.CameraParameters.load(f)
+
+    # dump to a temporary file, load that again and verify that the values are
+    # the same
+    tmpfile = tmpdir.join("dump.yml")
+    with open(tmpfile, "w") as f:
+        params.dump(f)
+
+    with open(tmpfile, "r") as f:
+        params2 = sim_camera.CameraParameters.load(f)
+
+    assert params.name == params2.name
+    assert params.width == params2.width
+    assert params.height == params2.height
+    np.testing.assert_array_almost_equal(
+        params.camera_matrix, params2.camera_matrix
+    )
+    np.testing.assert_array_almost_equal(
+        params.distortion_coefficients, params2.distortion_coefficients
+    )
+    np.testing.assert_array_almost_equal(
+        params.tf_world_to_camera, params2.tf_world_to_camera
     )
 
 

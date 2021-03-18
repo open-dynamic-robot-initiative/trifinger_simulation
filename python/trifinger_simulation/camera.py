@@ -47,6 +47,42 @@ class CameraParameters(typing.NamedTuple):
             name, width, height, camera_matrix, dist_coeffs, tf_world_to_camera
         )
 
+    def dump(self, stream: typing.TextIO):
+        """Dump camera parameters in YAML format to the given output stream."""
+        # save all the data
+        calibration_data = {
+            "camera_name": self.name,
+            # make sure width and height are plain strings (not numpy.int64 or
+            # the like)
+            "image_width": int(self.width),
+            "image_height": int(self.height),
+        }
+
+        calibration_data["camera_matrix"] = {
+            "rows": 3,
+            "cols": 3,
+            "data": self.camera_matrix.flatten().tolist(),
+        }
+
+        calibration_data["distortion_coefficients"] = {
+            "rows": 1,
+            "cols": 5,
+            "data": self.distortion_coefficients.flatten().tolist(),
+        }
+
+        calibration_data["tf_world_to_camera"] = {
+            "rows": 4,
+            "cols": 4,
+            "data": self.tf_world_to_camera.flatten().tolist(),
+        }
+
+        yaml.dump(
+            calibration_data,
+            stream,
+            default_flow_style=False,
+            sort_keys=False,
+        )
+
 
 class BaseCamera:
     def get_image(
