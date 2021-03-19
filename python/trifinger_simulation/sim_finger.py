@@ -744,15 +744,19 @@ class SimFinger:
             table_colour = (0.18, 0.15, 0.19, 1.0)
             high_border_colour = (0.73, 0.68, 0.72, 1.0)
             if high_border:
-                collision_objects.import_mesh(
-                    mesh_path("trifinger_table_without_border.stl"),
-                    position=[0, 0, 0],
-                    is_concave=False,
+
+                # use a simple cuboid for the table
+                self._table_id = collision_objects.Cuboid(
+                    position=(0, 0, -0.005),
+                    orientation=(0, 0, 0, 1),
+                    half_extents=(0.38, 0.38, 0.005),
+                    mass=0,  # static object
                     color_rgba=table_colour,
                     pybullet_client_id=self._pybullet_client_id,
                 )
+
                 collision_objects.import_mesh(
-                    mesh_path("high_table_boundary.stl"),
+                    mesh_path("object_containment_sim.stl"),
                     position=[0, 0, 0],
                     is_concave=True,
                     color_rgba=high_border_colour,
@@ -770,15 +774,18 @@ class SimFinger:
             table_colour = np.array((53.0, 58.0, 50.0, 255.0)) / 255.0
             high_border_colour = int_to_rgba(0x8F8D95)
 
-            collision_objects.import_mesh(
-                mesh_path("trifinger_table_without_border.stl"),
-                position=[0, 0, 0],
-                is_concave=False,
+            # use a simple cuboid for the table
+            self._table_id = collision_objects.Cuboid(
+                position=(0, 0, -0.005),
+                orientation=(0, 0, 0, 1),
+                half_extents=(0.38, 0.38, 0.005),
+                mass=0,  # static object
                 color_rgba=table_colour,
                 pybullet_client_id=self._pybullet_client_id,
             )
-            collision_objects.import_mesh(
-                mesh_path("high_table_boundary.stl"),
+
+            self._containment_id = collision_objects.import_mesh(
+                mesh_path("object_containment_sim.stl"),
                 position=[0, 0, 0],
                 is_concave=True,
                 color_rgba=high_border_colour,
@@ -788,13 +795,17 @@ class SimFinger:
         elif self.finger_type == "trifingeredu":
             table_colour = (0.95, 0.95, 0.95, 1.0)
             high_border_colour = (0.95, 0.95, 0.95, 1.0)
-            collision_objects.import_mesh(
-                mesh_path("trifinger_table_without_border.stl"),
-                position=[0, 0, 0],
-                is_concave=False,
+
+            # use a simple cuboid for the table
+            self._table_id = collision_objects.Cuboid(
+                position=(0, 0, -0.005),
+                orientation=(0, 0, 0, 1),
+                half_extents=(0.38, 0.38, 0.005),
+                mass=0,  # static object
                 color_rgba=table_colour,
                 pybullet_client_id=self._pybullet_client_id,
             )
+
             collision_objects.import_mesh(
                 mesh_path("edu/frame_wall.stl"),
                 position=[0, 0, 0],
