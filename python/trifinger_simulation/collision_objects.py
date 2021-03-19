@@ -66,6 +66,7 @@ class Cuboid:
         orientation,
         half_extents,
         mass,
+        color_rgba=None,
         pybullet_client_id=0,
     ):
         """
@@ -76,7 +77,10 @@ class Cuboid:
             orientation (list): Initial orientation quaternion (x, y, z, w) of
                 the cuboid.
             half_extents (list): Half-extends of the cuboid in x/y/z-direction.
-            mass (float): Mass of the cuboid in kg.
+            mass (float): Mass of the cuboid in kg.  Set to 0 for a static
+                object.
+            color_rgba: Optional tuple of RGBA colour.
+            pybullet_client_id:  Optional ID of the pybullet client.
         """
         self._pybullet_client_id = pybullet_client_id
 
@@ -85,8 +89,21 @@ class Cuboid:
             halfExtents=half_extents,
             physicsClientId=self._pybullet_client_id,
         )
+
+        # only create a visual shape if a colour was specified
+        if color_rgba is not None:
+            self.visual_shape_id = pybullet.createVisualShape(
+                shapeType=pybullet.GEOM_BOX,
+                halfExtents=half_extents,
+                rgbaColor=color_rgba,
+                physicsClientId=self._pybullet_client_id,
+            )
+        else:
+            self.visual_shape_id = -1
+
         self.block = pybullet.createMultiBody(
             baseCollisionShapeIndex=self.block_id,
+            baseVisualShapeIndex=self.visual_shape_id,
             basePosition=position,
             baseOrientation=orientation,
             baseMass=mass,
@@ -151,10 +168,16 @@ class Cube(Cuboid):
         orientation=[0, 0, 0, 1],
         half_width=0.0325,
         mass=0.08,
+        color_rgba=None,
         pybullet_client_id=0,
     ):
         super().__init__(
-            position, orientation, [half_width] * 3, mass, pybullet_client_id
+            position,
+            orientation,
+            [half_width] * 3,
+            mass,
+            color_rgba=color_rgba,
+            pybullet_client_id=pybullet_client_id,
         )
 
 
