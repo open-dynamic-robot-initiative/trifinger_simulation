@@ -32,7 +32,7 @@
   <joint name="base_to_upper_holder_joint" type="fixed">
     <parent link="base_link"/>
     <child link="upper_holder_link"/>
-    <origin xyz="0 0 0.34"/>
+    <origin xyz="0 0 0.29"/>
   </joint>
   <material name="finger_0_material">
     <color rgba="0.6 0.0 0.0 1.0"/>
