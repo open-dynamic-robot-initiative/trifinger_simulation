@@ -112,6 +112,13 @@ class ObjectMarker:
             physicsClientId=self._pybullet_client_id,
         )
 
+    def __del__(self):
+        """Removes the cuboid from the environment."""
+        # At this point it may be that pybullet was already shut down. To avoid
+        # an error, only remove the object if the simulation is still running.
+        if pybullet.isConnected(self._pybullet_client_id):
+            pybullet.removeBody(self.body_id, self._pybullet_client_id)
+
     def set_state(self, position, orientation):
         """Set pose of the marker.
 
