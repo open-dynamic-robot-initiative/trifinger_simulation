@@ -2,20 +2,20 @@ name: trifinger_simulation
 channels:
 - conda-forge
 dependencies:
-- python=3.6.9
+- python=3.8.5
 - numpy==1.19.1
 - pinocchio==2.4.7
 - pip==20.1.1
 - pip:
-  - pybullet==2.8.4
-  - gym==0.17.2
+  - pybullet==3.0.8
+  - gym==0.18.0
   - opencv-python==4.2.0.34
-  - catkin-pkg==0.4.22
+  - pyyaml==5.3.1
     # the packages below are required to run the example (training with ppo)
     # which we provide. if you do not wish to execute the example, you may
     # safely remove them
   - tensorflow==1.15.0
-  - pandas==0.24.2
+  - pandas==0.25.3
   - joblib==0.16.0
   - stable-baselines==2.10.0
   
