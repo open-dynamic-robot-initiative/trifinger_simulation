@@ -1,27 +1,30 @@
 Installation
-================
+============
 
 There are two ways to build/install this package.
 
-1. As an isolated Python package
-2. As part of a catkin workspace
+1. Using conda/pip
+2. Using colcon
 
-Install as Python package in a conda environment
-----------------------------------------------------
+
+Using conda
+-----------
 
 Prerequisites: Install Anaconda or Miniconda
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 If not already done, install ``conda`` (Miniconda is sufficient).  To do so, see the
 `official documentation <https://docs.conda.io/projects/conda/en/latest/user-guide/install/>`_.
 
 We tested with conda version 4.8.3.
 
+
 Installing the trifinger_simulation package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1. Clone this repo and cd into it::
 
-       git clone https://gitlab.is.tue.mpg.de/robotics/trifinger_simulation.git
+       git clone https://github.com/open-dynamic-robot-initiative/trifinger_simulation
        cd trifinger_simulation
 
 2. Set up the conda env::
@@ -41,9 +44,12 @@ Installing the trifinger_simulation package
 
        python -m pip install -e .
 
-.. _`catbuild`:
 
-Build using catkin
--------------------------
+.. _`colcon`:
 
-Proper instructions for this will follow soon.
+Using colcon
+------------
+
+trifinger_simulation is part of the "ROBOT_FINGERS" project.  For build
+instructions see the `robot_fingers documentation
+<https://open-dynamic-robot-initiative.github.io/code_documentation/robot_fingers/docs/doxygen/html/md_doc_installation.html>`_
