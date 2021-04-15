@@ -78,9 +78,9 @@ class Pose:
 
         """
         #: Position (x, y, z).
-        self.position = position
+        self.position = np.asarray(position)
         #: Orientation as quaternion (x, y, z, w)
-        self.orientation = orientation
+        self.orientation = np.asarray(orientation)
 
     def to_dict(self):
         """Convert to dictionary."""
