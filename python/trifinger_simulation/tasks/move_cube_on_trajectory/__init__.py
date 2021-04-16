@@ -1,10 +1,42 @@
-"""Sampling, validating and evaluating "move cube on trajectory" goals."""
+"""Task: Move Cube on Trajectory
+
+The goal of this task is to grasp a cube and move it from one goal to the next
+on a given trajectory.
+
+The trajectory is given as a list of tuples ``(t, goal_position)`` where ``t``
+specifies the time step from which the goal position is active.  So the full
+type is ``Sequence[Tuple[int, Sequence[float]]]``
+
+Example:
+
+.. code-block:: Python
+
+    trajectory = [
+        (0, (0, 0, 0.0325)),
+        (4000, (0, 0.05, 0.0325)),
+        (8000, (0.05, 0.05, 0.0325)),
+    ]
+
+The first goal ``(0, 0, 0.0325)`` is active at the beginning.  Starting from
+time step 4000 the active goal switches to ``(0, 0.05, 0.0325)``.  At step 8000
+``(0.05, 0.05, 0.0325)`` becomes the active goal and stays active until the end
+of the run.
+
+The duration of a run is 120000 steps (~2 minutes).  This value is also given
+by :data:`EPISODE_LENGTH`.
+
+The cost of each step is computed using the "move cube to goal" cost of the
+currently active goal (see
+:func:`trifinger_simulation.tasks.move_cube.evaluate_state`, using difficulty
+3).
+
+"""
 import json
 import typing
 
 import numpy as np
 
-from . import move_cube
+from trifinger_simulation.tasks import move_cube
 
 # define some types for type hints
 Position = typing.Sequence[float]
@@ -12,7 +44,7 @@ TrajectoryStep = typing.Tuple[int, Position]
 Trajectory = typing.Sequence[TrajectoryStep]
 
 
-#: Duration of the episode in time steps.
+#: Duration of the episode in time steps (corresponds to ~2 minutes).
 EPISODE_LENGTH = 2 * 60 * 1000
 #: Number of time steps for which the first goal in the trajectory is active.
 FIRST_GOAL_DURATION = 30 * 1000
@@ -21,6 +53,9 @@ GOAL_DURATION = 10 * 1000
 
 #: Goal difficulty that is used for sampling steps of the trajectory
 GOAL_DIFFICULTY = 3
+
+#: The initial position of the cube at the beginning of an episode.
+INITIAL_CUBE_POSITION = (0, 0, move_cube._CUBE_WIDTH / 2)
 
 
 def get_active_goal(
@@ -47,6 +82,11 @@ def get_active_goal(
 
 def sample_trajectory() -> Trajectory:
     """Sample a trajectory with random steps.
+
+    The number of goals in the trajectory is depending on the episode length
+    (see :data:`EPISODE_LENGTH`).  The first goal has a duration of
+    :data:`FIRST_GOAL_DURATION` steps, the following ones a duration of
+    :data:`GOAL_DURATION`.
 
     Returns:
         Trajectory as a list of tuples ``(t, position)`` where ``t`` marks the
@@ -93,7 +133,10 @@ def validate_trajectory(trajectory: Trajectory):
 def evaluate_state(
     trajectory: Trajectory, time_index: int, actual_position: Position
 ):
-    """Compute cost of a given cube pose.  Less is better.
+    """Compute cost of a given cube pose at a given time step.  Less is better.
+
+    The cost is computed using :func:`move_cube.evaluate_state` (difficulty=3)
+    for the goal position that is active at the given time_index.
 
     Args:
         trajectory:  The trajectory based on which the cost is computed.

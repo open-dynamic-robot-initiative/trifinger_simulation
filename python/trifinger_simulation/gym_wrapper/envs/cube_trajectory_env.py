@@ -134,6 +134,7 @@ class CubeTrajectoryEnv(gym.GoalEnv):
                         "torque": spaces.robot_torque.gym,
                     }
                 ),
+                # FIXME this is wrong
                 "desired_goal": object_state_space,
                 "achieved_goal": object_state_space,
             }
@@ -251,7 +252,9 @@ class CubeTrajectoryEnv(gym.GoalEnv):
             TriFingerPlatform.spaces.robot_position.default
         )
         # initialize cube at the centre
-        initial_object_pose = mct.move_cube.Pose(position=(0, 0, 0.0325))
+        initial_object_pose = mct.move_cube.Pose(
+            position=mct.INITIAL_CUBE_POSITION
+        )
 
         self.platform = TriFingerPlatform(
             visualization=self.visualization,
