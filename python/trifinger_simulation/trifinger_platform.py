@@ -38,7 +38,12 @@ class CameraObservation:
 
 
 class TriCameraObjectObservation:
-    """Pure-python copy of trifinger_object_tracking::TriCameraObjectObservation."""
+    """Python version of trifinger_object_tracking::TriCameraObjectObservation.
+
+    This is a pure-python implementation of
+    trifinger_object_tracking::TriCameraObjectObservation, so we don't need to
+    depend on trifinger_object_tracking here.
+    """
 
     __slots__ = ["cameras", "object_pose"]
 
@@ -136,8 +141,6 @@ class TriFingerPlatform:
             enable_visualization=visualization,
         )
 
-        _kwargs = {"physicsClientId": self.simfinger._pybullet_client_id}
-
         if initial_robot_position is None:
             initial_robot_position = self.spaces.robot_position.default
 
@@ -151,11 +154,12 @@ class TriFingerPlatform:
                 orientation=self.spaces.object_orientation.default,
             )
 
-        self.cube = collision_objects.Cuboid(
+        # TODO this should be configurable
+        self.cube = collision_objects.Cube(
             position=initial_object_pose.position,
             orientation=initial_object_pose.orientation,
-            half_extents=[0.01, 0.04, 0.01],
-            mass=0.016,
+            half_width=0.0325,
+            mass=0.094,
             pybullet_client_id=self.simfinger._pybullet_client_id,
         )
 
