@@ -188,6 +188,9 @@ class TriFingerPlatform:
             "actions": [],
         }
 
+        # get initial camera observation
+        self._camera_observation_t = self._get_current_camera_observation(0)
+
     def get_time_step(self):
         """Get simulation time step in seconds."""
         return self._time_step
@@ -303,10 +306,8 @@ class TriFingerPlatform:
 
         if t < 0:
             raise ValueError("Cannot access time index less than zero.")
-        elif t == current_t:
+        elif t == current_t or t == current_t + 1:
             return self._camera_observation_t
-        elif t == current_t + 1:
-            return self._get_current_camera_observation(t)
         else:
             raise ValueError(
                 "Given time index t has to match with index of the current"
