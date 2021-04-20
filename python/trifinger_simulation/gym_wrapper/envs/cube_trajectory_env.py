@@ -1,6 +1,7 @@
 """Gym environment for the Real Robot Challenge Phase 1 (Simulation)."""
 import enum
 
+import numpy as np
 import gym
 
 from trifinger_simulation import TriFingerPlatform
@@ -104,13 +105,6 @@ class CubeTrajectoryEnv(gym.GoalEnv):
 
         spaces = TriFingerPlatform.spaces
 
-        object_state_space = gym.spaces.Dict(
-            {
-                "position": spaces.object_position.gym,
-                "orientation": spaces.object_orientation.gym,
-            }
-        )
-
         if self.action_type == ActionType.TORQUE:
             self.action_space = spaces.robot_torque.gym
         elif self.action_type == ActionType.POSITION:
@@ -134,14 +128,17 @@ class CubeTrajectoryEnv(gym.GoalEnv):
                         "torque": spaces.robot_torque.gym,
                     }
                 ),
-                # FIXME this is wrong
-                "desired_goal": object_state_space,
-                "achieved_goal": object_state_space,
+                "desired_goal": spaces.object_position.gym,
+                "achieved_goal": spaces.object_position.gym,
             }
         )
 
-    def compute_reward(self, achieved_goal: mct.Position, desired_goal:
-                       mct.Trajectory, info: dict) -> float:
+    def compute_reward(
+        self,
+        achieved_goal: mct.Position,
+        desired_goal: mct.Position,
+        info: dict,
+    ) -> float:
         """Compute the reward for the given achieved and desired goal.
 
         Args:
@@ -161,8 +158,17 @@ class CubeTrajectoryEnv(gym.GoalEnv):
                     info,
                 )
         """
+        # This is just some sanity check to verify that the given desired_goal
+        # actually matches with the active goal in the trajectory.
+        active_goal = np.asarray(
+            mct.get_active_goal(
+                self.info["trajectory"], self.info["time_index"]
+            )
+        )
+        assert np.all(active_goal == desired_goal)
+
         return -mct.evaluate_state(
-            desired_goal, info["time_index"], achieved_goal
+            info["trajectory"], info["time_index"], achieved_goal
         )
 
     def step(self, action):
@@ -214,7 +220,7 @@ class CubeTrajectoryEnv(gym.GoalEnv):
 
             # update goal visualization
             if self.visualization:
-                goal_position = mct.get_active_goal(self.trajectory, t)
+                goal_position = mct.get_active_goal(self.info["trajectory"], t)
                 self.goal_marker.set_state(goal_position, (0, 0, 0, 1))
 
             # Use observations of step t + 1 to follow what would be expected
@@ -263,18 +269,18 @@ class CubeTrajectoryEnv(gym.GoalEnv):
         )
 
         # get goal trajectory from the initializer
-        self.trajectory = self.initializer.get_trajectory()
+        trajectory = self.initializer.get_trajectory()
 
         # visualize the goal
         if self.visualization:
             self.goal_marker = visual_objects.CubeMarker(
                 width=mct.move_cube._CUBE_WIDTH,
-                position=self.trajectory[0][1],
+                position=trajectory[0][1],
                 orientation=(0, 0, 0, 1),
                 pybullet_client_id=self.platform.simfinger._pybullet_client_id,
             )
 
-        self.info = {"time_index": -1}
+        self.info = {"time_index": -1, "trajectory": trajectory}
 
         self.step_count = 0
 
@@ -303,16 +309,20 @@ class CubeTrajectoryEnv(gym.GoalEnv):
         camera_observation = self.platform.get_camera_observation(t)
         object_observation = camera_observation.object_pose
 
+        active_goal = np.asarray(
+            mct.get_active_goal(self.info["trajectory"], t)
+        )
+
         observation = {
             "observation": {
-                "time_index": t,
                 "position": robot_observation.position,
                 "velocity": robot_observation.velocity,
                 "torque": robot_observation.torque,
             },
-            "desired_goal": self.trajectory,
+            "desired_goal": active_goal,
             "achieved_goal": object_observation.position,
         }
+
         return observation
 
     def _gym_action_to_robot_action(self, gym_action):
