@@ -5,6 +5,7 @@ dependencies:
 - python=3.8.5
 - numpy==1.19.1
 - pinocchio==2.4.7
+- pytest==6.2.3
 - pip==20.1.1
 - pip:
   - pybullet==3.0.8
