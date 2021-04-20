@@ -30,12 +30,12 @@ def test_timestamps():
     assert first_stamp_ms == camera_obs.cameras[1].timestamp
     assert first_stamp_ms == camera_obs.cameras[2].timestamp
 
-    # Test time stamps of observations t+1
+    # Test time stamps of observations t+1 (with the current implementation,
+    # the observation should be exactly the same as for t).
     camera_obs_next = platform.get_camera_observation(t + 1)
-    next_stamp_ms = first_stamp_ms + time_step_ms
-    assert next_stamp_ms == camera_obs_next.cameras[0].timestamp
-    assert next_stamp_ms == camera_obs_next.cameras[1].timestamp
-    assert next_stamp_ms == camera_obs_next.cameras[2].timestamp
+    assert first_stamp_ms == camera_obs_next.cameras[0].timestamp
+    assert first_stamp_ms == camera_obs_next.cameras[1].timestamp
+    assert first_stamp_ms == camera_obs_next.cameras[2].timestamp
 
     # Second time step
     t = platform.append_desired_action(action)
