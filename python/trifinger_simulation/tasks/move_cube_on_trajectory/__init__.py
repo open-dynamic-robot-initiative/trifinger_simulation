@@ -80,8 +80,8 @@ def get_active_goal(
     return previous_goal
 
 
-def sample_trajectory() -> Trajectory:
-    """Sample a trajectory with random steps.
+def sample_goal() -> Trajectory:
+    """Sample a goal trajectory with random steps.
 
     The number of goals in the trajectory is depending on the episode length
     (see :data:`EPISODE_LENGTH`).  The first goal has a duration of
@@ -106,7 +106,7 @@ def sample_trajectory() -> Trajectory:
     return trajectory
 
 
-def validate_trajectory(trajectory: Trajectory):
+def validate_goal(trajectory: Trajectory):
     """Checks if the given trajectory is valid, raises error if not.
 
     Raises:

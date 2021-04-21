@@ -21,7 +21,7 @@ class RandomInitializer(Initializer):
 
     def get_trajectory(self):
         """Get a random trajectory."""
-        return mct.sample_trajectory()
+        return mct.sample_goal()
 
 
 class FixedInitializer(Initializer):
@@ -37,7 +37,7 @@ class FixedInitializer(Initializer):
             Exception:  If trajectory is not valid.  See
             :meth:`mct.validate_goal` for more information.
         """
-        mct.validate_trajectory(trajectory)
+        mct.validate_goal(trajectory)
         self.trajectory = trajectory
 
     def get_trajectory(self):

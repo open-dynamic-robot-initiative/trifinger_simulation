@@ -5,7 +5,7 @@ For more information on the different commands run ``<command> --help``.
 import argparse
 import sys
 
-from . import sample_trajectory, trajectory_to_json
+from . import sample_goal, trajectory_to_json
 from . import run_evaluate_policy
 from . import run_replay
 from . import replay_action_log
@@ -13,7 +13,7 @@ from . import replay_action_log
 
 def cmd_sample_goal(args):
     try:
-        t = sample_trajectory()
+        t = sample_goal()
         print(trajectory_to_json(t))
     except Exception as e:
         print(e, file=sys.stderr)

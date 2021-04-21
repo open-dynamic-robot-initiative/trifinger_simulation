@@ -38,7 +38,7 @@ def generate_test_set(num_trajectories: int) -> typing.List[str]:
         List of random trajectories encoded as JSON strings.
     """
     return [
-        mct.trajectory_to_json(mct.sample_trajectory())
+        mct.trajectory_to_json(mct.sample_goal())
         for i in range(num_trajectories)
     ]
 
