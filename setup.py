@@ -19,7 +19,7 @@ def find_package_data(base_dir, data_dir):
 
 setup(
     name=package_name,
-    version="1.1.0",
+    version="1.2.0",
     packages=[
         package_name,
         package_name + ".gym_wrapper",
