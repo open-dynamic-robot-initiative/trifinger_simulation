@@ -165,7 +165,9 @@ class CubeTrajectoryEnv(gym.GoalEnv):
                 self.info["trajectory"], self.info["time_index"]
             )
         )
-        assert np.all(active_goal == desired_goal)
+        assert np.all(active_goal == desired_goal), "{}: {} != {}".format(
+            info["time_index"], active_goal, desired_goal
+        )
 
         return -mct.evaluate_state(
             info["trajectory"], info["time_index"], achieved_goal
@@ -216,7 +218,6 @@ class CubeTrajectoryEnv(gym.GoalEnv):
             # send action to robot
             robot_action = self._gym_action_to_robot_action(action)
             t = self.platform.append_desired_action(robot_action)
-            self.info["time_index"] = t
 
             # update goal visualization
             if self.visualization:
@@ -226,7 +227,7 @@ class CubeTrajectoryEnv(gym.GoalEnv):
             # Use observations of step t + 1 to follow what would be expected
             # in a typical gym environment.  Note that on the real robot, this
             # will not be possible
-            observation = self._create_observation(t + 1)
+            self.info["time_index"] = t + 1
 
             # Alternatively use the observation of step t.  This is the
             # observation from the moment before action_t is applied, i.e. the
@@ -236,7 +237,9 @@ class CubeTrajectoryEnv(gym.GoalEnv):
             # should match exactly the one computed during replay (with the
             # above it will differ slightly).
             #
-            # observation = self._create_observation(t)
+            # self.info["time_index"] = t
+
+            observation = self._create_observation(self.info["time_index"])
 
             reward += self.compute_reward(
                 observation["achieved_goal"],
