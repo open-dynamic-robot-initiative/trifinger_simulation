@@ -130,6 +130,39 @@ def validate_goal(trajectory: Trajectory):
         move_cube.validate_goal(move_cube.Pose(position=goal))
 
 
+def json_goal_from_config(filename: str) -> str:
+    """Load or sample a goal based on the given goal config file.
+
+    Args:
+        filename: Path to the goal config JSON file.  If it contains an entry
+            "goal", its value is used as goal.  Otherwise a random goal is
+            sampled.
+
+    Returns:
+        The goal as JSON-encoded string.
+    """
+    try:
+        with open(filename, "r") as f:
+            goalconfig = json.load(f)
+
+        if "goal" in goalconfig:
+            goal = goalconfig["goal"]
+            validate_goal(goal)
+        else:
+            goal = sample_goal()
+
+        goal_json = trajectory_to_json(goal)
+
+    except Exception as e:
+        raise RuntimeError(
+            "Failed to load goal configuration.  Make sure you provide a valid"
+            " 'goal.json' in your code repository.\n"
+            " Error: %s" % e
+        )
+
+    return goal_json
+
+
 def evaluate_state(
     trajectory: Trajectory, time_index: int, actual_position: Position
 ):
