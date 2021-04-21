@@ -25,6 +25,7 @@ setup(
         package_name + ".gym_wrapper",
         package_name + ".gym_wrapper.envs",
         package_name + ".tasks",
+        package_name + ".tasks.move_cube_on_trajectory",
     ],
     package_dir={"": "python"},
     data_files=[

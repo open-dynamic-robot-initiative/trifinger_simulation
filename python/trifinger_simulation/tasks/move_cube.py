@@ -276,6 +276,47 @@ def validate_goal_file(filename):
 def evaluate_state(goal_pose, actual_pose, difficulty):
     """Compute cost of a given cube pose.  Less is better.
 
+
+    The cost differs for the different levels.  For levels 1-3 only the
+    position is considered while for level 4 also the orientation is taken into
+    account.
+
+    Reward for Levels 1-3:
+        The position error is computed as a weighted sum of the Euclidean
+        distance on the x/y-plane and the absolute distance on the z-axis.
+        Both components are scaled based on their expected range.  Since the
+        z-range is smaller, this means that the height has a higher weight.
+        The sum is again rescaled so that the total error is in the interval
+        ``[0, 1]``.
+
+        ::
+
+            Input: goal position and actual position
+
+            err_xy = ||goal[xy] - actual[xy]||
+            err_z  = |goal[z] - actual[z]|
+
+            cost = (err_xy / arena_diameter + err_z / height_range) / 2
+
+
+    Reward for Level 4:
+        The position error is computed using the same function as above.
+        Further the orientation error is computed as the magnitude of the
+        rotation from the actual orientation to the goal orientation.
+
+        Both components are scaled with their expected range and then summed.
+        The sum is again rescaled to be in the interval ``[0, 1]``.
+
+        ::
+
+            position_error same as for levels 1-3
+
+            err_rot = rotation from actual to goal orientation (as quaternion)
+            orientation_error = 2 * atan2(||err_rot[x,y,z]||, |err_rot[w]|)
+
+            cost = (position_error + orientation_error / pi) / 2
+
+
     Args:
         goal_pose:  Goal pose of the cube.
         actual_pose:  Actual pose of the cube.
