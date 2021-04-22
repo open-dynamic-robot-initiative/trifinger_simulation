@@ -27,48 +27,13 @@ from trifinger_simulation import trifinger_platform
 from trifinger_simulation.tasks import move_cube
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument(
-        "--logfile",
-        "-l",
-        required=True,
-        type=str,
-        help="Path to the log file.",
-    )
-    parser.add_argument(
-        "--difficulty",
-        "-d",
-        required=True,
-        type=int,
-        help="The difficulty level of the goal (for reward computation).",
-    )
-    parser.add_argument(
-        "--initial-pose",
-        "-i",
-        required=True,
-        type=str,
-        metavar="JSON",
-        help="Initial pose of the cube as JSON string.",
-    )
-    parser.add_argument(
-        "--goal-pose",
-        "-g",
-        required=True,
-        type=str,
-        metavar="JSON",
-        help="Goal pose of the cube as JSON string.",
-    )
-    args = parser.parse_args()
+def replay_action_log(logfile, difficulty, initial_pose, goal_pose):
 
-    with open(args.logfile, "rb") as fh:
+    with open(logfile, "rb") as fh:
         log = pickle.load(fh)
 
-    initial_object_pose = move_cube.Pose.from_json(args.initial_pose)
-    goal_pose = move_cube.Pose.from_json(args.goal_pose)
+    initial_object_pose = move_cube.Pose.from_json(initial_pose)
+    goal_pose = move_cube.Pose.from_json(goal_pose)
 
     # verify that the initial object pose matches with the one in the log file
     try:
@@ -83,7 +48,8 @@ def main():
             initial_object_pose.orientation,
             log["initial_object_pose"].orientation,
             err_msg=(
-                "Given initial object orientation does not match with log file."
+                "Given initial object orientation does not match with log"
+                " file."
             ),
         )
     except AssertionError as e:
@@ -122,10 +88,8 @@ def main():
         t = platform.append_desired_action(action)
 
         robot_obs = platform.get_robot_observation(t)
-        cube_pose = platform.get_object_pose(t)
-        reward = -move_cube.evaluate_state(
-            goal_pose, cube_pose, args.difficulty
-        )
+        cube_pose = platform.get_camera_observation(t).object_pose
+        reward = -move_cube.evaluate_state(goal_pose, cube_pose, difficulty)
         accumulated_reward += reward
 
         assert logged_action["t"] == t
@@ -172,7 +136,7 @@ def main():
             ),
         )
 
-    cube_pose = platform.get_object_pose(t)
+    cube_pose = platform.get_camera_observation(t).object_pose
     final_pose = log["final_object_pose"]["pose"]
 
     print("Accumulated Reward:", accumulated_reward)
@@ -204,6 +168,50 @@ def main():
 
     print("Passed.")
 
+    return accumulated_reward
+
+
+def add_arguments(parser):
+    parser.add_argument(
+        "--logfile",
+        "-l",
+        required=True,
+        type=str,
+        help="Path to the log file.",
+    )
+    parser.add_argument(
+        "--difficulty",
+        "-d",
+        required=True,
+        type=int,
+        help="The difficulty level of the goal (for reward computation).",
+    )
+    parser.add_argument(
+        "--initial-pose",
+        "-i",
+        required=True,
+        type=str,
+        metavar="JSON",
+        help="Initial pose of the cube as JSON string.",
+    )
+    parser.add_argument(
+        "--goal-pose",
+        "-g",
+        required=True,
+        type=str,
+        metavar="JSON",
+        help="Goal pose of the cube as JSON string.",
+    )
+
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    add_arguments(parser)
+    args = parser.parse_args()
+
+    replay_action_log(
+        args.logfile, args.difficulty, args.initial_pose, args.goal_pose
+    )

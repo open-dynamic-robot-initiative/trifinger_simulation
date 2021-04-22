@@ -19,12 +19,13 @@ def find_package_data(base_dir, data_dir):
 
 setup(
     name=package_name,
-    version="1.1.0",
+    version="1.2.0",
     packages=[
         package_name,
         package_name + ".gym_wrapper",
         package_name + ".gym_wrapper.envs",
         package_name + ".tasks",
+        package_name + ".tasks.move_cube",
         package_name + ".tasks.move_cube_on_trajectory",
     ],
     package_dir={"": "python"},
@@ -58,12 +59,7 @@ setup(
         "demos/demo_random_policy.py",
         "demos/demo_trifinger_platform.py",
         "scripts/check_position_control_accuracy.py",
-        "scripts/evaluate_policy.py",
         "scripts/profiling.py",
-        "scripts/replay_action_log.py",
-        "scripts/rrc_evaluate",
-        "scripts/run_evaluate_policy_all_levels.py",
-        "scripts/run_replay_all_levels.py",
     ],
     package_data={
         "": (
