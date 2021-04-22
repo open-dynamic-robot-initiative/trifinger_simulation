@@ -101,6 +101,18 @@ class Pose:
         return goal_from_json(json_str)
 
 
+class NumpyEncoder(json.JSONEncoder):
+    """JSON encoder that handles NumPy arrays like lists.
+
+    Taken from https://stackoverflow.com/a/47626762
+    """
+
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
+
 def get_cube_corner_positions(pose):
     """Get the positions of the cube's corners with the given pose.
 
@@ -271,6 +283,48 @@ def validate_goal_file(filename):
 
         goal = Pose.from_dict(data["goal"])
         validate_goal(goal)
+
+
+def json_goal_from_config(filename: str) -> str:
+    """Load or sample a goal based on the given goal config file.
+
+    Args:
+        filename: Path to the goal config JSON file.  Needs to contain an entry
+            "difficulty", specifying the difficulty level of the goal.  If it
+            further contains an entry "goal", its value is used as goal.
+            Otherwise a random goal is sampled.
+
+    Returns:
+        The goal as JSON-encoded string.
+    """
+    try:
+        with open(filename, "r") as f:
+            goalconfig = json.load(f)
+
+        difficulty = int(goalconfig["difficulty"])
+        if "goal" in goalconfig:
+            goal = Pose.from_dict(goalconfig["goal"])
+            validate_goal(goal)
+        else:
+            goal = sample_goal(difficulty)
+
+        # goal_json = goal_to_json(goal)
+        goal_json = json.dumps(
+            {
+                "difficulty": difficulty,
+                "goal": goal.to_dict(),
+            },
+            cls=NumpyEncoder,
+        )
+
+    except Exception as e:
+        raise RuntimeError(
+            "Failed to load goal configuration.  Make sure you provide a valid"
+            " 'goal.json' in your code repository.\n"
+            " Error: %s" % e
+        )
+
+    return goal_json
 
 
 def evaluate_state(goal_pose, actual_pose, difficulty):
