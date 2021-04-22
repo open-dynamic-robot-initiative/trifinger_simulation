@@ -14,11 +14,12 @@ runs.
 import argparse
 import os
 import pickle
-import subprocess
 import sys
 import typing
 
 import numpy as np
+
+from . import replay_action_log
 
 
 class TestSample(typing.NamedTuple):
@@ -29,69 +30,12 @@ class TestSample(typing.NamedTuple):
     logfile: str
 
 
-def run_replay(sample: TestSample) -> float:
-    """Run replay_action_log.py for the given sample.
-
-    Args:
-        sample (TestSample): Contains all required information to run the
-            replay.
-
-    Returns:
-        The accumulated reward of the replay.
-    """
-    thisdir = os.path.dirname(__file__)
-    replay_exe = os.path.join(thisdir, "replay_action_log.py")
-    cmd = [
-        replay_exe,
-        "--difficulty",
-        str(sample.difficulty),
-        "--initial-pose",
-        sample.init_pose_json,
-        "--goal-pose",
-        sample.goal_pose_json,
-        "--logfile",
-        sample.logfile,
-    ]
-    res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-    if res.returncode != 0:
-        stderr = res.stderr.decode("utf-8")
-        raise RuntimeError(
-            "Replay of {} failed.  Output: {}".format(sample.logfile, stderr)
-        )
-
-    # extract the reward from the output
-    output = res.stdout.decode("utf-8").split("\n")
-    label = "Accumulated Reward: "
-    reward = None
-    for line in output:
-        if line.startswith(label):
-            reward = float(line[len(label) :])
-            break
-
-    if reward is None:
-        raise RuntimeError("Failed to parse reward from relay.")
-
-    return reward
-
-
-def main():
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument(
-        "input_directory",
-        type=str,
-        help="Directory containing the generated log files.",
-    )
-    args = parser.parse_args()
-
+def main(input_directory: str):
     try:
-        if not os.path.isdir(args.input_directory):
+        if not os.path.isdir(input_directory):
             print(
                 "'{}' does not exist or is not a directory.".format(
-                    args.input_directory
+                    input_directory
                 )
             )
             sys.exit(1)
@@ -99,19 +43,25 @@ def main():
         levels = (1, 2, 3, 4)
 
         # load samples
-        sample_file = os.path.join(args.input_directory, "test_data.p")
+        sample_file = os.path.join(input_directory, "test_data.p")
         with open(sample_file, "rb") as fh:
             test_data = pickle.load(fh)
 
         # run "replay_action_log.py" for each sample
-        level_rewards = {level: [] for level in levels}
+        level_rewards: dict = {level: [] for level in levels}
         for sample in test_data:
             print(
                 "Replay level {} sample {}".format(
                     sample.difficulty, sample.iteration
                 )
             )
-            level_rewards[sample.difficulty].append(run_replay(sample))
+            reward = replay_action_log.replay_action_log(
+                sample.logfile,
+                sample.difficulty,
+                sample.init_pose_json,
+                sample.goal_pose_json,
+            )
+            level_rewards[sample.difficulty].append(reward)
 
         # report
         print("\n=======================================================\n")
@@ -132,7 +82,7 @@ def main():
         print(report)
 
         # save report to file
-        report_file = os.path.join(args.input_directory, "reward.txt")
+        report_file = os.path.join(input_directory, "reward.txt")
         with open(report_file, "w") as fh:
             fh.write(report)
 
@@ -141,5 +91,20 @@ def main():
         sys.exit(1)
 
 
+def add_arguments(parser):
+    parser.add_argument(
+        "input_directory",
+        type=str,
+        help="Directory containing the generated log files.",
+    )
+
+
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    add_arguments(parser)
+    args = parser.parse_args()
+
+    main(args.input_directory)

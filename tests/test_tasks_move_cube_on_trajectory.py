@@ -9,9 +9,9 @@ from trifinger_simulation.tasks import move_cube_on_trajectory as mct
 def test_validate_sampling():
     # Make sure that the sampled trajectories are actually valid
     for i in range(42):
-        traj = mct.sample_trajectory()
+        traj = mct.sample_goal()
         try:
-            mct.validate_trajectory(traj)
+            mct.validate_goal(traj)
         except Exception as e:
             pytest.fail(f"Unexpected error {e} for trajectory {traj}")
 
@@ -47,7 +47,7 @@ def test_validate_trajectory():
         (300, (0.04, 0.01, 0.07)),
     ]
     try:
-        mct.validate_trajectory(good)
+        mct.validate_goal(good)
     except Exception as e:
         pytest.fail(f"Unexpected error {e}")
 
@@ -59,7 +59,7 @@ def test_validate_trajectory():
         (300, (0.04, 0.01, 0.07)),
     ]
     with pytest.raises(ValueError):
-        mct.validate_trajectory(bad)
+        mct.validate_goal(bad)
 
     # two goals start at same step
     bad = [
@@ -69,7 +69,7 @@ def test_validate_trajectory():
         (300, (0.04, 0.01, 0.07)),
     ]
     with pytest.raises(ValueError):
-        mct.validate_trajectory(bad)
+        mct.validate_goal(bad)
 
     # bad order of goal start times
     bad = [
@@ -79,12 +79,12 @@ def test_validate_trajectory():
         (300, (0.04, 0.01, 0.07)),
     ]
     with pytest.raises(ValueError):
-        mct.validate_trajectory(bad)
+        mct.validate_goal(bad)
 
     # trajectory must not be empty
     bad = []
     with pytest.raises(ValueError):
-        mct.validate_trajectory(bad)
+        mct.validate_goal(bad)
 
     # ill-defined position on first goal
     bad = [
@@ -92,7 +92,7 @@ def test_validate_trajectory():
         (100, (0.1, 0, 0.1)),
     ]
     with pytest.raises(ValueError):
-        mct.validate_trajectory(bad)
+        mct.validate_goal(bad)
 
     # z=0 is out of range
     bad = [
@@ -100,7 +100,7 @@ def test_validate_trajectory():
         (100, (0.1, 0, 0.1)),
     ]
     with pytest.raises(mct.move_cube.InvalidGoalError):
-        mct.validate_trajectory(bad)
+        mct.validate_goal(bad)
 
     # x=1 is out of range
     bad = [
@@ -108,7 +108,7 @@ def test_validate_trajectory():
         (100, (1, 0, 0.1)),
     ]
     with pytest.raises(mct.move_cube.InvalidGoalError):
-        mct.validate_trajectory(bad)
+        mct.validate_goal(bad)
 
 
 def test_evaluate_state():

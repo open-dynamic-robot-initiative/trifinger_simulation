@@ -38,7 +38,7 @@ class TestSample(typing.NamedTuple):
 
 
 def generate_test_set(
-    levels: typing.List[int], samples_per_level: int, logfile_tmpl: str
+    levels: typing.Sequence[int], samples_per_level: int, logfile_tmpl: str
 ) -> typing.List[TestSample]:
     """Generate random test set for policy evaluation.
 
@@ -76,6 +76,7 @@ def run_evaluate_policy(sample: TestSample):
             evaluation script.
     """
     cmd = [
+        "python3",
         "./evaluate_policy.py",  # TODO: make path configurable?
         str(sample.difficulty),
         sample.init_pose_json,
@@ -85,22 +86,12 @@ def run_evaluate_policy(sample: TestSample):
     subprocess.run(cmd, check=True)
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument(
-        "output_directory",
-        type=str,
-        help="Directory in which generated files are stored.",
-    )
-    args = parser.parse_args()
+def main(output_directory: str):
 
-    if not os.path.isdir(args.output_directory):
+    if not os.path.isdir(output_directory):
         print(
             "'{}' does not exist or is not a directory.".format(
-                args.output_directory
+                output_directory
             )
         )
         sys.exit(1)
@@ -109,14 +100,14 @@ def main():
     runs_per_level = 10
 
     logfile_tmpl = os.path.join(
-        args.output_directory, "action_log_l{level}_i{iteration}.p"
+        output_directory, "action_log_l{level}_i{iteration}.p"
     )
 
     # generate n samples for each level
     test_data = generate_test_set(levels, runs_per_level, logfile_tmpl)
 
     # store samples
-    sample_file = os.path.join(args.output_directory, "test_data.p")
+    sample_file = os.path.join(output_directory, "test_data.p")
     with open(sample_file, "wb") as fh:
         pickle.dump(test_data, fh, pickle.HIGHEST_PROTOCOL)
 
@@ -130,5 +121,19 @@ def main():
         run_evaluate_policy(sample)
 
 
+def add_arguments(parser):
+    parser.add_argument(
+        "output_directory",
+        type=str,
+        help="Directory in which generated files are stored.",
+    )
+
+
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    add_arguments(parser)
+    args = parser.parse_args()
+    main(args.output_directory)

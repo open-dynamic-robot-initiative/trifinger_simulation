@@ -38,7 +38,12 @@ class CameraObservation:
 
 
 class TriCameraObjectObservation:
-    """Pure-python copy of trifinger_object_tracking::TriCameraObjectObservation."""
+    """Python version of trifinger_object_tracking::TriCameraObjectObservation.
+
+    This is a pure-python implementation of
+    trifinger_object_tracking::TriCameraObjectObservation, so we don't need to
+    depend on trifinger_object_tracking here.
+    """
 
     __slots__ = ["cameras", "object_pose"]
 
@@ -46,6 +51,8 @@ class TriCameraObjectObservation:
         #: list of :class:`CameraObservation`: List of observations of cameras
         #: "camera60", "camera180" and "camera300" (in this order).
         self.cameras = [CameraObservation() for i in range(3)]
+
+        #: Pose of the object in world coordinates.
         self.object_pose = ObjectPose()
 
 
@@ -136,8 +143,6 @@ class TriFingerPlatform:
             enable_visualization=visualization,
         )
 
-        _kwargs = {"physicsClientId": self.simfinger._pybullet_client_id}
-
         if initial_robot_position is None:
             initial_robot_position = self.spaces.robot_position.default
 
@@ -151,11 +156,12 @@ class TriFingerPlatform:
                 orientation=self.spaces.object_orientation.default,
             )
 
-        self.cube = collision_objects.Cuboid(
+        # TODO this should be configurable
+        self.cube = collision_objects.Cube(
             position=initial_object_pose.position,
             orientation=initial_object_pose.orientation,
-            half_extents=[0.01, 0.04, 0.01],
-            mass=0.016,
+            half_width=0.0325,
+            mass=0.094,
             pybullet_client_id=self.simfinger._pybullet_client_id,
         )
 
@@ -183,6 +189,9 @@ class TriFingerPlatform:
             "initial_object_pose": initial_object_pose,
             "actions": [],
         }
+
+        # get initial camera observation
+        self._camera_observation_t = self._get_current_camera_observation(0)
 
     def get_time_step(self):
         """Get simulation time step in seconds."""
@@ -299,10 +308,8 @@ class TriFingerPlatform:
 
         if t < 0:
             raise ValueError("Cannot access time index less than zero.")
-        elif t == current_t:
+        elif t == current_t or t == current_t + 1:
             return self._camera_observation_t
-        elif t == current_t + 1:
-            return self._get_current_camera_observation(t)
         else:
             raise ValueError(
                 "Given time index t has to match with index of the current"

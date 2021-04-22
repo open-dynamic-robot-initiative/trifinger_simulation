@@ -4,6 +4,9 @@ import sys
 from . import move_cube
 
 
+# TODO: Move the move_cube functions here to move_cube/__main__.py
+
+
 def move_cube_argparse(parser):
     sub = parser.add_subparsers(title="command", dest="command")
     sub.required = True
