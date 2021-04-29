@@ -42,6 +42,7 @@ class SimFinger:
         finger_type,
         time_step=0.004,
         enable_visualization=False,
+        robot_position_offset=(0, 0, 0),
     ):
         """
         Constructor, initializes the physical world we will work in.
@@ -55,6 +56,9 @@ class SimFinger:
                 according to a time_step of 0.004 s.
             enable_visualization (bool): Set this to 'True' for a GUI interface
                 to the simulation.
+            robot_position_offset: Position offset with which the robot is
+                placed in the world.  Use this, for example, to change the
+                height of the fingers above the table.
         """
         self.finger_type = finger_types_data.check_finger_type(finger_type)
         self.number_of_fingers = finger_types_data.get_number_of_fingers(
@@ -91,7 +95,7 @@ class SimFinger:
         self._pybullet_client_id = self.__connect_to_pybullet(
             enable_visualization
         )
-        self.__setup_pybullet_simulation()
+        self.__setup_pybullet_simulation(robot_position_offset)
 
         self.kinematics = pinocchio_utils.Kinematics(
             self.finger_urdf_path, self.tip_link_names
@@ -556,10 +560,15 @@ class SimFinger:
                 "finger_tip_link_240",
             ]
 
-    def __setup_pybullet_simulation(self):
+    def __setup_pybullet_simulation(self, robot_position_offset):
         """
         Set the physical parameters of the world in which the simulation
         will run, and import the models to be simulated
+
+        Args:
+            robot_position_offset: Position offset with which the robot is
+                placed in the world.  Use this, for example, to change the
+                height of the fingers above the table.
         """
         pybullet.setAdditionalSearchPath(
             pybullet_data.getDataPath(),
@@ -580,7 +589,7 @@ class SimFinger:
             [0, 0, -0.01],
             physicsClientId=self._pybullet_client_id,
         )
-        self.__load_robot_urdf()
+        self.__load_robot_urdf(robot_position_offset)
         self.__set_pybullet_params()
         self.__load_stage()
         self.__disable_pybullet_velocity_control()
@@ -658,18 +667,20 @@ class SimFinger:
             self.robot_properties_path, "urdf", urdf_file
         )
 
-    def __load_robot_urdf(self):
+    def __load_robot_urdf(self, robot_position_offset):
         """
         Load the single/trifinger model from the corresponding urdf
+
+        Args:
+            robot_position_offset: Position offset with which the robot is
+                placed in the world.  Use this, for example, to change the
+                height of the fingers above the table.
         """
-        finger_base_position = [0, 0, 0.0]
-        finger_base_orientation = pybullet.getQuaternionFromEuler(
-            [0, 0, 0], physicsClientId=self._pybullet_client_id
-        )
+        finger_base_orientation = (0, 0, 0, 1)
 
         self.finger_id = pybullet.loadURDF(
             fileName=self.finger_urdf_path,
-            basePosition=finger_base_position,
+            basePosition=robot_position_offset,
             baseOrientation=finger_base_orientation,
             useFixedBase=1,
             flags=(
