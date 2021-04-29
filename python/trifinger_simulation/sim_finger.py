@@ -50,7 +50,7 @@ class SimFinger:
     def __init__(
         self,
         finger_type,
-        time_step=0.004,
+        time_step=0.001,
         enable_visualization=False,
         robot_position_offset=(0, 0, 0),
     ):
@@ -63,7 +63,7 @@ class SimFinger:
                 types.
             time_step (float): Time (in seconds) between two simulation steps.
                 Don't set this to be larger than 1/60.  The gains etc. are set
-                according to a time_step of 0.004 s.
+                according to a time_step of 0.001 s.
             enable_visualization (bool): Set this to 'True' for a GUI interface
                 to the simulation.
             robot_position_offset: Position offset with which the robot is
