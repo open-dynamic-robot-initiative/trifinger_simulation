@@ -1,7 +1,6 @@
 import copy
 import os
 import numpy as np
-import warnings
 import typing
 
 import pybullet
@@ -14,7 +13,7 @@ from trifinger_simulation import pinocchio_utils
 from trifinger_simulation import finger_types_data
 
 
-def int_to_rgba(color: int, alpha: int = 0xFF) -> typing.Tuple[float]:
+def int_to_rgba(color: int, alpha: int = 0xFF) -> typing.Tuple[float, ...]:
     """Convert an 24-bit integer to an rgba tuple.
 
     Converts color given as a single 24-bit integer (e.g. a hex value 0xFF0011)
@@ -35,26 +34,25 @@ def int_to_rgba(color: int, alpha: int = 0xFF) -> typing.Tuple[float]:
 
 class SimFinger:
     """
-    A simulation environment for the single and the tri-finger robots.
-    This environment is based on PyBullet, the official Python wrapper around
-    the Bullet-C API.
-
-    Attributes:
-        finger_type (string): Name of the finger type.  Use
-                :meth:`get_valid_finger_types` to get a list of all supported
-                types.
-        time_step (float): Time (in seconds) between two simulation steps.
-            Don't set this to be larger than 1/60.  The gains etc. are set
-            according to a time_step of 0.004 s.
-        enable_visualization (bool): Set this to 'True' for a GUI interface
-            to the simulation.
+    pyBullet simulation environment for the single and the tri-finger robots.
     """
+
+    #: The kp gains for the pd control of the finger(s). Note, this depends
+    #: on the simulation step size and has been set for a simulation rate
+    #: of 250 Hz.
+    position_gains: typing.Sequence[float]
+
+    #: The kd gains for the pd control of the finger(s). Note, this depends
+    #: on the simulation step size and has been set for a simulation rate
+    #: of 250 Hz.
+    velocity_gains: typing.Sequence[float]
 
     def __init__(
         self,
         finger_type,
-        time_step=0.004,
+        time_step=0.001,
         enable_visualization=False,
+        robot_position_offset=(0, 0, 0),
     ):
         """
         Constructor, initializes the physical world we will work in.
@@ -65,9 +63,12 @@ class SimFinger:
                 types.
             time_step (float): Time (in seconds) between two simulation steps.
                 Don't set this to be larger than 1/60.  The gains etc. are set
-                according to a time_step of 0.004 s.
+                according to a time_step of 0.001 s.
             enable_visualization (bool): Set this to 'True' for a GUI interface
                 to the simulation.
+            robot_position_offset: Position offset with which the robot is
+                placed in the world.  Use this, for example, to change the
+                height of the fingers above the table.
         """
         self.finger_type = finger_types_data.check_finger_type(finger_type)
         self.number_of_fingers = finger_types_data.get_number_of_fingers(
@@ -76,19 +77,7 @@ class SimFinger:
 
         self.time_step_s = time_step
 
-        #: The kp gains for the pd control of the finger(s). Note, this depends
-        #: on the simulation step size and has been set for a simulation rate
-        #: of 250 Hz.
-        self.position_gains = np.array(
-            [10.0, 10.0, 10.0] * self.number_of_fingers
-        )
-
-        #: The kd gains for the pd control of the finger(s). Note, this depends
-        #: on the simulation step size and has been set for a simulation rate
-        #: of 250 Hz.
-        self.velocity_gains = np.array(
-            [0.1, 0.3, 0.001] * self.number_of_fingers
-        )
+        self.__set_default_pd_gains()
 
         #: The kd gains used for damping the joint motor velocities during the
         #: safety torque check on the joint motors.
@@ -104,7 +93,7 @@ class SimFinger:
         self._pybullet_client_id = self.__connect_to_pybullet(
             enable_visualization
         )
-        self.__setup_pybullet_simulation()
+        self.__setup_pybullet_simulation(robot_position_offset)
 
         self.kinematics = pinocchio_utils.Kinematics(
             self.finger_urdf_path, self.tip_link_names
@@ -114,8 +103,9 @@ class SimFinger:
         """
         Fill in the fields of the action structure.
 
-        This is a factory go create an :class:`~trifinger_simulation.action.Action`
-        instance with proper default values, depending on the finger type.
+        This is a factory go create an
+        :class:`~trifinger_simulation.action.Action` instance with proper
+        default values, depending on the finger type.
 
         Args:
             torque (array): Torques to apply to the joints.  Defaults to
@@ -568,10 +558,15 @@ class SimFinger:
                 "finger_tip_link_240",
             ]
 
-    def __setup_pybullet_simulation(self):
+    def __setup_pybullet_simulation(self, robot_position_offset):
         """
         Set the physical parameters of the world in which the simulation
         will run, and import the models to be simulated
+
+        Args:
+            robot_position_offset: Position offset with which the robot is
+                placed in the world.  Use this, for example, to change the
+                height of the fingers above the table.
         """
         pybullet.setAdditionalSearchPath(
             pybullet_data.getDataPath(),
@@ -592,7 +587,7 @@ class SimFinger:
             [0, 0, -0.01],
             physicsClientId=self._pybullet_client_id,
         )
-        self.__load_robot_urdf()
+        self.__load_robot_urdf(robot_position_offset)
         self.__set_pybullet_params()
         self.__load_stage()
         self.__disable_pybullet_velocity_control()
@@ -670,18 +665,20 @@ class SimFinger:
             self.robot_properties_path, "urdf", urdf_file
         )
 
-    def __load_robot_urdf(self):
+    def __load_robot_urdf(self, robot_position_offset):
         """
         Load the single/trifinger model from the corresponding urdf
+
+        Args:
+            robot_position_offset: Position offset with which the robot is
+                placed in the world.  Use this, for example, to change the
+                height of the fingers above the table.
         """
-        finger_base_position = [0, 0, 0.0]
-        finger_base_orientation = pybullet.getQuaternionFromEuler(
-            [0, 0, 0], physicsClientId=self._pybullet_client_id
-        )
+        finger_base_orientation = (0, 0, 0, 1)
 
         self.finger_id = pybullet.loadURDF(
             fileName=self.finger_urdf_path,
-            basePosition=finger_base_position,
+            basePosition=robot_position_offset,
             baseOrientation=finger_base_orientation,
             useFixedBase=1,
             flags=(
@@ -732,7 +729,7 @@ class SimFinger:
         def mesh_path(filename):
             return os.path.join(self.robot_properties_path, "meshes", filename)
 
-        if self.finger_type in ["fingerone", "fingeredu"]:
+        if self.finger_type in ["fingerone", "fingeredu", "fingerpro"]:
             collision_objects.import_mesh(
                 mesh_path("Stage_simplified.stl"),
                 position=[0, 0, 0],
@@ -815,3 +812,20 @@ class SimFinger:
             )
         else:
             raise ValueError("Invalid finger type '%s'" % self.finger_type)
+
+    def __set_default_pd_gains(self):
+        """Set the default PD gains depending on the finger type."""
+        if self.finger_type in ["fingerpro", "trifingerpro"]:
+            self.position_gains = np.array(
+                [15.0, 15.0, 9.0] * self.number_of_fingers
+            )
+            self.velocity_gains = np.array(
+                [0.5, 1.0, 0.5] * self.number_of_fingers
+            )
+        else:
+            self.position_gains = np.array(
+                [10.0, 10.0, 10.0] * self.number_of_fingers
+            )
+            self.velocity_gains = np.array(
+                [0.1, 0.3, 0.001] * self.number_of_fingers
+            )
