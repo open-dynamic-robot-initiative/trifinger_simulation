@@ -34,19 +34,7 @@ def int_to_rgba(color: int, alpha: int = 0xFF) -> typing.Tuple[float, ...]:
 
 class SimFinger:
     """
-    A simulation environment for the single and the tri-finger robots.
-    This environment is based on PyBullet, the official Python wrapper around
-    the Bullet-C API.
-
-    Attributes:
-        finger_type (string): Name of the finger type.  Use
-                :meth:`get_valid_finger_types` to get a list of all supported
-                types.
-        time_step (float): Time (in seconds) between two simulation steps.
-            Don't set this to be larger than 1/60.  The gains etc. are set
-            according to a time_step of 0.004 s.
-        enable_visualization (bool): Set this to 'True' for a GUI interface
-            to the simulation.
+    pyBullet simulation environment for the single and the tri-finger robots.
     """
 
     def __init__(
