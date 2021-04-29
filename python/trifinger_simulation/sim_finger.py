@@ -1,7 +1,6 @@
 import copy
 import os
 import numpy as np
-import warnings
 import typing
 
 import pybullet
@@ -14,7 +13,7 @@ from trifinger_simulation import pinocchio_utils
 from trifinger_simulation import finger_types_data
 
 
-def int_to_rgba(color: int, alpha: int = 0xFF) -> typing.Tuple[float]:
+def int_to_rgba(color: int, alpha: int = 0xFF) -> typing.Tuple[float, ...]:
     """Convert an 24-bit integer to an rgba tuple.
 
     Converts color given as a single 24-bit integer (e.g. a hex value 0xFF0011)
@@ -114,8 +113,9 @@ class SimFinger:
         """
         Fill in the fields of the action structure.
 
-        This is a factory go create an :class:`~trifinger_simulation.action.Action`
-        instance with proper default values, depending on the finger type.
+        This is a factory go create an
+        :class:`~trifinger_simulation.action.Action` instance with proper
+        default values, depending on the finger type.
 
         Args:
             torque (array): Torques to apply to the joints.  Defaults to
