@@ -102,7 +102,7 @@ class TriFingerPlatform:
         initial_robot_position=None,
         initial_object_pose=None,
         enable_cameras=False,
-        time_step_s=0.004,
+        time_step_s=0.001,
     ):
         """Initialize.
 

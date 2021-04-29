@@ -7,7 +7,7 @@ import trifinger_simulation
 
 
 def main():
-    time_step = 0.004
+    time_step = 0.001
     finger = trifinger_simulation.SimFinger(
         finger_type="trifingerpro",
         time_step=time_step,
