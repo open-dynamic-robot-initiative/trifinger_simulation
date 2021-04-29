@@ -37,6 +37,16 @@ class SimFinger:
     pyBullet simulation environment for the single and the tri-finger robots.
     """
 
+    #: The kp gains for the pd control of the finger(s). Note, this depends
+    #: on the simulation step size and has been set for a simulation rate
+    #: of 250 Hz.
+    position_gains: typing.Sequence[float]
+
+    #: The kd gains for the pd control of the finger(s). Note, this depends
+    #: on the simulation step size and has been set for a simulation rate
+    #: of 250 Hz.
+    velocity_gains: typing.Sequence[float]
+
     def __init__(
         self,
         finger_type,
@@ -67,19 +77,7 @@ class SimFinger:
 
         self.time_step_s = time_step
 
-        #: The kp gains for the pd control of the finger(s). Note, this depends
-        #: on the simulation step size and has been set for a simulation rate
-        #: of 250 Hz.
-        self.position_gains = np.array(
-            [10.0, 10.0, 10.0] * self.number_of_fingers
-        )
-
-        #: The kd gains for the pd control of the finger(s). Note, this depends
-        #: on the simulation step size and has been set for a simulation rate
-        #: of 250 Hz.
-        self.velocity_gains = np.array(
-            [0.1, 0.3, 0.001] * self.number_of_fingers
-        )
+        self.__set_default_pd_gains()
 
         #: The kd gains used for damping the joint motor velocities during the
         #: safety torque check on the joint motors.
@@ -814,3 +812,20 @@ class SimFinger:
             )
         else:
             raise ValueError("Invalid finger type '%s'" % self.finger_type)
+
+    def __set_default_pd_gains(self):
+        """Set the default PD gains depending on the finger type."""
+        if self.finger_type in ["fingerpro", "trifingerpro"]:
+            self.position_gains = np.array(
+                [15.0, 15.0, 9.0] * self.number_of_fingers
+            )
+            self.velocity_gains = np.array(
+                [0.5, 1.0, 0.5] * self.number_of_fingers
+            )
+        else:
+            self.position_gains = np.array(
+                [10.0, 10.0, 10.0] * self.number_of_fingers
+            )
+            self.velocity_gains = np.array(
+                [0.1, 0.3, 0.001] * self.number_of_fingers
+            )
