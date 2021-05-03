@@ -1,5 +1,3 @@
-import pathlib
-
 import pybullet
 
 import trifinger_simulation
@@ -230,8 +228,7 @@ class ColoredCubeV2(BaseCollisionObject):
         self._pybullet_client_id = pybullet_client_id
 
         cube_urdf_file = (
-            pathlib.Path(trifinger_simulation.__file__).parent
-            / "data/cube_v2/cube_v2.urdf"
+            trifinger_simulation.get_data_dir() / "cube_v2/cube_v2.urdf"
         )
         self._object_id = pybullet.loadURDF(
             fileName=str(cube_urdf_file),
