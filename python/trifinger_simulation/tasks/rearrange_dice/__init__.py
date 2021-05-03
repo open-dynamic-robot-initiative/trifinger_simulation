@@ -32,6 +32,10 @@ import random
 import typing
 
 import numpy as np
+import cv2
+from scipy.spatial.transform import Rotation
+
+from trifinger_simulation import camera
 
 
 #: Duration of the episode in time steps (corresponds to ~2 minutes).
@@ -109,6 +113,40 @@ def _get_cell_corners_2d(
         nppos + (-d, -d),
         nppos + (-d, d),
     )
+
+
+def _get_cell_corners_3d(
+    pos: Position,
+) -> np.ndarray:
+    """Get 3d positions of the corners of the cell at the given position."""
+    d = DIE_WIDTH / 2
+    nppos = np.asarray(pos)
+
+    # order of the corners is the same as in the cube model of the
+    # trifinger_object_tracking package
+    # people.tue.mpg.de/mpi-is-software/robotfingers/docs/trifinger_object_tracking/doc/cube_model.html
+    return np.array(
+        (
+            nppos + (d, -d, d),
+            nppos + (d, d, d),
+            nppos + (-d, d, d),
+            nppos + (-d, -d, d),
+            nppos + (d, -d, -d),
+            nppos + (d, d, -d),
+            nppos + (-d, d, -d),
+            nppos + (-d, -d, -d),
+        )
+    )
+
+
+FACE_CORNERS = (
+    (0, 1, 2, 3),
+    (4, 5, 1, 0),
+    (5, 6, 2, 1),
+    (7, 6, 2, 3),
+    (4, 7, 3, 0),
+    (4, 5, 6, 7),
+)
 
 
 def _is_cell_position_inside_arena(pos: Position) -> bool:
@@ -261,3 +299,58 @@ def visualize_2d(target_positions):
     ax.add_patch(circle)
 
     plt.show()
+
+
+def generate_goal_mask(
+    camera_parameters: typing.Sequence[camera.CameraParameters], goal: Goal
+) -> typing.List[np.ndarray]:
+    """Generate goal masks that can be used with :func:`evaluate_state`.
+
+    A goal mask is a single-channel image where the areas at which dice are
+    supposed to be placed are white and everything else is black.  So it
+    corresponds more or less to a segmentation mask where all dice are at the
+    goal positions.
+
+    For rendering the mask, :data:`TARGET_WIDTH` is used for the die width to
+    add some tolerance.
+
+    Args:
+        camera_parameters: List of camera parameters, one per camera.
+        goal: The goal die positions.
+
+    Returns:
+        List of masks.  The number and order of masks corresponds to the input
+        ``camera_parameters``.
+    """
+    masks = []
+    for cam in camera_parameters:
+        mask = np.zeros((cam.height, cam.width), dtype=np.uint8)
+
+        # get camera position and orientation separately
+        tvec = cam.tf_world_to_camera[:3, 3]
+        rmat = cam.tf_world_to_camera[:3, :3]
+        rvec = Rotation.from_matrix(rmat).as_rotvec()
+
+        for pos in goal:
+            corners = _get_cell_corners_3d(pos)
+
+            # project corner points into the image
+            projected_corners, _ = cv2.projectPoints(
+                corners,
+                rvec,
+                tvec,
+                cam.camera_matrix,
+                cam.distortion_coefficients,
+            )
+
+            # draw faces in mask
+            for face_corner_idx in FACE_CORNERS:
+                points = np.array(
+                    [projected_corners[i] for i in face_corner_idx],
+                    dtype=np.int32,
+                )
+                mask = cv2.fillConvexPoly(mask, points, 255)
+
+        masks.append(mask)
+
+    return masks

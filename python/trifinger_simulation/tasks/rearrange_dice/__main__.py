@@ -1,9 +1,13 @@
 import argparse
 import sys
 
-from . import json_goal_from_config, sample_goal, goal_to_json
+import numpy as np
+import cv2
 
-from . import visualize_2d
+import trifinger_simulation
+
+from . import json_goal_from_config, sample_goal, goal_to_json
+from . import visualize_2d, generate_goal_mask
 
 
 def cmd_sample_goal(args):
@@ -12,7 +16,18 @@ def cmd_sample_goal(args):
         print(goal_to_json(goal))
         if args.show:
             visualize_2d(goal)
-    except Exception as e:
+        if args.show_masks:
+            data_dir = trifinger_simulation.get_data_dir()
+            camera_param_dir = data_dir / "camera_params"
+            camera_params = trifinger_simulation.camera.load_camera_parameters(
+                camera_param_dir, "camera{id}_cropped_and_downsampled.yml"
+            )
+            masks = generate_goal_mask(camera_params, goal)
+            masks = np.hstack(masks)
+            cv2.imshow("Goal Masks", masks)
+            cv2.waitKey()
+
+    except FileExistsError as e:
         print(e, file=sys.stderr)
         sys.exit(1)
 
@@ -37,7 +52,14 @@ def main():
             JSON string.
         """,
     )
-    sub.add_argument("--show", action="store_true", help="Visualize the goal.")
+    sub.add_argument(
+        "--show", action="store_true", help="Visualize the goal positions."
+    )
+    sub.add_argument(
+        "--show-masks",
+        action="store_true",
+        help="Show the goal masks (using some default camera parameters).",
+    )
     sub.set_defaults(func=cmd_sample_goal)
 
     sub = subparsers.add_parser(
