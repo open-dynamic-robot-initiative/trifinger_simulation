@@ -19,7 +19,7 @@ def find_package_data(base_dir, data_dir):
 
 setup(
     name=package_name,
-    version="1.2.0",
+    version="1.2.1",
     packages=[
         package_name,
         package_name + ".gym_wrapper",
@@ -36,12 +36,19 @@ setup(
         ),
         ("share/" + package_name, ["package.xml"]),
     ],
-    install_requires=["setuptools"],
     zip_safe=False,  # <- TODO Could this be True?
     maintainer="Felix Widmaier",
     maintainer_email="felix.widmaier@tue.mpg.de",
     description="TriFinger Robot Simulation",
     license="BSD 3-Clause",
+    install_requires=[
+        "numpy >=1.19.1",
+        "pin >=2.4.7",  # pinocchio
+        "pybullet >=3.0.8",
+        "gym >=0.18.0",
+        "opencv-python >=4.2.0.34",
+        "pyyaml >=5.3.1",
+    ],
     tests_require=["pytest"],
     # entry_points={
     #    'console_scripts': [
