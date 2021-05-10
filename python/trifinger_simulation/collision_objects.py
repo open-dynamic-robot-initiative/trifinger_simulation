@@ -1,4 +1,8 @@
+import pathlib
+
 import pybullet
+
+import trifinger_simulation
 
 
 def import_mesh(
@@ -57,7 +61,64 @@ def import_mesh(
     return obj
 
 
-class Cuboid:
+class BaseCollisionObject:
+    """A cuboid which can be interacted with.
+
+    This class only provides the set/get_state methods but doesn't actually
+    load any object.  So don't use this directly but use one of its child
+    classes.
+
+    Note that child classes must define an attribute ``_object_id`` with the id
+    of the object.
+    """
+
+    def __init__(
+        self,
+        pybullet_client_id=0,
+    ):
+        """
+        Args:
+            pybullet_client_id:  Optional ID of the pybullet client.
+        """
+        self._pybullet_client_id = pybullet_client_id
+
+    def set_state(self, position, orientation):
+        """
+        Resets the object to the provided position and orientation
+
+        Args:
+            position: New position.
+            orientation: New orientation.
+        """
+        pybullet.resetBasePositionAndOrientation(
+            self._object_id,
+            position,
+            orientation,
+            physicsClientId=self._pybullet_client_id,
+        )
+
+    def get_state(self):
+        """
+        Returns:
+            Current position and orientation of the object.
+        """
+        position, orientation = pybullet.getBasePositionAndOrientation(
+            self._object_id,
+            physicsClientId=self._pybullet_client_id,
+        )
+        return list(position), list(orientation)
+
+    def __del__(self):
+        """
+        Removes the object from the environment.
+        """
+        # At this point it may be that pybullet was already shut down. To avoid
+        # an error, only remove the object if the simulation is still running.
+        if pybullet.isConnected(self._pybullet_client_id):
+            pybullet.removeBody(self._object_id, self._pybullet_client_id)
+
+
+class Cuboid(BaseCollisionObject):
     """A cuboid which can be interacted with."""
 
     def __init__(
@@ -70,7 +131,7 @@ class Cuboid:
         pybullet_client_id=0,
     ):
         """
-        Import the block
+        Create a new cuboid.
 
         Args:
             position (list): Initial xyz-position of the cuboid.
@@ -82,7 +143,7 @@ class Cuboid:
             color_rgba: Optional tuple of RGBA colour.
             pybullet_client_id:  Optional ID of the pybullet client.
         """
-        self._pybullet_client_id = pybullet_client_id
+        super().__init__(pybullet_client_id)
 
         self.block_id = pybullet.createCollisionShape(
             shapeType=pybullet.GEOM_BOX,
@@ -101,7 +162,7 @@ class Cuboid:
         else:
             self.visual_shape_id = -1
 
-        self.block = pybullet.createMultiBody(
+        self._object_id = pybullet.createMultiBody(
             baseCollisionShapeIndex=self.block_id,
             baseVisualShapeIndex=self.visual_shape_id,
             basePosition=position,
@@ -115,48 +176,13 @@ class Cuboid:
         spinning_friction = 0.001
         restitution = 0
         pybullet.changeDynamics(
-            bodyUniqueId=self.block,
+            bodyUniqueId=self._object_id,
             linkIndex=-1,
             lateralFriction=lateral_friction,
             spinningFriction=spinning_friction,
             restitution=restitution,
             physicsClientId=self._pybullet_client_id,
         )
-
-    def set_state(self, position, orientation):
-        """
-        Resets the cuboid to the provided position and orientation
-
-        Args:
-            position: New position.
-            orientation: New orientation.
-        """
-        pybullet.resetBasePositionAndOrientation(
-            self.block,
-            position,
-            orientation,
-            physicsClientId=self._pybullet_client_id,
-        )
-
-    def get_state(self):
-        """
-        Returns:
-            Current position and orientation of the cuboid.
-        """
-        position, orientation = pybullet.getBasePositionAndOrientation(
-            self.block,
-            physicsClientId=self._pybullet_client_id,
-        )
-        return list(position), list(orientation)
-
-    def __del__(self):
-        """
-        Removes the cuboid from the environment.
-        """
-        # At this point it may be that pybullet was already shut down. To avoid
-        # an error, only remove the object if the simulation is still running.
-        if pybullet.isConnected(self._pybullet_client_id):
-            pybullet.removeBody(self.block, self._pybullet_client_id)
 
 
 class Cube(Cuboid):
@@ -183,3 +209,33 @@ class Cube(Cuboid):
 
 # For backward compatibility
 Block = Cube
+
+
+class ColoredCubeV2(BaseCollisionObject):
+    """Model of the colored "Cube v2"."""
+
+    def __init__(
+        self,
+        position=(0, 0, 0),
+        orientation=(0, 0, 0, 1),
+        pybullet_client_id=0,
+    ):
+        """Load a Cube v2 object.
+
+        Args:
+            position: Position at which the cube is spawned.
+            orientation: Orientation with which the cube is spawned.
+            pybullet_client_id:  Optional ID of the pybullet client.
+        """
+        self._pybullet_client_id = pybullet_client_id
+
+        cube_urdf_file = (
+            pathlib.Path(trifinger_simulation.__file__).parent
+            / "data/cube_v2/cube_v2.urdf"
+        )
+        self._object_id = pybullet.loadURDF(
+            fileName=str(cube_urdf_file),
+            basePosition=position,
+            baseOrientation=orientation,
+            physicsClientId=pybullet_client_id,
+        )
