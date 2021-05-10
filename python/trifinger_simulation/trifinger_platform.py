@@ -157,11 +157,9 @@ class TriFingerPlatform:
             )
 
         # TODO this should be configurable
-        self.cube = collision_objects.Cube(
+        self.cube = collision_objects.ColoredCubeV2(
             position=initial_object_pose.position,
             orientation=initial_object_pose.orientation,
-            half_width=0.0325,
-            mass=0.094,
             pybullet_client_id=self.simfinger._pybullet_client_id,
         )
 
