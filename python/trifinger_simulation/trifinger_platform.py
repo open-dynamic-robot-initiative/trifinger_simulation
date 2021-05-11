@@ -1,3 +1,4 @@
+import copy
 import enum
 import pickle
 import warnings
@@ -229,8 +230,8 @@ class TriFingerPlatform:
         # Initialize log
         # ==============
         self._action_log = {
-            "initial_robot_position": initial_robot_position,
-            "initial_object_pose": initial_object_pose,
+            "initial_robot_position": copy.copy(initial_robot_position),
+            "initial_object_pose": copy.copy(initial_object_pose),
             "actions": [],
         }
 
@@ -288,7 +289,8 @@ class TriFingerPlatform:
         }
         if self._has_object_tracking:
             log_entry["object_pose"] = camera_obs.object_pose
-        self._action_log["actions"].append(log_entry)
+        # make a deep copy of log_entry to ensure all reference ties are cut
+        self._action_log["actions"].append(copy.deepcopy(log_entry))
 
         return t
 
