@@ -129,6 +129,12 @@ def get_cube_corner_positions(pose):
     return rotation.apply(_cube_corners) + translation
 
 
+def seed(seed: int):
+    """Set random seed for this module."""
+    global random
+    random = np.random.RandomState(seed)
+
+
 def sample_goal(difficulty):
     """Sample a goal pose for the cube.
 

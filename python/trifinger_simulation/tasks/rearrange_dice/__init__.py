@@ -64,6 +64,10 @@ Position = typing.Sequence[float]
 Goal = typing.Sequence[Position]
 
 
+# random number generator used in this module
+_rng = random.Random()
+
+
 class InvalidGoalError(Exception):
     pass
 
@@ -177,11 +181,16 @@ def goal_to_json(goal: Goal) -> str:
     return json.dumps(goal, cls=NumpyEncoder)
 
 
+def seed(seed: int):
+    """Set random seed for this module."""
+    global _rng
+    _rng = random.Random(seed)
+
+
 def sample_goal():
     """Sample a random list of die goal positions."""
     cells = _get_grid_cells()
-    # FIXME option to set seed
-    target_cells = random.sample(cells, NUM_DICE)
+    target_cells = _rng.sample(cells, NUM_DICE)
     target_positions = [_cell_center_position(c) for c in target_cells]
 
     return target_positions
