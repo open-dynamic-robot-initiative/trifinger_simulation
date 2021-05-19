@@ -14,7 +14,6 @@ finger_names = ["trifingerone", "trifingeredu", "trifingerpro"]
 def execute_random_motion(*, finger_name, nb_timesteps, enable_visualization):
     finger = SimFinger(
         finger_type=finger_name,
-        time_step=0.004,
         enable_visualization=enable_visualization,
     )
     cube = collision_objects.Block()

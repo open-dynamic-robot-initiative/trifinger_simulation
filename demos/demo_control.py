@@ -31,7 +31,7 @@ def main():
         help="Specify a valid finger type",
     )
     args = argparser.parse_args()
-    time_step = 0.004
+    time_step = 0.001
 
     finger = sim_finger.SimFinger(
         finger_type=args.finger_type,

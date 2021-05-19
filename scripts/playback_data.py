@@ -17,9 +17,7 @@ from trifinger_simulation import finger_types_data
 
 
 def main_finger(finger_type, data_file):
-    finger = SimFinger(
-        time_step=0.004, enable_visualization=True, finger_type=finger_type
-    )
+    finger = SimFinger(enable_visualization=True, finger_type=finger_type)
     goal_marker = visual_objects.Marker(number_of_goals=1)
 
     def reset_finger(joint_position):
@@ -92,9 +90,7 @@ def trifinger_goal_space_transforms(finger_type, data):
 
 def main_trifinger(finger_type, data_file_0, data_file_120, data_file_240):
 
-    finger = SimFinger(
-        time_step=0.004, enable_visualization=True, finger_type=finger_type
-    )
+    finger = SimFinger(enable_visualization=True, finger_type=finger_type)
     goal_marker = visual_objects.Marker(number_of_goals=3)
 
     def reset_finger(joint_position):
