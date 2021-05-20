@@ -43,7 +43,7 @@ EPISODE_LENGTH = 2 * 60 * 1000
 ARENA_RADIUS = 0.19
 
 #: Number of dice in the arena
-NUM_DICE = 25  # TODO: This is just some arbitrary value for testing
+NUM_DICE = 25
 
 #: Width of a die [m].
 DIE_WIDTH = 0.022
