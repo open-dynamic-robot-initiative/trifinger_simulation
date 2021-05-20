@@ -248,6 +248,13 @@
     Define the global base link and place the finger relative to it.
     Note: Here I've used the center point of the center piece as the origin 
     -->
+  <link name="base_link">
+    <!-- add inertial to suppress warning -->
+    <inertial>
+      <mass value="0"/>
+      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+    </inertial>
+  </link>
   <link name="center_link">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -268,6 +275,11 @@
       <inertia ixx="4.166666666666667e-06" ixy="0" ixz="0" iyy="4.166666666666667e-06" iyz="0" izz="4.166666666666667e-06"/>
     </inertial>
   </link>
+  <joint name="base_to_center_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="center_link"/>
+    <origin xyz="0 0 0.29"/>
+  </joint>
   <joint name="base_to_finger" type="fixed">
     <parent link="center_link"/>
     <child link="finger_base_link"/>

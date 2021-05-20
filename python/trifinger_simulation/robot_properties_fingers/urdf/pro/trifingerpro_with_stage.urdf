@@ -29,10 +29,10 @@
   </material>
   <!-- Define the global base_link and place all other objects relative to it. -->
   <link name="base_link">
+    <!-- add inertial to suppress warning -->
     <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <mass value="1"/>
-      <inertia ixx="4.166666666666667e-06" ixy="0" ixz="0" iyy="4.166666666666667e-06" iyz="0" izz="4.166666666666667e-06"/>
+      <mass value="0"/>
+      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
     </inertial>
   </link>
   <!-- Define the upper holder -->
