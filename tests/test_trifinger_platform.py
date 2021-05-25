@@ -91,6 +91,12 @@ def test_object_pose_observation():
     obs = platform.get_camera_observation(t)
 
     np.testing.assert_array_equal(obs.object_pose.position, pose.position)
+    np.testing.assert_array_equal(
+        obs.filtered_object_pose.position, pose.position
+    )
     np.testing.assert_array_almost_equal(
         obs.object_pose.orientation, pose.orientation
+    )
+    np.testing.assert_array_almost_equal(
+        obs.filtered_object_pose.orientation, pose.orientation
     )

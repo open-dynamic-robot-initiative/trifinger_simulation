@@ -71,7 +71,7 @@ class TriCameraObjectObservation:
     depend on trifinger_object_tracking here.
     """
 
-    __slots__ = ["cameras", "object_pose"]
+    __slots__ = ["cameras", "object_pose", "filtered_object_pose"]
 
     def __init__(self):
         #: list of :class:`CameraObservation`: List of observations of cameras
@@ -80,6 +80,10 @@ class TriCameraObjectObservation:
 
         #: ObjectPose: Pose of the object in world coordinates.
         self.object_pose = ObjectPose()
+
+        #: ObjectPose: Filtered pose of the object in world coordinates.  In
+        #: simulation, this is the same as the unfiltered object_pose.
+        self.filtered_object_pose = ObjectPose()
 
 
 class TriFingerPlatform:
@@ -277,6 +281,9 @@ class TriFingerPlatform:
                 self._camera_observation_t.object_pose.timestamp = (
                     camera_timestamp_s
                 )
+                self._camera_observation_t.filtered_object_pose.timestamp = (
+                    camera_timestamp_s
+                )
 
         # write the desired action to the log
         camera_obs = self.get_camera_observation(t)
@@ -329,6 +336,7 @@ class TriFingerPlatform:
 
         if self._has_object_tracking:
             observation.object_pose = self._get_current_object_pose()
+            observation.filtered_object_pose = self._get_current_object_pose()
 
         return observation
 

@@ -88,7 +88,7 @@ def replay_action_log(logfile, difficulty, initial_pose, goal_pose):
         t = platform.append_desired_action(action)
 
         robot_obs = platform.get_robot_observation(t)
-        cube_pose = platform.get_camera_observation(t).object_pose
+        cube_pose = platform.get_camera_observation(t).filtered_object_pose
         reward = -move_cube.evaluate_state(goal_pose, cube_pose, difficulty)
         accumulated_reward += reward
 

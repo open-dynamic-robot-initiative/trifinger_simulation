@@ -64,7 +64,7 @@ def replay_action_log(logfile: str, trajectory: mct.Trajectory) -> float:
         t = platform.append_desired_action(action)
 
         robot_obs = platform.get_robot_observation(t)
-        cube_pose = platform.get_camera_observation(t).object_pose
+        cube_pose = platform.get_camera_observation(t).filtered_object_pose
         reward = -mct.evaluate_state(trajectory, t, cube_pose.position)
         accumulated_reward += reward
 
