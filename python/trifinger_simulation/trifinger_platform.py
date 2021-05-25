@@ -1,7 +1,6 @@
 import copy
 import enum
 import pickle
-import warnings
 import numpy as np
 import gym
 from types import SimpleNamespace
@@ -333,8 +332,17 @@ class TriFingerPlatform:
 
         return observation
 
-    def get_camera_observation(self, t):
+    def get_camera_observation(
+        self, t: int
+    ) -> typing.Union[TriCameraObservation, TriCameraObjectObservation]:
         """Get camera observation at time step t.
+
+        .. important::
+
+           Actual images are only rendered if the class was created with
+           `enable_cameras=True` in the constructor, otherwise the images in
+           the observation are set to None.  Other fields are still valid,
+           though.
 
         Args:
             t:  The time index of the step for which the observation is
@@ -342,23 +350,12 @@ class TriFingerPlatform:
                 :meth:`~append_desired_action` is valid.
 
         Returns:
-            TriCameraObjectObservation:  Observations of the three cameras.
-            This also contains the object pose.
-            Actual images are only rendered if the class was created with
-            `enable_cameras=True` in the constructor, otherwise the images in
-            the observation are set to None.  Other fields are still
-            valid, though.
+            Observations of the three cameras.  Depending of the object type
+            used, this may also contain the object pose.
 
         Raises:
             ValueError: If invalid time index ``t`` is passed.
         """
-        if not self.enable_cameras:
-            warnings.warn(
-                "Cameras are not enabled, so images in the camera observation"
-                " are not initialized.  Create `TriFingerPlatform` with"
-                " `enable_cameras=True` to get rendered camera images."
-            )
-
         current_t = self.simfinger._t
 
         if t < 0:
