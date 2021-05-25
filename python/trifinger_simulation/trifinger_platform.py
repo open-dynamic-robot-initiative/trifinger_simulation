@@ -78,7 +78,7 @@ class TriCameraObjectObservation:
         #: "camera60", "camera180" and "camera300" (in this order).
         self.cameras = [CameraObservation() for i in range(3)]
 
-        #: Pose of the object in world coordinates.
+        #: ObjectPose: Pose of the object in world coordinates.
         self.object_pose = ObjectPose()
 
 
