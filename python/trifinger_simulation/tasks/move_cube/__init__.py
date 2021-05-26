@@ -11,7 +11,9 @@ random = np.random.RandomState()
 
 
 #: Number of time steps in one episode
-episode_length = 2 * 60 * 1000
+EPISODE_LENGTH = 2 * 60 * 1000
+# for backward compatibilty
+episode_length = EPISODE_LENGTH
 
 
 _CUBE_WIDTH = 0.065
@@ -127,6 +129,12 @@ def get_cube_corner_positions(pose):
     translation = np.asarray(pose.position)
 
     return rotation.apply(_cube_corners) + translation
+
+
+def seed(seed: int):
+    """Set random seed for this module."""
+    global random
+    random = np.random.RandomState(seed)
 
 
 def sample_goal(difficulty):

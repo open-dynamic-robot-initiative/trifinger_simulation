@@ -1,12 +1,22 @@
+import copy
+import enum
 import pickle
-import warnings
 import numpy as np
 import gym
 from types import SimpleNamespace
+import typing
 
-from .tasks import move_cube
-from .sim_finger import SimFinger
+from .tasks import move_cube, rearrange_dice
+from .sim_finger import SimFinger, int_to_rgba
 from . import camera, collision_objects, trifingerpro_limits
+
+
+class ObjectType(enum.Enum):
+    """Enumeration of supported object types."""
+
+    NONE = 0
+    COLORED_CUBE = 1
+    DICE = 2
 
 
 class ObjectPose:
@@ -37,6 +47,22 @@ class CameraObservation:
         self.timestamp = None
 
 
+class TriCameraObservation:
+    """Python version of trifinger_cameras::TriCameraObservation.
+
+    This is a pure-python implementation of
+    trifinger_cameras::TriCameraObservation, so we don't need to depend on
+    trifinger_cameras here.
+    """
+
+    __slots__ = ["cameras"]
+
+    def __init__(self):
+        #: list of :class:`CameraObservation`: List of observations of cameras
+        #: "camera60", "camera180" and "camera300" (in this order).
+        self.cameras = [CameraObservation() for i in range(3)]
+
+
 class TriCameraObjectObservation:
     """Python version of trifinger_object_tracking::TriCameraObjectObservation.
 
@@ -45,15 +71,19 @@ class TriCameraObjectObservation:
     depend on trifinger_object_tracking here.
     """
 
-    __slots__ = ["cameras", "object_pose"]
+    __slots__ = ["cameras", "object_pose", "filtered_object_pose"]
 
     def __init__(self):
         #: list of :class:`CameraObservation`: List of observations of cameras
         #: "camera60", "camera180" and "camera300" (in this order).
         self.cameras = [CameraObservation() for i in range(3)]
 
-        #: Pose of the object in world coordinates.
+        #: ObjectPose: Pose of the object in world coordinates.
         self.object_pose = ObjectPose()
+
+        #: ObjectPose: Filtered pose of the object in world coordinates.  In
+        #: simulation, this is the same as the unfiltered object_pose.
+        self.filtered_object_pose = ObjectPose()
 
 
 class TriFingerPlatform:
@@ -98,28 +128,32 @@ class TriFingerPlatform:
 
     def __init__(
         self,
-        visualization=False,
-        initial_robot_position=None,
+        visualization: bool = False,
+        initial_robot_position: typing.Sequence[float] = None,
         initial_object_pose=None,
-        enable_cameras=False,
-        time_step_s=0.001,
+        enable_cameras: bool = False,
+        time_step_s: float = 0.001,
+        object_type: ObjectType = ObjectType.COLORED_CUBE,
     ):
         """Initialize.
 
         Args:
-            visualization (bool):  Set to true to run visualization.
+            visualization:  Set to true to run visualization.
             initial_robot_position: Initial robot joint angles
-            initial_object_pose:  Initial pose for the manipulation object.
-                Can be any object with attributes ``position`` (x, y, z) and
-                ``orientation`` (x, y, z, w).  This is optional, if not set, a
-                random pose will be sampled.
-            enable_cameras (bool):  Set to true to enable rendered images in
+            initial_object_pose:  Only if ``object_type == COLORED_CUBE``:
+                Initial pose for the manipulation object.  Can be any object
+                with attributes ``position`` (x, y, z) and ``orientation`` (x,
+                y, z, w).  If not set, a default pose is used.
+            enable_cameras:  Set to true to enable rendered images in
                 the camera observations.  If false camera observations are
                 still available but the images will not be initialized.  By
                 default this is disabled as rendering of images takes a lot of
                 computational power.  Therefore the cameras should only be
                 enabled if the images are actually used.
-            time_step_s (float):  Simulation time step duration in seconds.
+            time_step_s:  Simulation time step duration in seconds.
+            object_type:  Which type of object to load.  This also influences
+                some other aspects: When using the cube, the camera observation
+                will contain an attribute ``object_pose``.
         """
         #: Camera rate in frames per second.  Observations of camera and
         #: object pose will only be updated with this rate.
@@ -156,12 +190,28 @@ class TriFingerPlatform:
                 orientation=self.spaces.object_orientation.default,
             )
 
-        # TODO this should be configurable
-        self.cube = collision_objects.ColoredCubeV2(
-            position=initial_object_pose.position,
-            orientation=initial_object_pose.orientation,
-            pybullet_client_id=self.simfinger._pybullet_client_id,
-        )
+        self._has_object_tracking = False
+        self.object_type = object_type
+        if object_type == ObjectType.COLORED_CUBE:
+            self.cube = collision_objects.ColoredCubeV2(
+                position=initial_object_pose.position,
+                orientation=initial_object_pose.orientation,
+                pybullet_client_id=self.simfinger._pybullet_client_id,
+            )
+            self._has_object_tracking = True
+        elif object_type == ObjectType.DICE:
+            die_mass = 0.012
+            # use a random goal for initial positions
+            initial_positions = rearrange_dice.sample_goal()
+            self.dice = [
+                collision_objects.Cube(
+                    position=pos,
+                    half_width=rearrange_dice.DIE_WIDTH / 2,
+                    mass=die_mass,
+                    color_rgba=int_to_rgba(0x0A7DCF),
+                )
+                for pos in initial_positions
+            ]
 
         self.tricamera = camera.TriFingerCameras(
             pybullet_client_id=self.simfinger._pybullet_client_id
@@ -183,8 +233,8 @@ class TriFingerPlatform:
         # Initialize log
         # ==============
         self._action_log = {
-            "initial_robot_position": initial_robot_position,
-            "initial_object_pose": initial_object_pose,
+            "initial_robot_position": copy.copy(initial_robot_position),
+            "initial_object_pose": copy.copy(initial_object_pose),
             "actions": [],
         }
 
@@ -226,25 +276,33 @@ class TriFingerPlatform:
                 self._camera_observation_t.cameras[
                     i
                 ].timestamp = camera_timestamp_s
-            self._camera_observation_t.object_pose.timestamp = (
-                camera_timestamp_s
-            )
+
+            if self._has_object_tracking:
+                self._camera_observation_t.object_pose.timestamp = (
+                    camera_timestamp_s
+                )
+                self._camera_observation_t.filtered_object_pose.timestamp = (
+                    camera_timestamp_s
+                )
 
         # write the desired action to the log
         camera_obs = self.get_camera_observation(t)
         robot_obs = self.get_robot_observation(t)
-        self._action_log["actions"].append(
-            {
-                "t": t,
-                "action": action,
-                "object_pose": camera_obs.object_pose,
-                "robot_observation": robot_obs,
-            }
-        )
+        log_entry = {
+            "t": t,
+            "action": action,
+            "robot_observation": robot_obs,
+        }
+        if self._has_object_tracking:
+            log_entry["object_pose"] = camera_obs.object_pose
+        # make a deep copy of log_entry to ensure all reference ties are cut
+        self._action_log["actions"].append(copy.deepcopy(log_entry))
 
         return t
 
     def _get_current_object_pose(self):
+        assert self._has_object_tracking
+
         cube_state = self.cube.get_state()
         pose = ObjectPose()
         pose.position = np.asarray(cube_state[0])
@@ -259,7 +317,11 @@ class TriFingerPlatform:
         else:
             images = [None] * 3
 
-        observation = TriCameraObjectObservation()
+        if self._has_object_tracking:
+            observation = TriCameraObjectObservation()
+        else:
+            observation = TriCameraObservation()
+
         # NOTE: The timestamp can only be set correctly after time step t
         # is actually reached.  Therefore, this is set to None here and
         # filled with the proper value later.
@@ -272,12 +334,23 @@ class TriFingerPlatform:
             observation.cameras[i].image = image
             observation.cameras[i].timestamp = timestamp
 
-        observation.object_pose = self._get_current_object_pose()
+        if self._has_object_tracking:
+            observation.object_pose = self._get_current_object_pose()
+            observation.filtered_object_pose = self._get_current_object_pose()
 
         return observation
 
-    def get_camera_observation(self, t):
+    def get_camera_observation(
+        self, t: int
+    ) -> typing.Union[TriCameraObservation, TriCameraObjectObservation]:
         """Get camera observation at time step t.
+
+        .. important::
+
+           Actual images are only rendered if the class was created with
+           `enable_cameras=True` in the constructor, otherwise the images in
+           the observation are set to None.  Other fields are still valid,
+           though.
 
         Args:
             t:  The time index of the step for which the observation is
@@ -285,23 +358,12 @@ class TriFingerPlatform:
                 :meth:`~append_desired_action` is valid.
 
         Returns:
-            TriCameraObjectObservation:  Observations of the three cameras.
-            This also contains the object pose.
-            Actual images are only rendered if the class was created with
-            `enable_cameras=True` in the constructor, otherwise the images in
-            the observation are set to None.  Other fields are still
-            valid, though.
+            Observations of the three cameras.  Depending of the object type
+            used, this may also contain the object pose.
 
         Raises:
             ValueError: If invalid time index ``t`` is passed.
         """
-        if not self.enable_cameras:
-            warnings.warn(
-                "Cameras are not enabled, so images in the camera observation"
-                " are not initialized.  Create `TriFingerPlatform` with"
-                " `enable_cameras=True` to get rendered camera images."
-            )
-
         current_t = self.simfinger._t
 
         if t < 0:
@@ -323,10 +385,12 @@ class TriFingerPlatform:
         """
         t = self.get_current_timeindex()
         camera_obs = self.get_camera_observation(t)
-        self._action_log["final_object_pose"] = {
-            "t": t,
-            "pose": camera_obs.object_pose,
-        }
+
+        if self._has_object_tracking:
+            self._action_log["final_object_pose"] = {
+                "t": t,
+                "pose": camera_obs.object_pose,
+            }
 
         with open(filename, "wb") as fh:
             pickle.dump(self._action_log, fh)

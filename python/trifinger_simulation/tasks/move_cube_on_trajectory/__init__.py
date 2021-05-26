@@ -29,7 +29,6 @@ The cost of each step is computed using the "move cube to goal" cost of the
 currently active goal (see
 :func:`trifinger_simulation.tasks.move_cube.evaluate_state`, using difficulty
 3).
-
 """
 import json
 import typing
@@ -78,6 +77,12 @@ def get_active_goal(
         previous_goal = goal
 
     return previous_goal
+
+
+def seed(seed: int):
+    """Set random seed for this module."""
+    # all sampling is actually happening in the move_cube module
+    move_cube.seed(seed)
 
 
 def sample_goal() -> Trajectory:

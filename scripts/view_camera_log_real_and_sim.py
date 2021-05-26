@@ -83,8 +83,8 @@ def main():
             # set cube pose
             pybullet.resetBasePositionAndOrientation(
                 cube,
-                camera_observation.object_pose.position,
-                camera_observation.object_pose.orientation,
+                camera_observation.filtered_object_pose.position,
+                camera_observation.filtered_object_pose.orientation,
             )
 
             real_images = [

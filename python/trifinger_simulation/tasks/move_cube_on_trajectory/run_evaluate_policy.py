@@ -83,8 +83,8 @@ def main(output_directory: pathlib.Path, eval_executable: str):
         )
         sys.exit(1)
 
-    # FIXME: set proper value (3 is only for testing)
-    num_trajectories = 3
+    # Number of goals that are sampled for the evaluation
+    num_trajectories = 10
 
     logfile_tmpl = str(output_directory / "action_log_{:02d}.p")
 
