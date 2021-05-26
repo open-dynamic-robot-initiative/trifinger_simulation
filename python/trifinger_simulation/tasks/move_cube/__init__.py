@@ -11,7 +11,9 @@ random = np.random.RandomState()
 
 
 #: Number of time steps in one episode
-episode_length = 2 * 60 * 1000
+EPISODE_LENGTH = 2 * 60 * 1000
+# for backward compatibilty
+episode_length = EPISODE_LENGTH
 
 
 _CUBE_WIDTH = 0.065
