@@ -251,6 +251,25 @@ def test_evaluate_state_difficulty_4():
     assert move_cube.evaluate_state(pose_origin, pose_both, difficulty) != 0
 
 
+def test_evaluate_state_dict():
+    """Test evaluate state using a dict instead of Pose."""
+    difficulty = 4
+    pose_origin = move_cube.Pose()
+    dict_origin = {"position": [0, 0, 0], "orientation": [0, 0, 0, 1]}
+    pose_pose = move_cube.Pose(
+        [1, 2, 3], Rotation.from_euler("z", 0.42).as_quat()
+    )
+    dict_pose = {
+        "position": [1, 2, 3],
+        "orientation": Rotation.from_euler("z", 0.42).as_quat(),
+    }
+
+    # needs to be zero for exact match
+    pose_cost = move_cube.evaluate_state(pose_origin, pose_pose, difficulty)
+    dict_cost = move_cube.evaluate_state(dict_origin, dict_pose, difficulty)
+    assert pose_cost == dict_cost
+
+
 def test_validate_goal():
     half_width = move_cube._CUBE_WIDTH / 2
     yaw_rotation = Rotation.from_euler("z", 0.42).as_quat()
@@ -306,4 +325,38 @@ def test_validate_goal():
     with pytest.raises(move_cube.InvalidGoalError):
         move_cube.validate_goal(
             move_cube.Pose([0, 0, half_width], full_rotation)
+        )
+
+
+def test_validate_goal_dict():
+    """Test validation of a goal that is passed as dict."""
+    half_width = move_cube._CUBE_WIDTH / 2
+    full_rotation = Rotation.from_euler("zxz", [0.42, 0.1, -2.3]).as_quat()
+
+    # a valid goal
+    try:
+        move_cube.validate_goal(
+            {"position": [-0.12, 0.0, 0.06], "orientation": full_rotation}
+        )
+    except Exception as e:
+        pytest.fail("Valid goal was considered invalid because %s" % e)
+
+    # some invalid goals
+
+    # invalid values
+    with pytest.raises(ValueError):
+        move_cube.validate_goal(
+            {"position": [0, 0], "orientation": [0, 0, 0, 1]}
+        )
+
+    # invalid positions
+    with pytest.raises(move_cube.InvalidGoalError):
+        move_cube.validate_goal(
+            {"position": [0.3, 0, half_width], "orientation": [0, 0, 0, 1]}
+        )
+
+    # invalid dict keys
+    with pytest.raises(KeyError):
+        move_cube.validate_goal(
+            {"wrong_key": [-0.12, 0.0, 0.06], "orientation": full_rotation}
         )
