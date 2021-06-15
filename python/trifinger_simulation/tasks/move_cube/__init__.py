@@ -1,5 +1,6 @@
 """Functions for sampling, validating and evaluating "move cube" goals."""
 import json
+import typing
 
 import numpy as np
 from scipy.spatial.transform import Rotation
@@ -93,9 +94,9 @@ class Pose:
         return goal_to_json(self)
 
     @classmethod
-    def from_dict(cls, dict):
+    def from_dict(cls, pose_dict: dict) -> "Pose":
         """Create Pose instance from dictionary."""
-        return cls(dict["position"], dict["orientation"])
+        return cls(pose_dict["position"], pose_dict["orientation"])
 
     @classmethod
     def from_json(cls, json_str):
@@ -231,6 +232,9 @@ def validate_goal(goal):
         ValueError:  If given values are not a valid 3d position/orientation.
         InvalidGoalError:  If the given pose exceeds the allowed goal space.
     """
+    if type(goal) is dict:
+        goal = Pose.from_dict(goal)
+
     if len(goal.position) != 3:
         raise ValueError("len(goal.position) != 3")
     if len(goal.orientation) != 4:
@@ -335,7 +339,11 @@ def json_goal_from_config(filename: str) -> str:
     return goal_json
 
 
-def evaluate_state(goal_pose, actual_pose, difficulty):
+def evaluate_state(
+    goal_pose: typing.Union[dict, Pose],
+    actual_pose: typing.Union[dict, Pose],
+    difficulty: int,
+):
     """Compute cost of a given cube pose.  Less is better.
 
 
@@ -390,6 +398,12 @@ def evaluate_state(goal_pose, actual_pose, difficulty):
         Cost of the actual pose w.r.t. to the goal pose.  Lower value means
         that the actual pose is closer to the goal.  Zero if actual == goal.
     """
+    # if poses are given as dict, convert to Pose and also type-cast the
+    # variables accordingly
+    if isinstance(goal_pose, dict):
+        goal_pose = Pose.from_dict(goal_pose)
+    if isinstance(actual_pose, dict):
+        actual_pose = Pose.from_dict(actual_pose)
 
     def weighted_position_error():
         range_xy_dist = _ARENA_RADIUS * 2
