@@ -54,8 +54,8 @@ if __name__ == "__main__":
 
         if args.plot is not None:
             target_line = target_position[args.plot]
-            positions = np.vstack(positions)
-            plt.plot(positions[:, args.plot], "b")
+            position_array = np.vstack(positions)
+            plt.plot(position_array[:, args.plot], "b")
             plt.hlines(target_line, 0, steps)
             plt.axis((None, None, target_line - 0.1, target_line + 0.1))
             plt.show()

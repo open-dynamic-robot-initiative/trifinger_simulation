@@ -44,8 +44,8 @@ def main(input_directory: str):
 
         # load samples
         sample_file = os.path.join(input_directory, "test_data.p")
-        with open(sample_file, "rb") as fh:
-            test_data = pickle.load(fh)
+        with open(sample_file, "rb") as fb:
+            test_data = pickle.load(fb)
 
         # run "replay_action_log.py" for each sample
         level_rewards: dict = {level: [] for level in levels}
@@ -83,8 +83,8 @@ def main(input_directory: str):
 
         # save report to file
         report_file = os.path.join(input_directory, "reward.txt")
-        with open(report_file, "w") as fh:
-            fh.write(report)
+        with open(report_file, "w") as f:
+            f.write(report)
 
     except Exception as e:
         print(e, file=sys.stderr)
