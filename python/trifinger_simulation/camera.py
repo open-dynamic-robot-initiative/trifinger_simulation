@@ -368,7 +368,7 @@ class CalibratedCamera(BaseCamera):
         in_image_idx = np.all(
             np.logical_and(
                 (0, 0) <= distorted_points,
-                distorted_points < (self._render_width, self._render_height),
+                distorted_points < (self._render_height, self._render_width),
             ),
             axis=1,
         )
