@@ -41,10 +41,11 @@ def replay_action_log(logfile: str, trajectory: mct.Trajectory) -> float:
     # file
     initial_robot_position = platform.get_robot_observation(0).position
     try:
-        np.testing.assert_array_equal(
+        np.testing.assert_array_almost_equal(
             initial_robot_position,
             log["initial_robot_position"],
             err_msg=("Initial robot position does not match with log file."),
+            decimal=3,
         )
     except AssertionError as e:
         print("Failed.", file=sys.stderr)
@@ -70,46 +71,51 @@ def replay_action_log(logfile: str, trajectory: mct.Trajectory) -> float:
 
         assert logged_action["t"] == t
 
-        np.testing.assert_array_equal(
+        np.testing.assert_array_almost_equal(
             robot_obs.position,
             logged_action["robot_observation"].position,
             err_msg=(
                 "Step %d: Recorded robot position does not match with"
                 " the one achieved by the replay" % t
             ),
+            decimal=3,
         )
-        np.testing.assert_array_equal(
+        np.testing.assert_array_almost_equal(
             robot_obs.torque,
             logged_action["robot_observation"].torque,
             err_msg=(
                 "Step %d: Recorded robot torque does not match with"
                 " the one achieved by the replay" % t
             ),
+            decimal=3,
         )
-        np.testing.assert_array_equal(
+        np.testing.assert_array_almost_equal(
             robot_obs.velocity,
             logged_action["robot_observation"].velocity,
             err_msg=(
                 "Step %d: Recorded robot velocity does not match with"
                 " the one achieved by the replay" % t
             ),
+            decimal=3,
         )
 
-        np.testing.assert_array_equal(
+        np.testing.assert_array_almost_equal(
             cube_pose.position,
             logged_action["object_pose"].position,
             err_msg=(
                 "Step %d: Recorded object position does not match with"
                 " the one achieved by the replay" % t
             ),
+            decimal=3,
         )
-        np.testing.assert_array_equal(
+        np.testing.assert_array_almost_equal(
             cube_pose.orientation,
             logged_action["object_pose"].orientation,
             err_msg=(
                 "Step %d: Recorded object orientation does not match with"
                 " the one achieved by the replay" % t
             ),
+            decimal=3,
         )
 
     cube_pose = platform.get_camera_observation(t).object_pose
@@ -119,21 +125,23 @@ def replay_action_log(logfile: str, trajectory: mct.Trajectory) -> float:
 
     # verify that actual and logged final object pose match
     try:
-        np.testing.assert_array_equal(
+        np.testing.assert_array_almost_equal(
             cube_pose.position,
             final_pose.position,
             err_msg=(
                 "Recorded object position does not match with the one"
                 " achieved by the replay"
             ),
+            decimal=3,
         )
-        np.testing.assert_array_equal(
+        np.testing.assert_array_almost_equal(
             cube_pose.orientation,
             final_pose.orientation,
             err_msg=(
                 "Recorded object orientation does not match with the one"
                 " achieved by the replay"
             ),
+            decimal=3,
         )
     except AssertionError as e:
         print("Failed.", file=sys.stderr)

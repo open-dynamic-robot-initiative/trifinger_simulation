@@ -31,7 +31,9 @@ def cmd_goal_from_config(args):
 
 def cmd_evaluate_policy(args):
     try:
-        run_evaluate_policy.main(args.output_directory, args.exec)
+        run_evaluate_policy.main(
+            args.output_directory, args.exec, args.num_trajectories
+        )
     except Exception as e:
         print(e, file=sys.stderr)
         sys.exit(1)
@@ -58,7 +60,9 @@ def cmd_evaluate_and_replay(args):
         print()
         print("Run Policy on Random Trajectories")
         print("=================================")
-        run_evaluate_policy.main(args.output_directory, args.exec)
+        run_evaluate_policy.main(
+            args.output_directory, args.exec, args.num_trajectories
+        )
 
         print()
         print("Validate Logs and Compute Reward")
