@@ -72,19 +72,9 @@ def add_arguments(parser):
         default="./evaluate_policy.py",
         help="Path to the evaluate_policy.py script.  Default: '%(default)s'",
     )
-    parser.add_argument(
-        "--num-trajectories",
-        type=int,
-        default=10,
-        help="Number of goals that are sampled for the evaluation.",
-    )
 
 
-def main(
-    output_directory: pathlib.Path,
-    eval_executable: str,
-    num_trajectories: int = 10,
-):
+def main(output_directory: pathlib.Path, eval_executable: str):
     if not output_directory.is_dir():
         print(
             "'{}' does not exist or is not a directory.".format(
@@ -92,6 +82,9 @@ def main(
             )
         )
         sys.exit(1)
+
+    # Number of goals that are sampled for the evaluation
+    num_trajectories = 10
 
     logfile_tmpl = str(output_directory / "action_log_{:02d}.p")
 
