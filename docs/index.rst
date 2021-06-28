@@ -9,14 +9,6 @@ This is the accompanying documentation of the `trifinger_simulation` package_.
 To know more about the TriFinger robots, check out our official `project website`_, and the preprint_
 of this work.
 
-.. note::
-
-   The Real Robot Challenge is currently in progress! Please refer to the official site of the
-   `Real Robot Challenge`_ for more details!
-   Also, note that this is *not* the challenge simulator. The challenge simulator can be found on
-   `rrc_simulation`_.
-
-Dive in!
 
 .. toctree::
    :maxdepth: 2

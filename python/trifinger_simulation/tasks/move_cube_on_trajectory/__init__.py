@@ -25,10 +25,7 @@ of the run.
 The duration of a run is 120000 steps (~2 minutes).  This value is also given
 by :data:`EPISODE_LENGTH`.
 
-The cost of each step is computed using the "move cube to goal" cost of the
-currently active goal (see
-:func:`trifinger_simulation.tasks.move_cube.evaluate_state`, using difficulty
-3).
+The cost of each step is computed using :func:`evaluate_state`.
 """
 import json
 import typing
