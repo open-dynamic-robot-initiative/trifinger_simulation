@@ -118,10 +118,25 @@ def _get_cell_corners_2d(
 
 
 def _get_cell_corners_3d(
-    pos: Position,
+    pos: Position, with_tolerance: bool = False
 ) -> np.ndarray:
-    """Get 3d positions of the corners of the cell at the given position."""
-    d = DIE_WIDTH / 2
+    """Get 3d positions of the corners of the cell at the given position.
+
+    Args:
+        pos:  Position of the centre of the cell.
+        with_tolerance:  If False (default) the corner points are determined
+            only based on the size of the die.  If True, the tolerance is
+            added, so the resulting cell will be a bit larger than a die.
+
+    Returns:
+        8x3-array with the corner positions.
+    """
+    if with_tolerance:
+        width = DIE_WIDTH + TOLERANCE
+    else:
+        width = DIE_WIDTH
+
+    d = width / 2
     nppos = np.asarray(pos)
 
     # order of the corners is the same as in the cube model of the
@@ -347,7 +362,7 @@ def generate_goal_mask(
         rvec = Rotation.from_matrix(rmat).as_rotvec()
 
         for pos in goal:
-            corners = _get_cell_corners_3d(pos)
+            corners = _get_cell_corners_3d(pos, True)
 
             # project corner points into the image
             projected_corners, _ = cv2.projectPoints(
