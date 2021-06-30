@@ -49,7 +49,7 @@ NUM_DICE = 25
 DIE_WIDTH = 0.022
 
 #: Tolerance that is added to the target box width [m].
-TOLERANCE = 0.003
+TOLERANCE = 0.004
 
 #: Width of the target box in which the die has to be placed [m].
 TARGET_WIDTH = DIE_WIDTH + TOLERANCE
