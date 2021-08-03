@@ -295,7 +295,7 @@ def evaluate_state(
     outside_goal = np.logical_and(actual_masks, np.logical_not(goal_masks))
     num_outside_pixels = np.count_nonzero(outside_goal)
 
-    return num_outside_pixels
+    return float(num_outside_pixels)
 
 
 def visualize_2d(target_positions: Goal):
