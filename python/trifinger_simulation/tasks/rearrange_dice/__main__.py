@@ -8,6 +8,7 @@ import trifinger_simulation
 
 from . import json_goal_from_config, sample_goal, goal_to_json
 from . import visualize_2d, generate_goal_mask
+from . import utils
 
 
 def cmd_sample_goal(args):
@@ -37,6 +38,21 @@ def cmd_goal_from_config(args):
         goal = json_goal_from_config(args.goal_config_file)
         print(goal)
     except Exception as e:
+        print(e, file=sys.stderr)
+        sys.exit(1)
+
+
+def cmd_create_pattern_template(args):
+    print(utils.create_empty_pattern())
+
+
+def cmd_parse_goal_pattern(args):
+    try:
+        goal = utils.parse_pattern_file(args.infile)
+        visualize_2d(goal)
+        print(goal)
+    # except Exception as e:
+    except IndentationError as e:
         print(e, file=sys.stderr)
         sys.exit(1)
 
@@ -72,6 +88,23 @@ def main():
         "goal_config_file", type=str, help="Path to a goal config JSON file."
     )
     sub.set_defaults(func=cmd_goal_from_config)
+
+    sub = subparsers.add_parser(
+        "create_pattern_template",
+        description="Output template for an ASCII goal pattern.",
+    )
+    sub.set_defaults(func=cmd_create_pattern_template)
+
+    sub = subparsers.add_parser(
+        "parse_goal_pattern", description="Parse ASCII goal pattern."
+    )
+    sub.add_argument(
+        "infile",
+        type=argparse.FileType("r"),
+        default="-",
+        help="File with the goal pattern (use '-' to read from stdin).",
+    )
+    sub.set_defaults(func=cmd_parse_goal_pattern)
 
     args = parser.parse_args()
     args.func(args)
