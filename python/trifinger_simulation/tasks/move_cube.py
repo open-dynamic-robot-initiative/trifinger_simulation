@@ -16,6 +16,7 @@ episode_length = 2 * 60 * 1000
 
 _CUBOID_SIZE = np.array((0.065, 0.065, 0.065)) # np.array((0.02, 0.08, 0.02))
 _CUBOID_HALF_SIZE = _CUBOID_SIZE / 2
+_CUBE_WIDTH = 0.065
 
 _ARENA_RADIUS = 0.195
 
