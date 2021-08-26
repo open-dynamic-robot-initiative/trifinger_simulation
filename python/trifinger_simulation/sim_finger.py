@@ -1,16 +1,15 @@
 import copy
 import os
-import numpy as np
 import warnings
 
+import numpy as np
 import pybullet
 import pybullet_data
 
+from trifinger_simulation import (collision_objects, finger_types_data,
+                                  pinocchio_utils)
 from trifinger_simulation.action import Action
 from trifinger_simulation.observation import Observation
-from trifinger_simulation import collision_objects
-from trifinger_simulation import pinocchio_utils
-from trifinger_simulation import finger_types_data
 
 
 class SimFinger:
@@ -35,7 +34,7 @@ class SimFinger:
         finger_type,
         time_step=0.004,
         enable_visualization=False,
-        sim_joint_friction=0.
+        sim_joint_friction=0.0,
     ):
         """
         Constructor, initializes the physical world we will work in.
@@ -49,9 +48,9 @@ class SimFinger:
                 according to a time_step of 0.004 s.
             enable_visualization (bool): Set this to 'True' for a GUI interface
                 to the simulation.
-            sim_joint_friction (float or float array): Set this to non-zero 
+            sim_joint_friction (float or float array): Set this to non-zero
                 to apply negative forces on applied torques to simulate joint
-                friction 
+                friction
         """
         self.finger_type = finger_types_data.check_finger_type(finger_type)
         self.number_of_fingers = finger_types_data.get_number_of_fingers(
@@ -63,16 +62,12 @@ class SimFinger:
         #: The kp gains for the pd control of the finger(s). Note, this depends
         #: on the simulation step size and has been set for a simulation rate
         #: of 250 Hz.
-        self.position_gains = np.array(
-            [10.0, 10.0, 10.0] * self.number_of_fingers
-        )
+        self.position_gains = np.array([10.0, 10.0, 10.0] * self.number_of_fingers)
 
         #: The kd gains for the pd control of the finger(s). Note, this depends
         #: on the simulation step size and has been set for a simulation rate
         #: of 250 Hz.
-        self.velocity_gains = np.array(
-            [0.1, 0.3, 0.001] * self.number_of_fingers
-        )
+        self.velocity_gains = np.array([0.1, 0.3, 0.001] * self.number_of_fingers)
 
         #: The kd gains used for damping the joint motor velocities during the
         #: safety torque check on the joint motors.
@@ -85,9 +80,7 @@ class SimFinger:
 
         self.__create_link_lists()
         self.__set_urdf_path()
-        self._pybullet_client_id = self.__connect_to_pybullet(
-            enable_visualization
-        )
+        self._pybullet_client_id = self.__connect_to_pybullet(enable_visualization)
         self.__setup_pybullet_simulation()
 
         self.kinematics = pinocchio_utils.Kinematics(
@@ -95,7 +88,7 @@ class SimFinger:
         )
         self.sim_joint_friction = sim_joint_friction
 
-    def Action(self, torque=None, position=None):
+    def Action(self, torque=None, position=None, action_cls=Action):
         """
         Fill in the fields of the action structure.
 
@@ -117,7 +110,7 @@ class SimFinger:
         if position is None:
             position = np.array([np.nan] * 3 * self.number_of_fingers)
 
-        action = Action(torque, position)
+        action = action_cls(torque, position)
 
         return action
 
@@ -301,12 +294,8 @@ class SimFinger:
             physicsClientId=self._pybullet_client_id,
         )
 
-        observation.position = np.array(
-            [joint[0] for joint in current_joint_states]
-        )
-        observation.velocity = np.array(
-            [joint[1] for joint in current_joint_states]
-        )
+        observation.position = np.array([joint[0] for joint in current_joint_states])
+        observation.velocity = np.array([joint[1] for joint in current_joint_states])
         # pybullet.getJointStates only contains actual joint torques in
         # POSITION_CONTROL and VELOCITY_CONTROL mode.  In TORQUE_CONTROL mode
         # only zeros are reported, the actual torque is exactly the same as the
@@ -453,9 +442,7 @@ class SimFinger:
             self.pybullet_joint_indices,
             physicsClientId=self._pybullet_client_id,
         )
-        current_velocity = np.array(
-            [joint[1] for joint in current_joint_states]
-        )
+        current_velocity = np.array([joint[1] for joint in current_joint_states])
         applied_torques -= self.safety_kd * current_velocity
 
         applied_torques = np.clip(
@@ -490,12 +477,8 @@ class SimFinger:
             self.pybullet_joint_indices,
             physicsClientId=self._pybullet_client_id,
         )
-        current_position = np.array(
-            [joint[0] for joint in current_joint_states]
-        )
-        current_velocity = np.array(
-            [joint[1] for joint in current_joint_states]
-        )
+        current_position = np.array([joint[0] for joint in current_joint_states])
+        current_velocity = np.array([joint[1] for joint in current_joint_states])
 
         position_error = joint_positions - current_position
 
@@ -568,9 +551,7 @@ class SimFinger:
             -9.81,
             physicsClientId=self._pybullet_client_id,
         )
-        pybullet.setTimeStep(
-            self.time_step_s, physicsClientId=self._pybullet_client_id
-        )
+        pybullet.setTimeStep(self.time_step_s, physicsClientId=self._pybullet_client_id)
 
         pybullet.loadURDF(
             "plane_transparent.urdf",
@@ -670,8 +651,7 @@ class SimFinger:
             baseOrientation=finger_base_orientation,
             useFixedBase=1,
             flags=(
-                pybullet.URDF_USE_INERTIA_FROM_FILE
-                | pybullet.URDF_USE_SELF_COLLISION
+                pybullet.URDF_USE_INERTIA_FROM_FILE | pybullet.URDF_USE_SELF_COLLISION
             ),
             physicsClientId=self._pybullet_client_id,
         )
@@ -715,9 +695,7 @@ class SimFinger:
         """
 
         def mesh_path(filename):
-            return os.path.join(
-                self.robot_properties_path, "meshes", "stl", filename
-            )
+            return os.path.join(self.robot_properties_path, "meshes", "stl", filename)
 
         if self.finger_type in ["fingerone", "fingeredu"]:
             collision_objects.import_mesh(
