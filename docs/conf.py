@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# pyBullet Simulation for Finger Robots documentation build configuration file, created by
-# sphinx-quickstart on Tue Jun 30 15:32:33 2020.
+# pyBullet Simulation for Finger Robots documentation build configuration file,
+# created by sphinx-quickstart on Tue Jun 30 15:32:33 2020.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -19,6 +19,7 @@
 #
 import os
 import sys
+import sphinx_rtd_theme  # noqa
 
 sys.path.insert(0, os.path.abspath("../python/"))
 
@@ -32,7 +33,6 @@ sys.path.insert(0, os.path.abspath("../python/"))
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-import sphinx_rtd_theme
 
 extensions = [
     "sphinx_rtd_theme",
