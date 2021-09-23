@@ -3,6 +3,7 @@ import sys
 
 import numpy as np
 import cv2
+import json
 
 import trifinger_simulation
 
@@ -49,8 +50,8 @@ def cmd_create_pattern_template(args):
 def cmd_parse_goal_pattern(args):
     try:
         goal = utils.parse_pattern_file(args.infile)
+        print(json.dumps(goal))
         visualize_2d(goal)
-        print(goal)
     # except Exception as e:
     except IndentationError as e:
         print(e, file=sys.stderr)
