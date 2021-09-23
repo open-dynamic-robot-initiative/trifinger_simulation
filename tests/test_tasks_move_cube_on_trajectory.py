@@ -203,7 +203,7 @@ def test_json_goal_from_config_no_goal(test_data_dir):
         traj_json = mct.json_goal_from_config(test_data_dir / "no_goal.json")
         traj = json.loads(traj_json)
         mct.validate_goal(traj)
-    except Exception as e:
+    except Exception:
         pytest.fail()
 
 

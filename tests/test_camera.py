@@ -1,7 +1,6 @@
 """Unit tests for the camera module."""
 import os
 import pathlib
-import pytest
 import numpy as np
 import pybullet
 
