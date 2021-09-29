@@ -2,7 +2,7 @@
 Welcome to the TriFinger Robot Simulation docs!
 *************************************************
 
-.. image:: images/multi_object.JPG
+.. image:: images/sim_trifingerpro.jpg
 
 This is the accompanying documentation of the `trifinger_simulation` package_.
 
