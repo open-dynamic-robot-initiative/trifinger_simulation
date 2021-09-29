@@ -4,10 +4,12 @@ Welcome to the TriFinger Robot Simulation docs!
 
 .. image:: images/sim_trifingerpro.jpg
 
-This is the accompanying documentation of the `trifinger_simulation` package_.
+The trifinger_simulation_ package contains a PyBullet simulation environment
+for the different TriFinger robots as well as helper functions for some tasks
+(for sampling goals, computing rewards, etc.).
 
-To know more about the TriFinger robots, check out our official `project website`_, and the preprint_
-of this work.
+To learn more about the TriFinger robots, check out the `TriFinger project
+website`_ and the corresponding paper_.
 
 
 .. toctree::
@@ -19,7 +21,7 @@ of this work.
 .. toctree::
    :maxdepth: 1
    :caption: Ease of Use with a Real Robot
-   
+
    simreal/simwithreal
    simreal/realwithsim
    simreal/simvsreal
@@ -74,8 +76,8 @@ please cite this repository and also the corresponding paper:
       primaryClass={cs.RO}
    }
 
-.. _package: https://github.com/open-dynamic-robot-initiative/trifinger_simulation
-.. _`project website`: https://sites.google.com/view/trifinger
-.. _preprint: https://arxiv.org/abs/2008.03596
+.. _trifinger_simulation: https://github.com/open-dynamic-robot-initiative/trifinger_simulation
+.. _`TriFinger project website`: https://sites.google.com/view/trifinger
+.. _paper: https://arxiv.org/abs/2008.03596
 .. _`Real Robot Challenge`: https://people.tuebingen.mpg.de/felixwidmaier/realrobotchallenge/
 .. _`rrc_simulation`: https://github.com/rr-learning/rrc_simulation
