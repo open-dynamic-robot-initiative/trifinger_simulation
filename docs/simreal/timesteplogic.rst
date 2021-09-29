@@ -1,6 +1,6 @@
-*************************************
-Real and Non-real-time Control Modes
-*************************************
+*****************************************
+Time Relation of Actions and Observations
+*****************************************
 
 On the real robot, we are using *time series* for all robot data like actions
 and observations.  The user does not send actions directly to the robot but
@@ -44,4 +44,4 @@ here:
 For more information on the API of the real robot, see our publication `TriFinger: An Open-Source
 Robot for Learning Dexterity <https://arxiv.org/abs/2008.03596>`_.
 
-.. _`robot_interfaces`: https://github.com/open-dynamic-robot-initiative/robot_interfaces/blob/master/include/robot_interfaces/
+.. _`robot_interfaces`: https://github.com/open-dynamic-robot-initiative/robot_interfaces

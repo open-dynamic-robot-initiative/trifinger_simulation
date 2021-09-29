@@ -1,6 +1,6 @@
-********************************************************************************
-Switching between the Real Robot and the Simulated Robot in the Real Robot API
-********************************************************************************
+**********************************************
+Simulation vs Real Robot in the Real Robot API
+**********************************************
 
 It is also possible to use this simulation through our software for interfacing with the
 real robot. So, you could
