@@ -40,12 +40,14 @@ and also the corresponding paper:
 ```
 
 ```
-@misc{wthrich2020trifinger,
-    title={TriFinger: An Open-Source Robot for Learning Dexterity},
-    author={Manuel Wüthrich and Felix Widmaier and Felix Grimminger and Joel Akpo and Shruti Joshi and Vaibhav Agrawal and Bilal Hammoud and Majid Khadiv and Miroslav Bogdanovic and Vincent Berenz and Julian Viereck and Maximilien Naveau and Ludovic Righetti and Bernhard Schölkopf and Stefan Bauer},
-    year={2020},
-    eprint={2008.03596},
-    archivePrefix={arXiv},
-    primaryClass={cs.RO}
+@conference{wuethrich2020trifinger,
+  title = {TriFinger: An Open-Source Robot for Learning Dexterity},
+  author = {W{\"u}thrich, M. and Widmaier, F. and Grimminger, F. and Akpo, J. and Joshi, S. and Agrawal, V. and Hammoud, B. and Khadiv, M. and Bogdanovic, M. and Berenz, V. and Viereck, J. and Naveau, M. and Righetti, L. and Sch{\"o}lkopf, B. and Bauer, S.},
+  booktitle = {Proceedings of the 4th Conference on Robot Learning (CoRL)},
+  month = nov,
+  year = {2020},
+  doi = {},
+  url = {https://corlconf.github.io/corl2020/paper_421/},
+  month_numeric = {11}
 }
 ```
