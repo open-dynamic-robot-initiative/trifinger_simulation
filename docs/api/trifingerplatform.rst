@@ -50,8 +50,6 @@ API Documentation
       Get observation of the robot state (joint angles, torques, etc.).
       See :meth:`trifinger_simulation.SimFinger.get_observation`.
 
-   .. automethod:: get_object_pose
-
    .. automethod:: get_camera_observation
 
    .. automethod:: store_action_log
@@ -69,4 +67,9 @@ API Documentation
 ------------------------------------------------------------------------------
 
 .. autoclass:: trifinger_simulation.TriCameraObservation
+   :members:
+
+------------------------------------------------------------------------------
+
+.. autoclass:: trifinger_simulation.TriCameraObjectObservation
    :members:
