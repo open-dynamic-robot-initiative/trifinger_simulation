@@ -75,5 +75,3 @@ please cite this repository and also the corresponding paper:
 .. _trifinger_simulation: https://github.com/open-dynamic-robot-initiative/trifinger_simulation
 .. _`TriFinger project website`: https://sites.google.com/view/trifinger
 .. _paper: https://arxiv.org/abs/2008.03596
-.. _`Real Robot Challenge`: https://people.tuebingen.mpg.de/felixwidmaier/realrobotchallenge/
-.. _`rrc_simulation`: https://github.com/rr-learning/rrc_simulation
