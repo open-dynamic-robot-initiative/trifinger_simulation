@@ -86,5 +86,5 @@ Using colcon
 ------------
 
 trifinger_simulation is part of the "ROBOT_FINGERS" project.  For build
-instructions see the `robot_fingers documentation
-<http://people.tuebingen.mpg.de/mpi-is-software/robotfingers/docs/robot_fingers/doc/installation.html>`_
+instructions see the :doc:`robot_fingers documentation
+<robot_fingers:doc/installation>`.
