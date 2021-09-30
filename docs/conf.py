@@ -40,6 +40,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.todo",
     "sphinx.ext.viewcode",
+    "sphinx.ext.intersphinx",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -84,6 +85,19 @@ pygments_style = "sphinx"
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
+
+# intersphinx config
+intersphinx_mapping = {
+    "robot_fingers": (
+        "http://people.tuebingen.mpg.de/mpi-is-software/robotfingers/docs/robot_fingers",
+        None,
+    ),
+    "robot_interfaces": (
+        "http://people.tuebingen.mpg.de/mpi-is-software/robotfingers/docs/robot_interfaces",
+        None,
+    ),
+}
 
 
 # -- Options for HTML output ----------------------------------------------
