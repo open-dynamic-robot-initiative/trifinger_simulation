@@ -34,8 +34,9 @@ website`_ and the corresponding paper_.
    :maxdepth: 1
    :caption: API Documentation
 
-   The SimFinger Class <api/sim_finger>
-   The TriFingerPlatform Class <api/trifingerplatform>
+   api/sim_finger
+   api/trifingerplatform
+   api/collision_objects
 
 
 Indices and tables
