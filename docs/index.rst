@@ -14,10 +14,11 @@ website`_ and the corresponding paper_.
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Getting Started
 
-   Installation <getting_started/installation>
+   getting_started/installation
+   getting_started/finger_types
 
 .. toctree::
    :maxdepth: 1
