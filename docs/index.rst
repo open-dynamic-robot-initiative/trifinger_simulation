@@ -2,7 +2,8 @@
 Welcome to the TriFinger Robot Simulation docs!
 *************************************************
 
-.. image:: images/sim_trifingerpro.jpg
+.. image:: images/all_finger_types.jpg
+   :alt: Screenshots of different (Tri)Finger robots in simulation
 
 The trifinger_simulation_ package contains a PyBullet simulation environment
 for the different TriFinger robots as well as helper functions for some tasks

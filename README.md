@@ -2,11 +2,7 @@
 
 Welcome to the official simulation of the TriFinger robots!
 
-<!-- ![trifingeredu](docs/images/workspace.png) -->
-<p float="left">
-       <img src="docs/images/workspace.png" alt="trifingeredu workspace" width="420" height="300"/>
-       <img src="docs/images/hand.JPG" alt="trifingeredu workspace" width="300" height="300"/>
-</p>
+![Screenshots of different (Tri)Finger robots in simulation](docs/images/all_finger_types.jpg)
 
 ## The Project
 
