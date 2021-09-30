@@ -4,7 +4,7 @@ Installation
 There are two ways to build/install this package:
 
 1. Stand-alone installation using pip
-2. Using colcon
+2. As part of a colon workspace
 
 
 Stand-alone installation using pip
