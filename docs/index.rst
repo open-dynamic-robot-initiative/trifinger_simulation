@@ -18,6 +18,7 @@ website`_ and the corresponding paper_.
    :caption: Getting Started
 
    getting_started/installation
+   getting_started/first_steps
    getting_started/finger_types
 
 .. toctree::
