@@ -804,7 +804,7 @@ class SimFinger:
 
         elif self.finger_type == "trifingeredu":
             table_colour = (0.95, 0.95, 0.95, 1.0)
-            high_border_colour = (0.95, 0.95, 0.95, 1.0)
+            high_border_colour = (0.95, 0.95, 0.95, 0.5)
 
             # use a simple cuboid for the table
             self._table_id = collision_objects.Cuboid(
