@@ -86,8 +86,14 @@ pygments_style = "sphinx"
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
 
+# == autodoc ==
+# Add docs of __init__ to class description
+autoclass_content = "both"
+# use typehints in the description instead of cluttering the signature
+autodoc_typehints = "description"
 
-# intersphinx config
+
+# == intersphinx ==
 intersphinx_mapping = {
     "robot_fingers": (
         "http://people.tuebingen.mpg.de/mpi-is-software/robotfingers/docs/robot_fingers",
