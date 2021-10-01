@@ -582,6 +582,17 @@ class SimFinger:
             self.time_step_s, physicsClientId=self._pybullet_client_id
         )
 
+        # change initial camera pose to something that fits better for the
+        # (Tri)Finger robots (mostly moves it closer to the robot as the
+        # default).
+        pybullet.resetDebugVisualizerCamera(
+            cameraDistance=1.0,
+            cameraYaw=100.0,
+            cameraPitch=-30.0,
+            cameraTargetPosition=(0, 0, 0.2),
+            physicsClientId=self._pybullet_client_id,
+        )
+
         pybullet.loadURDF(
             "plane_transparent.urdf",
             [0, 0, -0.01],
@@ -730,10 +741,12 @@ class SimFinger:
             return os.path.join(self.robot_properties_path, "meshes", filename)
 
         if self.finger_type in ["fingerone", "fingeredu", "fingerpro"]:
+            table_colour = (0.73, 0.68, 0.72, 1.0)
             collision_objects.import_mesh(
                 mesh_path("Stage_simplified.stl"),
                 position=[0, 0, 0],
                 is_concave=True,
+                color_rgba=table_colour,
                 pybullet_client_id=self._pybullet_client_id,
             )
 
@@ -791,7 +804,7 @@ class SimFinger:
 
         elif self.finger_type == "trifingeredu":
             table_colour = (0.95, 0.95, 0.95, 1.0)
-            high_border_colour = (0.95, 0.95, 0.95, 1.0)
+            high_border_colour = (0.95, 0.95, 0.95, 0.5)
 
             # use a simple cuboid for the table
             self._table_id = collision_objects.Cuboid(
