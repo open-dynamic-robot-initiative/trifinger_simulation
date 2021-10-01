@@ -741,10 +741,12 @@ class SimFinger:
             return os.path.join(self.robot_properties_path, "meshes", filename)
 
         if self.finger_type in ["fingerone", "fingeredu", "fingerpro"]:
+            table_colour = (0.73, 0.68, 0.72, 1.0)
             collision_objects.import_mesh(
                 mesh_path("Stage_simplified.stl"),
                 position=[0, 0, 0],
                 is_concave=True,
+                color_rgba=table_colour,
                 pybullet_client_id=self._pybullet_client_id,
             )
 
