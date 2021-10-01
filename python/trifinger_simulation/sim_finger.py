@@ -582,6 +582,17 @@ class SimFinger:
             self.time_step_s, physicsClientId=self._pybullet_client_id
         )
 
+        # change initial camera pose to something that fits better for the
+        # (Tri)Finger robots (mostly moves it closer to the robot as the
+        # default).
+        pybullet.resetDebugVisualizerCamera(
+            cameraDistance=1.0,
+            cameraYaw=100.0,
+            cameraPitch=-30.0,
+            cameraTargetPosition=(0, 0, 0.2),
+            physicsClientId=self._pybullet_client_id,
+        )
+
         pybullet.loadURDF(
             "plane_transparent.urdf",
             [0, 0, -0.01],
