@@ -1,0 +1,21 @@
+name: Linters
+
+on: [pull_request]
+
+jobs:
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install
+        run: |
+          python3 -m pip install mypy types-PyYAML
+      - name: Add matcher
+        run: |
+          echo "::add-matcher::.github/workflows/mypy-problem-matcher.json"
+      - name: Run mypy
+        run: |
+          python3 -m mypy --ignore-missing-imports --exclude doc .
