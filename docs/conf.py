@@ -19,7 +19,6 @@
 #
 import os
 import sys
-import sphinx_rtd_theme  # noqa
 
 sys.path.insert(0, os.path.abspath("../python/"))
 
@@ -125,6 +124,11 @@ html_theme_path = [
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+
+# path is relative to html_static_path
+html_css_files = [
+    "custom.css",
+]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
