@@ -37,6 +37,10 @@ website`_ and the corresponding paper_.
    api/sim_finger
    api/trifingerplatform
    api/collision_objects
+   api/visual_objects
+   api/camera
+   api/pinocchio_utils
+   api/finger_types_data
 
 
 Indices and tables

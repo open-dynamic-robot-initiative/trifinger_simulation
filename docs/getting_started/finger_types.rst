@@ -1,3 +1,5 @@
+.. _finger_types:
+
 ************
 Finger Types
 ************

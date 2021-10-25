@@ -1,4 +1,38 @@
-"""Simulated cameras for rendering images."""
+"""Classes and functions for simulating cameras.
+
+
+Simple vs Calibrated Camera
+---------------------------
+
+There are two different camera implementations: :class:`Camera` and
+:class:`CalibratedCamera`.
+
+:class:`Camera` first one only takes the camera's position, orientation and
+field of view as input and uses PyBullet functions to compute the corresponding
+transformation/projection from it.
+
+:class:`CalibratedCamera` expects a full camera matrix and distortion
+coefficients (like they are acquired through camera calibration.  By using the
+calibration parameters of a real camera here, the rendered images are much
+closer to the real ones.  On the downside the rendering process is a bit slower
+as applying the distortion takes some time.
+
+Loading calibration parameters from a single YAML file can be done using
+:meth:`CameraParameters.load`.  To load the calibration parameters of all three
+cameras of a TriFinger platform, :func:`load_camera_parameters` can be used.
+
+
+Camera Arrays
+-------------
+
+:class:`CameraArray` provides a simple interface to get images from an
+arbitrary number of cameras.
+
+When specifically simulating the three-camera-setup of the TriFinger platform,
+you can use :class:`TriFingerCameras` for the simple camera model or
+:func:`create_trifinger_camera_array_from_config` for the model using the full
+calibration parameters.
+"""
 import itertools
 import typing
 import pathlib
@@ -16,7 +50,10 @@ def calib_data_to_matrix(data: dict) -> np.ndarray:
 
 # TODO: this is more or less a duplicate of trifinger_cameras/CameraParameters
 class CameraParameters(typing.NamedTuple):
-    """Represents intrinsic and extrinsic parameters of a camera."""
+    """Represents intrinsic and extrinsic parameters of a camera.
+
+    See description of properties for the meaning of the constructor arguments.
+    """
 
     #: Name of the camera.
     name: str
@@ -33,7 +70,15 @@ class CameraParameters(typing.NamedTuple):
 
     @classmethod
     def load(cls, stream: typing.TextIO) -> "CameraParameters":
-        """Load camera parameters from a YAML stream."""
+        """Load camera parameters from a YAML stream.
+
+        Args:
+            stream: Input stream of configuration in YAML format.
+
+        Returns:
+            Instance of CameraParameters with values set based on the input
+            YAML.
+        """
         data = yaml.safe_load(stream)
 
         name = data["camera_name"]
@@ -48,7 +93,11 @@ class CameraParameters(typing.NamedTuple):
         )
 
     def dump(self, stream: typing.TextIO):
-        """Dump camera parameters in YAML format to the given output stream."""
+        """Dump camera parameters in YAML format to the given output stream.
+
+        Args:
+            stream: Output stream.
+        """
         # save all the data
         calibration_data = {
             "camera_name": self.name,
@@ -108,8 +157,7 @@ class Camera(BaseCamera):
         far_plane_distance=100.0,
         pybullet_client_id=0,
     ):
-        """Initialize.
-
+        """
         Args:
             camera_position:  Position (x, y, z) of the camera w.r.t. the world
                 frame.
@@ -161,8 +209,8 @@ class Camera(BaseCamera):
                 connection, use the ER_TINY_RENDERER.
 
         Returns:
-            (array, shape=(height, width, 3)):  Rendered RGB image from the
-                simulated camera.
+            array, shape=(height, width, 3):  Rendered RGB image from the
+            simulated camera.
         """
         (_, _, img, _, _) = pybullet.getCameraImage(
             width=self._width,
@@ -177,33 +225,11 @@ class Camera(BaseCamera):
 
 
 class CalibratedCamera(BaseCamera):
-    r"""Simulate a camera based on calibration parameters.
+    """Simulate a camera based on calibration parameters.
 
     This class renders images from the simulation, using calibration parameters
     from a real camera.  It uses a more accurate projection matrix as
     ``Camera`` and also takes distortion into account.
-
-    Args:
-        camera_matrix:  Camera matrix containing focal length and centre point:
-
-            .. math::
-                \begin{bmatrix}
-                  f_x &  0  & c_x \\
-                   0  & f_y & c_y \\
-                   0  &  0  &  0
-                \end{matrix}
-
-        distortion_coefficients:  Distortion coefficients
-            ``(k_1, k_2, p_1, p_2, k_3)``
-        tf_world_to_camera:  Homogeneous transformation matrix from world to
-            camera frame.
-        image_size:  Size of the image given as ``(width, height)``.
-        near_plane_distance:  Minimum distance to camera for objects to be
-            rendered.  Objects that are closer to the camera are clipped.
-        far_plane_distance:  Maximum distance to the camera for objects to be
-            rendered.  Objects that are further away are clipped.
-        pybullet_client_id:  Id of the pybullet client (needed when multiple
-            clients are running in parallel).
     """
 
     # How this class works internally
@@ -233,6 +259,31 @@ class CalibratedCamera(BaseCamera):
         far_plane_distance,
         pybullet_client_id=0,
     ):
+        r"""
+        Args:
+            camera_matrix:  Camera matrix containing focal length and centre
+                point:
+
+                .. math::
+
+                    \begin{bmatrix}
+                      f_x &  0  & c_x \\
+                       0  & f_y & c_y \\
+                       0  &  0  &  0
+                    \end{bmatrix}
+
+            distortion_coefficients:  Distortion coefficients
+                ``(k_1, k_2, p_1, p_2, k_3)``
+            tf_world_to_camera:  Homogeneous transformation matrix from world
+                to camera frame.
+            image_size:  Size of the image given as ``(width, height)``.
+            near_plane_distance:  Minimum distance to camera for objects to be
+                rendered.  Objects that are closer to the camera are clipped.
+            far_plane_distance:  Maximum distance to the camera for objects to
+                be rendered.  Objects that are further away are clipped.
+            pybullet_client_id:  Id of the pybullet client (needed when
+                multiple clients are running in parallel).
+        """
         self._pybullet_client_id = pybullet_client_id
 
         #: Width of the output images.
@@ -385,7 +436,7 @@ class CalibratedCamera(BaseCamera):
     def get_image(
         self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
     ) -> np.ndarray:
-        """Get a rendered image from the camera.
+        """Get a rendered and distorted image from the camera.
 
         Args:
             renderer: Specify which renderer is to be used. The renderer used
@@ -396,7 +447,7 @@ class CalibratedCamera(BaseCamera):
 
         Returns:
             array, shape=(height, width, 3):  Rendered RGB image from the
-                simulated camera.
+            simulated camera.
         """
         (_, _, img, _, _) = pybullet.getCameraImage(
             width=self._render_width,
@@ -422,13 +473,13 @@ class CalibratedCamera(BaseCamera):
 
 
 class CameraArray:
-    """Array of an arbitrary number of cameras.
-
-    Args:
-        cameras (Camera): List of cameras.
-    """
+    """Array of an arbitrary number of cameras."""
 
     def __init__(self, cameras: typing.Sequence[BaseCamera]):
+        """
+        Args:
+            cameras: List of cameras.
+        """
         self.cameras = cameras
 
     def get_images(
@@ -522,13 +573,12 @@ def create_trifinger_camera_array_from_config(
     """Create a TriFinger camera array using camera calibration files.
 
     Loads camera calibration files from the given directory and uses them to
-    create a :class:`CameraArray` of :class:`CalibratedCamera`s.
+    create a :class:`CameraArray` of :class:`CalibratedCamera`.
 
     Args:
         config_dir:  Directory containing the camera calibration files.
         calib_filename_pattern:  Template for the camera calibration file
             names.  '{id}' will be replaced with the camera id (60, 180, 300).
-            Default: %(default)s
         pybullet_client_id:  Id of the pybullet client (needed when multiple
             clients are running in parallel).
 
@@ -545,8 +595,10 @@ def create_trifinger_camera_array_from_config(
 class TriFingerCameras(CameraArray):
     """Simulate the three cameras of the TriFinger platform.
 
-    Note: To get more accurate cameras (i.e. matching more closely the real
-    cameras) use :func:`create_trifinger_camera_array_from_config` instead.
+    .. note::
+        This uses the simple camera model (see :class:`Camera`). To get images
+        that are more closely matching those of the real cameras use
+        :func:`create_trifinger_camera_array_from_config` instead.
     """
 
     def __init__(self, **kwargs):

@@ -1,12 +1,10 @@
+"""Different types of visualisation markers for the simulation."""
 import numpy as np
 import pybullet
 
 
 class Marker:
-    """
-    In case any point(for eg. the goal position) in space is to be
-    visualized using a marker.
-    """
+    """Visualise multiple positions using spheres."""
 
     def __init__(
         self,

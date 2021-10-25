@@ -1,3 +1,4 @@
+"""Wrappers around Pinocchio for easy forward and inverse kinematics."""
 import typing
 
 import numpy as np
@@ -14,8 +15,7 @@ class Kinematics:
     def __init__(
         self, finger_urdf_path: str, tip_link_names: typing.Iterable[str]
     ):
-        """Initializes the robot model.
-
+        """
         Args:
             finger_urdf_path:  Path to the URDF file describing the robot.
             tip_link_names:  Names of the finger tip frames, one per finger.
@@ -99,10 +99,9 @@ class Kinematics:
             max_iterations: Max. number of iterations.
 
         Returns:
-            tuple: First element is the joint configuration (for joints that
-                are not part of the specified finger, the values from the
-                initial guess are kept).
-                Second element is (x,y,z)-error of the tip position.
+            First element is the joint configuration (for joints that are not
+            part of the specified finger, the values from the initial guess are
+            kept).  Second element is (x,y,z)-error of the tip position.
         """
         q = joint_angles_guess
         for i in range(max_iterations):
@@ -131,8 +130,8 @@ class Kinematics:
             max_iterations: See :meth:`inverse_kinematics_one_finger`.
 
         Returns:
-            tuple: First element is the joint configuration, second element is
-            a list of (x,y,z)-errors of the tip positions.
+            First element is the joint configuration, second element is a list
+            of (x,y,z)-errors of the tip positions.
         """
         q = joint_angles_guess
         errors = []
