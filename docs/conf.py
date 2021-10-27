@@ -90,6 +90,8 @@ todo_include_todos = True
 autoclass_content = "both"
 # use typehints in the description instead of cluttering the signature
 autodoc_typehints = "description"
+# order of members (options are "alphabetical", "groupwise", "bysource").
+autodoc_member_order = "groupwise"
 
 
 # == intersphinx ==
