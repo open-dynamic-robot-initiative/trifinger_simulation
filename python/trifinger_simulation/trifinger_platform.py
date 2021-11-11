@@ -1,12 +1,13 @@
 import pickle
 import warnings
-import numpy as np
-import gym
 from types import SimpleNamespace
 
-from .tasks import move_cube
-from .sim_finger import SimFinger
+import gym
+import numpy as np
+
 from . import camera, collision_objects, trifingerpro_limits
+from .sim_finger import SimFinger
+from .tasks import move_cube
 
 
 class ObjectPose:
@@ -96,8 +97,8 @@ class TriFingerPlatform:
         initial_object_pose=None,
         enable_cameras=False,
         time_step_s=0.004,
-        object_mass=None,
-        joint_friction=None
+        object_mass=0.016,
+        joint_friction=None,
     ):
         """Initialize.
 
@@ -120,7 +121,6 @@ class TriFingerPlatform:
                 friction in individual joints which reduces applied torques
 
         """
-        object_mass = object_mass or 0.016
         self.joint_friction = joint_friction
         #: Camera rate in frames per second.  Observations of camera and
         #: object pose will only be updated with this rate.
@@ -149,9 +149,7 @@ class TriFingerPlatform:
         if initial_robot_position is None:
             initial_robot_position = self.spaces.robot_position.default
 
-        self.simfinger.reset_finger_positions_and_velocities(
-            initial_robot_position
-        )
+        self.simfinger.reset_finger_positions_and_velocities(initial_robot_position)
 
         if initial_object_pose is None:
             initial_object_pose = move_cube.Pose(
@@ -162,7 +160,7 @@ class TriFingerPlatform:
         self.cube = collision_objects.Block(
             position=initial_object_pose.position,
             orientation=initial_object_pose.orientation,
-            #half_extents=[0.01, 0.04, 0.01],
+            # half_extents=[0.01, 0.04, 0.01],
             mass=object_mass,
             pybullet_client_id=self.simfinger._pybullet_client_id,
         )
@@ -210,9 +208,7 @@ class TriFingerPlatform:
         next_t = self.simfinger._t + 1
         has_camera_update = next_t >= self._next_camera_update_step
         if has_camera_update:
-            self._next_camera_update_step += (
-                self._compute_camera_update_step_interval()
-            )
+            self._next_camera_update_step += self._compute_camera_update_step_interval()
             self._camera_observation_t = self._get_current_camera_observation()
 
         if self.joint_friction is not None:
@@ -224,12 +220,8 @@ class TriFingerPlatform:
         if has_camera_update:
             camera_timestamp_s = self.get_timestamp_ms(t) / 1000
             for i in range(len(self._camera_observation_t.cameras)):
-                self._camera_observation_t.cameras[
-                    i
-                ].timestamp = camera_timestamp_s
-            self._camera_observation_t.object_pose.timestamp = (
-                camera_timestamp_s
-            )
+                self._camera_observation_t.cameras[i].timestamp = camera_timestamp_s
+            self._camera_observation_t.object_pose.timestamp = camera_timestamp_s
 
         # write the desired action to the log
         camera_obs = self.get_camera_observation(t)
