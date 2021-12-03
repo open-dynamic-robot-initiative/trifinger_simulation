@@ -3,7 +3,6 @@
 import argparse
 import time
 import typing
-import numpy as np
 import pybullet
 
 from trifinger_simulation import (
@@ -72,7 +71,6 @@ if __name__ == "__main__":
         cameraPitch=-30.0,
         cameraTargetPosition=(0, 0, 0.2),
     )
-    from trifinger_simulation import collision_objects
     from scipy.spatial.transform import Rotation
 
     cube = collision_objects.ColoredCubeV2(
