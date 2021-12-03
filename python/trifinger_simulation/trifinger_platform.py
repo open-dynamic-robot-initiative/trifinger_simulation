@@ -129,7 +129,7 @@ class TriFingerPlatform:
     def __init__(
         self,
         visualization: bool = False,
-        initial_robot_position: typing.Sequence[float] = None,
+        initial_robot_position: typing.Optional[typing.Sequence[float]] = None,
         initial_object_pose=None,
         enable_cameras: bool = False,
         time_step_s: float = 0.001,
