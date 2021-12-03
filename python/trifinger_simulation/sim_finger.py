@@ -13,7 +13,9 @@ from trifinger_simulation import pinocchio_utils
 from trifinger_simulation import finger_types_data
 
 
-def int_to_rgba(color: int, alpha: int = 0xFF) -> typing.Tuple[float, ...]:
+def int_to_rgba(
+    color: int, alpha: int = 0xFF
+) -> typing.Tuple[float, float, float, float]:
     """Convert an 24-bit integer to an rgba tuple.
 
     Converts color given as a single 24-bit integer (e.g. a hex value 0xFF0011)
@@ -27,8 +29,15 @@ def int_to_rgba(color: int, alpha: int = 0xFF) -> typing.Tuple[float, ...]:
         tuple: The colour as a tuple (r, g, b, a) where each element is in
         [0.0, 1.0].
     """
-    return tuple(
-        (x & 0xFF) / 0xFF for x in (color >> 16, color >> 8, color, alpha)
+
+    def trim_and_convert(x):
+        return (x & 0xFF) / 0xFF
+
+    return (
+        trim_and_convert(color >> 16),
+        trim_and_convert(color >> 8),
+        trim_and_convert(color),
+        trim_and_convert(alpha),
     )
 
 
