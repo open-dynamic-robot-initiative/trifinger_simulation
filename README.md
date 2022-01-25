@@ -4,21 +4,17 @@ Welcome to the official simulation of the TriFinger robots!
 
 ![Screenshots of different (Tri)Finger robots in simulation](docs/images/all_finger_types.jpg)
 
-## The Project
+## The TriFinger Project
 
-To know more about the TriFinger robots, check out our official
+To learn more about the TriFinger robots, check out our official
 [project website](https://sites.google.com/view/trifinger), and the
 [preprint](https://arxiv.org/abs/2008.03596) of this work.
 
 ## Documentation
 
-The documentation for this repository is available online
-[here](https://trifinger-robot-simulation.readthedocs.io/en/latest/)!
+For instructions on how to install and use this package, see the 
+[documentation](https://open-dynamic-robot-initiative.github.io/trifinger_simulation/).
 
-## Installation instructions
-
-Please refer to the [installation instructions](https://trifinger-robot-simulation.readthedocs.io/en/latest/getting_started/installation.html)
-for details.
 
 ## Cite Us
 
