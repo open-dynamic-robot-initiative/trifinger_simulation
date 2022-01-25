@@ -4,7 +4,7 @@ Installation
 There are two ways to build/install this package:
 
 1. Stand-alone installation using pip
-2. Using colcon
+2. As part of a colon workspace
 
 
 Stand-alone installation using pip
@@ -86,5 +86,5 @@ Using colcon
 ------------
 
 trifinger_simulation is part of the "ROBOT_FINGERS" project.  For build
-instructions see the `robot_fingers documentation
-<http://people.tuebingen.mpg.de/mpi-is-software/robotfingers/docs/robot_fingers/doc/installation.html>`_
+instructions see the :doc:`robot_fingers documentation
+<robot_fingers:doc/installation>`.

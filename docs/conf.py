@@ -19,7 +19,6 @@
 #
 import os
 import sys
-import sphinx_rtd_theme  # noqa
 
 sys.path.insert(0, os.path.abspath("../python/"))
 
@@ -40,6 +39,8 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.todo",
     "sphinx.ext.viewcode",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.githubpages",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -85,6 +86,27 @@ pygments_style = "sphinx"
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
 
+# == autodoc ==
+# Add docs of __init__ to class description
+autoclass_content = "both"
+# use typehints in the description instead of cluttering the signature
+autodoc_typehints = "description"
+# order of members (options are "alphabetical", "groupwise", "bysource").
+autodoc_member_order = "groupwise"
+
+
+# == intersphinx ==
+intersphinx_mapping = {
+    "robot_fingers": (
+        "http://people.tuebingen.mpg.de/mpi-is-software/robotfingers/docs/robot_fingers",
+        None,
+    ),
+    "robot_interfaces": (
+        "http://people.tuebingen.mpg.de/mpi-is-software/robotfingers/docs/robot_interfaces",
+        None,
+    ),
+}
+
 
 # -- Options for HTML output ----------------------------------------------
 
@@ -105,6 +127,11 @@ html_theme_path = [
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+
+# path is relative to html_static_path
+html_css_files = [
+    "custom.css",
+]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -127,20 +154,20 @@ htmlhelp_basename = "pyBulletSimulationforFingerRobotsdoc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
-latex_elements = {
-    # The paper size ('letterpaper' or 'a4paper').
-    #
-    # 'papersize': 'letterpaper',
-    # The font size ('10pt', '11pt' or '12pt').
-    #
-    # 'pointsize': '10pt',
-    # Additional stuff for the LaTeX preamble.
-    #
-    # 'preamble': '',
-    # Latex figure (float) alignment
-    #
-    # 'figure_align': 'htbp',
-}
+# latex_elements = {
+#     # The paper size ('letterpaper' or 'a4paper').
+#     #
+#     # 'papersize': 'letterpaper',
+#     # The font size ('10pt', '11pt' or '12pt').
+#     #
+#     # 'pointsize': '10pt',
+#     # Additional stuff for the LaTeX preamble.
+#     #
+#     # 'preamble': '',
+#     # Latex figure (float) alignment
+#     #
+#     # 'figure_align': 'htbp',
+# }
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,

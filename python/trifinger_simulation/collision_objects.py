@@ -1,18 +1,26 @@
+"""
+Provides classes/functions for loading objects into the simulation environment.
+"""
+import typing
+
 import pybullet
 
 import trifinger_simulation
 
 
+_SeqFloat = typing.Sequence[float]
+_OptSeqFloat = typing.Optional[_SeqFloat]
+
+
 def import_mesh(
-    mesh_file_path,
-    position,
-    orientation=[0, 0, 0, 1],
-    is_concave=False,
-    color_rgba=None,
-    pybullet_client_id=None,
-):
-    """
-    Create a collision object based on a mesh file.
+    mesh_file_path: str,
+    position: _SeqFloat,
+    orientation: _SeqFloat = [0, 0, 0, 1],
+    is_concave: bool = False,
+    color_rgba: _OptSeqFloat = None,
+    pybullet_client_id: int = 0,
+) -> int:
+    """Create a collision object based on a mesh file.
 
     Args:
         mesh_file_path:  Path to the mesh file.
@@ -25,7 +33,7 @@ def import_mesh(
             assigns a random colour.
 
     Returns:
-        The created object.
+        ID of the created object.
     """
     if is_concave:
         flags = pybullet.GEOM_FORCE_CONCAVE_TRIMESH
@@ -72,21 +80,21 @@ class BaseCollisionObject:
 
     def __init__(
         self,
-        pybullet_client_id=0,
+        pybullet_client_id: int = 0,
     ):
         """
         Args:
             pybullet_client_id:  Optional ID of the pybullet client.
         """
         self._pybullet_client_id = pybullet_client_id
+        self._object_id = -1
 
-    def set_state(self, position, orientation):
-        """
-        Resets the object to the provided position and orientation
+    def set_state(self, position: _SeqFloat, orientation: _SeqFloat):
+        """Resets the object to the provided position and orientation
 
         Args:
             position: New position.
-            orientation: New orientation.
+            orientation: New orientation (quaternion).
         """
         pybullet.resetBasePositionAndOrientation(
             self._object_id,
@@ -95,7 +103,9 @@ class BaseCollisionObject:
             physicsClientId=self._pybullet_client_id,
         )
 
-    def get_state(self):
+    def get_state(
+        self,
+    ) -> typing.Tuple[typing.List[float], typing.List[float]]:
         """
         Returns:
             Current position and orientation of the object.
@@ -107,9 +117,7 @@ class BaseCollisionObject:
         return list(position), list(orientation)
 
     def __del__(self):
-        """
-        Removes the object from the environment.
-        """
+        """Removes the object from the environment."""
         # At this point it may be that pybullet was already shut down. To avoid
         # an error, only remove the object if the simulation is still running.
         if pybullet.isConnected(self._pybullet_client_id):
@@ -121,23 +129,20 @@ class Cuboid(BaseCollisionObject):
 
     def __init__(
         self,
-        position,
-        orientation,
-        half_extents,
-        mass,
-        color_rgba=None,
-        pybullet_client_id=0,
+        position: _SeqFloat,
+        orientation: _SeqFloat,
+        half_extents: _SeqFloat,
+        mass: float,
+        color_rgba: _OptSeqFloat = None,
+        pybullet_client_id: int = 0,
     ):
         """
-        Create a new cuboid.
-
         Args:
-            position (list): Initial xyz-position of the cuboid.
-            orientation (list): Initial orientation quaternion (x, y, z, w) of
-                the cuboid.
-            half_extents (list): Half-extends of the cuboid in x/y/z-direction.
-            mass (float): Mass of the cuboid in kg.  Set to 0 for a static
-                object.
+            position: Initial xyz-position of the cuboid.
+            orientation: Initial orientation quaternion (x, y, z, w) of the
+                cuboid.
+            half_extents: Half-extends of the cuboid in x/y/z-direction.
+            mass: Mass of the cuboid in kg.  Set to 0 for a static object.
             color_rgba: Optional tuple of RGBA colour.
             pybullet_client_id:  Optional ID of the pybullet client.
         """
@@ -188,12 +193,12 @@ class Cube(Cuboid):
 
     def __init__(
         self,
-        position=[0.15, 0.0, 0.0425],
-        orientation=[0, 0, 0, 1],
-        half_width=0.0325,
-        mass=0.08,
-        color_rgba=None,
-        pybullet_client_id=0,
+        position: _SeqFloat = [0.15, 0.0, 0.0425],
+        orientation: _SeqFloat = [0, 0, 0, 1],
+        half_width: float = 0.0325,
+        mass: float = 0.08,
+        color_rgba: _OptSeqFloat = None,
+        pybullet_client_id: int = 0,
     ):
         super().__init__(
             position,
@@ -205,7 +210,10 @@ class Cube(Cuboid):
         )
 
 
-# For backward compatibility
+#: Alias of Cube
+#:
+#: .. deprecated:: 1.2.1
+#:    Use :class:`Cube` instead.
 Block = Cube
 
 
@@ -214,12 +222,11 @@ class ColoredCubeV2(BaseCollisionObject):
 
     def __init__(
         self,
-        position=(0, 0, 0),
-        orientation=(0, 0, 0, 1),
-        pybullet_client_id=0,
+        position: _SeqFloat = (0, 0, 0),
+        orientation: _SeqFloat = (0, 0, 0, 1),
+        pybullet_client_id: int = 0,
     ):
-        """Load a Cube v2 object.
-
+        """
         Args:
             position: Position at which the cube is spawned.
             orientation: Orientation with which the cube is spawned.

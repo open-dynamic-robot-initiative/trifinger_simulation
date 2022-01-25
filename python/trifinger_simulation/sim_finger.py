@@ -6,14 +6,16 @@ import typing
 import pybullet
 import pybullet_data
 
-from trifinger_simulation.action import Action
+import trifinger_simulation
 from trifinger_simulation.observation import Observation
 from trifinger_simulation import collision_objects
 from trifinger_simulation import pinocchio_utils
 from trifinger_simulation import finger_types_data
 
 
-def int_to_rgba(color: int, alpha: int = 0xFF) -> typing.Tuple[float, ...]:
+def int_to_rgba(
+    color: int, alpha: int = 0xFF
+) -> typing.Tuple[float, float, float, float]:
     """Convert an 24-bit integer to an rgba tuple.
 
     Converts color given as a single 24-bit integer (e.g. a hex value 0xFF0011)
@@ -27,14 +29,21 @@ def int_to_rgba(color: int, alpha: int = 0xFF) -> typing.Tuple[float, ...]:
         tuple: The colour as a tuple (r, g, b, a) where each element is in
         [0.0, 1.0].
     """
-    return tuple(
-        (x & 0xFF) / 0xFF for x in (color >> 16, color >> 8, color, alpha)
+
+    def trim_and_convert(x):
+        return (x & 0xFF) / 0xFF
+
+    return (
+        trim_and_convert(color >> 16),
+        trim_and_convert(color >> 8),
+        trim_and_convert(color),
+        trim_and_convert(alpha),
     )
 
 
 class SimFinger:
     """
-    pyBullet simulation environment for the single and the tri-finger robots.
+    PyBullet simulation environment for the single and the tri-finger robots.
     """
 
     #: The kp gains for the pd control of the finger(s). Note, this depends
@@ -49,26 +58,24 @@ class SimFinger:
 
     def __init__(
         self,
-        finger_type,
-        time_step=0.001,
-        enable_visualization=False,
-        robot_position_offset=(0, 0, 0),
+        finger_type: str,
+        time_step: float = 0.001,
+        enable_visualization: bool = False,
+        robot_position_offset: typing.Sequence[float] = (0, 0, 0),
     ):
         """
-        Constructor, initializes the physical world we will work in.
-
         Args:
-            finger_type (string): Name of the finger type.  Use
-                :meth:`get_valid_finger_types` to get a list of all supported
-                types.
-            time_step (float): Time (in seconds) between two simulation steps.
-                Don't set this to be larger than 1/60.  The gains etc. are set
+            finger_type: Name of the finger type.  Use
+                :meth:`~finger_types_data.get_valid_finger_types` to get a list
+                of all supported types.
+            time_step: Time (in seconds) between two simulation steps. Don't
+                set this to be larger than 1/60.  The gains etc. are set
                 according to a time_step of 0.001 s.
-            enable_visualization (bool): Set this to 'True' for a GUI interface
-                to the simulation.
-            robot_position_offset: Position offset with which the robot is
-                placed in the world.  Use this, for example, to change the
-                height of the fingers above the table.
+            enable_visualization: Set this to 'True' for a GUI interface to the
+                simulation.
+            robot_position_offset: (x, y, z)-Position offset with which the
+                robot is placed in the world.  Use this, for example, to change
+                the height of the fingers above the table.
         """
         self.finger_type = finger_types_data.check_finger_type(finger_type)
         self.number_of_fingers = finger_types_data.get_number_of_fingers(
@@ -99,41 +106,40 @@ class SimFinger:
             self.finger_urdf_path, self.tip_link_names
         )
 
-    def Action(self, torque=None, position=None):
+    def Action(
+        self, torque: np.ndarray = None, position: np.ndarray = None
+    ) -> trifinger_simulation.Action:
         """
         Fill in the fields of the action structure.
 
         This is a factory go create an
-        :class:`~trifinger_simulation.action.Action` instance with proper
+        :class:`~trifinger_simulation.Action` instance with proper
         default values, depending on the finger type.
 
         Args:
-            torque (array): Torques to apply to the joints.  Defaults to
-                zero.
-            position (array): Angular target positions for the joints.  If set
-                to NaN for a joint, no position control is run for this joint.
+            torque: Torques to apply to the joints.  Defaults to zero.
+            position: Angular target positions for the joints.  If set to NaN
+                for a joint, no position control is run for this joint.
                 Defaults to all NaN.
 
         Returns:
-            ~action.Action: the action to be applied to the motors
+             The resulting action.
         """
         if torque is None:
             torque = np.array([0.0] * 3 * self.number_of_fingers)
         if position is None:
             position = np.array([np.nan] * 3 * self.number_of_fingers)
 
-        action = Action(torque, position)
+        action = trifinger_simulation.Action(torque, position)
 
         return action
 
-    def get_observation(self, t):
+    def get_observation(self, t: int) -> Observation:
         """
         Get the observation at the time of
         applying the action, so the observation actually corresponds
         to the state of the environment due to the application of the
         previous action.
-
-        This method steps the simulation!
 
         Args:
             t: Index of the time step.  The only valid value is the index of
@@ -141,7 +147,7 @@ class SimFinger:
                 :meth:`~append_desired_action`).
 
         Returns:
-            Observation: Observation of the robot state
+            Observation of the robot state.
 
         Raises:
             ValueError: If invalid time index ``t`` is passed.
@@ -164,16 +170,20 @@ class SimFinger:
 
         return observation
 
-    def append_desired_action(self, action):
+    def append_desired_action(
+        self, action: trifinger_simulation.Action
+    ) -> int:
         """
-        Pass an action on which safety checks
-        will be performed and then the action will be applied to the motors.
+        Pass an action on which safety checks will be performed and then the
+        action will be applied to the motors.
+
+        This method steps the simulation!
 
         Args:
-            action (~action.Action): Joint positions or torques or both
+            action: Action to be applied on the robot.
 
         Returns:
-            int: The current time index t at which the action is applied.
+            The current time index t at which the action is applied.
         """
         # copy the action in a way that works for both Action and
         # robot_interfaces.(tri)finger.Action.  Note that a simple
@@ -193,7 +203,7 @@ class SimFinger:
         self._t += 1
         return self._t
 
-    def get_desired_action(self, t):
+    def get_desired_action(self, t: int) -> trifinger_simulation.Action:
         """Get the desired action of time step 't'.
 
         Args:
@@ -210,7 +220,7 @@ class SimFinger:
         self.__validate_time_index(t)
         return self._desired_action_t
 
-    def get_applied_action(self, t):
+    def get_applied_action(self, t: int) -> trifinger_simulation.Action:
         """Get the actually applied action of time step 't'.
 
         The actually applied action can differ from the desired one, e.g.
@@ -231,7 +241,7 @@ class SimFinger:
         self.__validate_time_index(t)
         return self._applied_action_t
 
-    def get_timestamp_ms(self, t):
+    def get_timestamp_ms(self, t: int) -> float:
         """Get timestamp of time step 't'.
 
         Args:
@@ -257,7 +267,7 @@ class SimFinger:
                 " step or the next one."
             )
 
-    def get_current_timeindex(self):
+    def get_current_timeindex(self) -> int:
         """Get the current time index."""
         if self._t < 0:
             raise ValueError(
@@ -267,7 +277,9 @@ class SimFinger:
         return self._t
 
     def reset_finger_positions_and_velocities(
-        self, joint_positions, joint_velocities=None
+        self,
+        joint_positions: typing.Sequence[float],
+        joint_velocities: typing.Optional[typing.Sequence[float]] = None,
     ):
         """
         Reset the finger(s) to have the desired joint positions (required)
@@ -275,8 +287,8 @@ class SimFinger:
         is w/o calling the control loop.
 
         Args:
-            joint_positions (array-like):  Angular position for each joint.
-            joint_velocities (array-like): Angular velocities for each joint.
+            joint_positions:  Angular position for each joint.
+            joint_velocities: Angular velocities for each joint.
                 If None, velocities are set to 0.
         """
         if joint_velocities is None:
@@ -292,7 +304,7 @@ class SimFinger:
             )
         return self._get_latest_observation()
 
-    def _get_latest_observation(self):
+    def _get_latest_observation(self) -> Observation:
         """Get observation of the current state.
 
         Returns:
@@ -353,15 +365,17 @@ class SimFinger:
 
         return observation
 
-    def _set_desired_action(self, desired_action):
+    def _set_desired_action(
+        self, desired_action: trifinger_simulation.Action
+    ) -> trifinger_simulation.Action:
         """Set the given action after performing safety checks.
 
         Args:
-            desired_action (Action): Joint positions or torques or both
+            desired_action: Joint positions or torques or both
 
         Returns:
-            applied_action:  The action that is actually applied after
-            performing the safety checks.
+            The action that is actually applied after performing the safety
+            checks.
         """
         # copy the action in a way that works for both Action and
         # robot_interfaces.(tri)finger.Action.  Note that a simple
@@ -434,18 +448,19 @@ class SimFinger:
             physicsClientId=self._pybullet_client_id,
         )
 
-    def __safety_check_torques(self, desired_torques):
+    def __safety_check_torques(
+        self, desired_torques: typing.Sequence[float]
+    ) -> np.ndarray:
         """
         Perform a check on the torques being sent to be applied to
         the motors so that they do not exceed the safety torque limit
 
         Args:
-            desired_torques (array): The torques desired to be
-                applied to the motors
+            desired_torques: The torques desired to be applied to the motors
 
         Returns:
-            applied_torques (array): The torques that can be actually
-            applied to the motors (and will be applied)
+            The torques that can be actually applied to the motors (and will be
+            applied)
         """
         applied_torques = np.clip(
             np.asarray(desired_torques),
@@ -471,15 +486,20 @@ class SimFinger:
 
         return applied_torques
 
-    def __compute_pd_control_torques(self, joint_positions, kp=None, kd=None):
+    def __compute_pd_control_torques(
+        self,
+        joint_positions: typing.Sequence[float],
+        kp: typing.Optional[typing.Sequence[float]] = None,
+        kd: typing.Optional[typing.Sequence[float]] = None,
+    ) -> typing.List[float]:
         """
         Compute torque command to reach given target position using a PD
         controller.
 
         Args:
-            joint_positions (array-like, shape=(n,)):  Desired joint positions.
-            kp (array-like, shape=(n,)): P-gains, one for each joint.
-            kd (array-like, shape=(n,)): D-gains, one for each joint.
+            joint_positions:  Desired joint positions, shape=(n_joints,).
+            kp: P-gains, one for each joint, shape=(n_joints,).
+            kd: D-gains, one for each joint, shape=(n_joints,).
 
         Returns:
             List of torques to be sent to the joints of the finger in order to
@@ -515,7 +535,7 @@ class SimFinger:
 
         return joint_torques.tolist()
 
-    def __validate_time_index(self, t):
+    def __validate_time_index(self, t: int):
         """Raise error if t does not match with self._t."""
         if t < 0:
             raise ValueError("Cannot access time index less than zero.")
@@ -558,7 +578,9 @@ class SimFinger:
                 "finger_tip_link_240",
             ]
 
-    def __setup_pybullet_simulation(self, robot_position_offset):
+    def __setup_pybullet_simulation(
+        self, robot_position_offset: typing.Sequence[float]
+    ):
         """
         Set the physical parameters of the world in which the simulation
         will run, and import the models to be simulated
@@ -641,13 +663,16 @@ class SimFinger:
         )
 
     @staticmethod
-    def __connect_to_pybullet(enable_visualization):
+    def __connect_to_pybullet(enable_visualization: bool) -> int:
         """
-        Connect to the Pybullet client via either GUI (visual rendering
+        Connect to the PyBullet client via either GUI (visual rendering
         enabled) or DIRECT (no visual rendering) physics servers.
 
         In GUI connection mode, use ctrl or alt with mouse scroll to adjust
         the view of the camera.
+
+        Returns:
+            The PyBullet client ID.
         """
         if enable_visualization:
             pybullet_client_id = pybullet.connect(pybullet.GUI)
@@ -676,7 +701,7 @@ class SimFinger:
             self.robot_properties_path, "urdf", urdf_file
         )
 
-    def __load_robot_urdf(self, robot_position_offset):
+    def __load_robot_urdf(self, robot_position_offset: typing.Sequence[float]):
         """
         Load the single/trifinger model from the corresponding urdf
 
@@ -729,7 +754,7 @@ class SimFinger:
         # joint and link indices are the same in pybullet
         self.pybullet_joint_indices = self.pybullet_link_indices
 
-    def __load_stage(self, high_border=True):
+    def __load_stage(self, high_border: bool = True):
         """Create the stage (table and boundary).
 
         Args:

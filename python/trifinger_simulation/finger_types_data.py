@@ -1,3 +1,4 @@
+"""Get model information for the different Finger types."""
 import typing
 
 
@@ -21,55 +22,67 @@ finger_types_data = {
 }
 
 
-def get_valid_finger_types():
+def get_valid_finger_types() -> typing.KeysView[str]:
     """
     Get list of supported finger types.
 
     Returns:
-        list: List of supported finger types.
+        List of supported finger types.
     """
     return finger_types_data.keys()
 
 
-def check_finger_type(key):
+def check_finger_type(name: str) -> str:
     """
-    Check if a key value is a valid finger type.
+    Check if *name* is a valid finger type.
+
+    Args:
+        name: Name of the finger type.
 
     Returns:
-        string: The key value if it is valid
+        The name if it is valid.
+
+    Raises:
+        ValueError: If *name* is not a valid finger type.
     """
-    if key not in finger_types_data.keys():
+    if name not in finger_types_data.keys():
         raise ValueError(
             "Invalid finger type '%s'.  Valid types are %s"
-            % (key, finger_types_data.keys())
+            % (name, finger_types_data.keys())
         )
     else:
-        return key
+        return name
 
 
-def get_finger_urdf(key):
+def get_finger_urdf(name: str) -> str:
     """
-    Get the name of the file with the urdf model of the finger type.
+    Get the name of the URDF-file with the model of the specified finger type.
+
+    Args:
+        name: Name of the finger type.
 
     Returns:
-        string: The name of this urdf file
+        The name of the URDF file in the ``robot_properties_fingers`` package.
 
     Raises:
-        ValueError if the key passed is an invalid finger_type
+        ValueError: If *name* is not a valid finger type.
     """
-    finger_type = check_finger_type(key)
-    return finger_types_data[finger_type].urdf_file
+    check_finger_type(name)
+    return finger_types_data[name].urdf_file
 
 
-def get_number_of_fingers(key):
+def get_number_of_fingers(name: str) -> int:
     """
-    Get the number of fingers of the finger type
+    Get the number of fingers of the specified finger type
+
+    Args:
+        name: Name of the finger type.
 
     Returns:
-        int: the number of fingers
+        Number of fingers.
 
     Raises:
-        ValueError if the key passed is an invalid finger_type
+        ValueError: If *key* is not a valid finger type.
     """
-    finger_type = check_finger_type(key)
-    return finger_types_data[finger_type].number_of_fingers
+    check_finger_type(name)
+    return finger_types_data[name].number_of_fingers

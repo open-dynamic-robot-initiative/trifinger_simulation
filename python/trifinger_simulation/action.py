@@ -1,32 +1,42 @@
 #!/usr/bin/env python3
+import typing
+
 import numpy as np
 
 
 class Action:
-    """Robot action.
+    """Robot action."""
 
-    The length of the attributes depends on the robot type.  In the following
-    ``n_joints`` is the number of joints and ``n_fingers`` the number of
-    fingers (e.g. for the TriFinger robots ``n_fingers = 3, n_joints = 9``).
+    #: Torque commands for the joints.
+    torque: np.ndarray
+    #: Position commands for the joints. Set to NaN to disable position control
+    #: for the corresponding joint.
+    position: np.ndarray
+    #: P-gain for position controller.  Set to NaN to use default gain for the
+    #: corresponding joint.
+    position_kp: np.ndarray
+    #: D-gain for position controller.  Set to NaN to use default gain for the
+    #: corresponding joint.
+    position_kd: np.ndarray
 
-    Attributes:
-        torque (array, shape=(n_joints,)):  Torque commands for the joints.
-        position (array, shape=(n_joints,)):  Position commands for the joints.
-            Set to NaN to disable position control for the corresponding joint.
-        kp (array, shape=(n_joints,)):  P-gain for position controller.  Set to
-            NaN to use default gain for the corresponding joint.
-        kd (array, shape=(n_joints,)):  D-gain for position controller.  Set to
-            NaN to use default gain for the corresponding joint.
-    """
-
-    def __init__(self, torque, position, kp=None, kd=None):
-        """Initialize
+    def __init__(
+        self,
+        torque: typing.Sequence[float],
+        position: typing.Sequence[float],
+        kp: typing.Optional[np.ndarray] = None,
+        kd: typing.Optional[np.ndarray] = None,
+    ):
+        """
+        All parameters are expected to be of same length *N*, where *N* is the
+        number of joints of the robot (e.g. 9 for TriFinger robots).
 
         Args:
             torque:  See :attr:`torque`.
             position:  See :attr:`position`.
-            kp:  See :attr:`kp`.
-            kd:  See :attr:`kd`.
+            kp:  See :attr:`position_kp`.  If not set, default gains are used
+                for all joints.
+            kd:  See :attr:`position_kd`.  If not set, default gains are used
+                for all joints.
         """
         self.torque = np.asarray(torque)
         self.position = np.asarray(position)
