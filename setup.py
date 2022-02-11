@@ -44,6 +44,7 @@ setup(
     license="BSD 3-Clause",
     install_requires=[
         "numpy >=1.19.1",
+        "scipy >=1.5.4",
         "pin >=2.4.7",  # pinocchio
         "pybullet >=3.0.8",
         "gym >=0.18.0",
