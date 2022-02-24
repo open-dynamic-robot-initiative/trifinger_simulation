@@ -13,6 +13,18 @@ from trifinger_simulation import pinocchio_utils
 from trifinger_simulation import finger_types_data
 
 
+# In NumPy versions >=1.17, np.clip got significantly slower.  The best
+# workaround currently seems to be to use the internal np.core.umath.clip
+# instead (see https://github.com/numpy/numpy/issues/14281).
+# np.core.umath.clip does not exist in versions <1.17 so in this case we fall
+# back to np.clip (which is okay because in these versions np.clip was still
+# good).
+try:
+    clip = np.core.umath.clip
+except AttributeError:
+    clip = np.clip
+
+
 def int_to_rgba(
     color: int, alpha: int = 0xFF
 ) -> typing.Tuple[float, float, float, float]:
@@ -361,7 +373,7 @@ class SimFinger:
         push_sensor_no_contact_value = 0.05
         observation.tip_force /= push_sensor_saturation_force_N
         observation.tip_force += push_sensor_no_contact_value
-        np.clip(observation.tip_force, 0.0, 1.0, out=observation.tip_force)
+        clip(observation.tip_force, 0.0, 1.0, out=observation.tip_force)
 
         return observation
 
@@ -473,7 +485,7 @@ class SimFinger:
             The torques that can safely be applied to the joints.
         """
         # clip desired torque to allowed range
-        applied_torques = np.clip(
+        applied_torques = clip(
             desired_torques,
             -max_torque,
             +max_torque,
@@ -482,7 +494,7 @@ class SimFinger:
         # apply velocity damping and clip again to make sure we stay in the
         # valid range
         applied_torques -= safety_kd * joint_velocities
-        applied_torques = np.clip(
+        applied_torques = clip(
             applied_torques,
             -max_torque,
             +max_torque,
