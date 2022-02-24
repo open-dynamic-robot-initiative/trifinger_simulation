@@ -394,7 +394,7 @@ class CalibratedCamera(BaseCamera):
 
         # normalize the image coordinates
         norm_points = (image_points - c) / f
-        norm_points_square = norm_points ** 2
+        norm_points_square = norm_points**2
         norm_points_xy = norm_points.prod(axis=1)
 
         # determining the radial distortion

@@ -27,21 +27,18 @@ _min_height = _CUBE_WIDTH / 2
 _max_height = 0.1
 
 
-_cube_corners = (
-    np.array(
-        [
-            [-1, -1, -1],
-            [-1, -1, +1],
-            [-1, +1, -1],
-            [-1, +1, +1],
-            [+1, -1, -1],
-            [+1, -1, +1],
-            [+1, +1, -1],
-            [+1, +1, +1],
-        ]
-    )
-    * (_CUBE_WIDTH / 2)
-)
+_cube_corners = np.array(
+    [
+        [-1, -1, -1],
+        [-1, -1, +1],
+        [-1, +1, -1],
+        [-1, +1, +1],
+        [+1, -1, -1],
+        [+1, -1, +1],
+        [+1, +1, -1],
+        [+1, +1, +1],
+    ]
+) * (_CUBE_WIDTH / 2)
 
 
 # base orientations of the cube (one for each face up)
