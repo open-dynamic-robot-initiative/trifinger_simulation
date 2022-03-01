@@ -83,3 +83,8 @@ please cite this repository and also the corresponding paper:
 .. _trifinger_simulation: https://github.com/open-dynamic-robot-initiative/trifinger_simulation
 .. _`TriFinger project website`: https://sites.google.com/view/trifinger
 .. _paper: https://arxiv.org/abs/2008.03596
+
+
+----
+
+Last rebuild of this documentation: |today|
