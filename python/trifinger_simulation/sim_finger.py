@@ -13,6 +13,18 @@ from trifinger_simulation import pinocchio_utils
 from trifinger_simulation import finger_types_data
 
 
+# In NumPy versions >=1.17, np.clip got significantly slower.  The best
+# workaround currently seems to be to use the internal np.core.umath.clip
+# instead (see https://github.com/numpy/numpy/issues/14281).
+# np.core.umath.clip does not exist in versions <1.17 so in this case we fall
+# back to np.clip (which is okay because in these versions np.clip was still
+# good).
+try:
+    clip = np.core.umath.clip
+except AttributeError:
+    clip = np.clip
+
+
 def int_to_rgba(
     color: int, alpha: int = 0xFF
 ) -> typing.Tuple[float, float, float, float]:
@@ -361,7 +373,7 @@ class SimFinger:
         push_sensor_no_contact_value = 0.05
         observation.tip_force /= push_sensor_saturation_force_N
         observation.tip_force += push_sensor_no_contact_value
-        np.clip(observation.tip_force, 0.0, 1.0, out=observation.tip_force)
+        clip(observation.tip_force, 0.0, 1.0, out=observation.tip_force)
 
         return observation
 
@@ -448,6 +460,48 @@ class SimFinger:
             physicsClientId=self._pybullet_client_id,
         )
 
+    @staticmethod
+    def _sanitise_torques(
+        desired_torques: typing.Sequence[float],
+        max_torque: float,
+        safety_kd: float,
+        joint_velocities: np.ndarray,
+    ) -> np.ndarray:
+        """
+        Perform a check on the torques being sent to be applied to
+        the motors so that they do not exceed the safety torque limit
+
+        Note: This static method exists for easier unit testing.
+
+        Args:
+            desired_torques: The torques desired to be applied to the motors.
+            max_torque: The maximum absolute joint torque that is allowed.
+            safety_kd: Kd gain for the velocity damping.  Set to zero to
+                disable the damping.
+            joint_velocities: Current joint velocities (used for the velocity
+                damping).
+
+        Returns:
+            The torques that can safely be applied to the joints.
+        """
+        # clip desired torque to allowed range
+        applied_torques = clip(
+            desired_torques,
+            -max_torque,
+            +max_torque,
+        )
+
+        # apply velocity damping and clip again to make sure we stay in the
+        # valid range
+        applied_torques -= safety_kd * joint_velocities
+        applied_torques = clip(
+            applied_torques,
+            -max_torque,
+            +max_torque,
+        )
+
+        return applied_torques
+
     def __safety_check_torques(
         self, desired_torques: typing.Sequence[float]
     ) -> np.ndarray:
@@ -462,12 +516,6 @@ class SimFinger:
             The torques that can be actually applied to the motors (and will be
             applied)
         """
-        applied_torques = np.clip(
-            np.asarray(desired_torques),
-            -self.max_motor_torque,
-            +self.max_motor_torque,
-        )
-
         current_joint_states = pybullet.getJointStates(
             self.finger_id,
             self.pybullet_joint_indices,
@@ -476,15 +524,13 @@ class SimFinger:
         current_velocity = np.array(
             [joint[1] for joint in current_joint_states]
         )
-        applied_torques -= self.safety_kd * current_velocity
 
-        applied_torques = np.clip(
-            np.asarray(applied_torques),
-            -self.max_motor_torque,
-            +self.max_motor_torque,
+        return self._sanitise_torques(
+            desired_torques,
+            self.max_motor_torque,
+            self.safety_kd,
+            current_velocity,
         )
-
-        return applied_torques
 
     def __compute_pd_control_torques(
         self,
