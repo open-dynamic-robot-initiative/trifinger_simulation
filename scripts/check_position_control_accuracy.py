@@ -25,8 +25,6 @@ if __name__ == "__main__":
         # spawn robot higher up to avoid collisions with the table
         robot_position_offset=(0, 0, 0.5),
     )
-    # set the finger to a reasonable start position
-    finger.reset_finger_positions_and_velocities([0, -0.7, -1.5])
 
     errors = []
     for _ in range(100):

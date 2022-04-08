@@ -11,8 +11,6 @@ if __name__ == "__main__":
         finger_type="fingerone",
         enable_visualization=True,
     )
-    # set the finger to a reasonable start position
-    finger.reset_finger_positions_and_velocities([0, -0.7, -1.5])
 
     # Send a constant torque to the joints, switching direction periodically.
     torque = np.array([0.0, 0.3, 0.3])

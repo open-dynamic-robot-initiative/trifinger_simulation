@@ -8,17 +8,47 @@ class FingerTypesDataFormat(typing.NamedTuple):
     number of fingers.
     """
 
+    #: Path to the URDF file (relative to the URDF base directory)
     urdf_file: str
+
+    #: Number of fingers the robot has.
     number_of_fingers: int
+
+    #: Initial joint positions.
+    initial_joint_positions: typing.Sequence[float]
 
 
 finger_types_data = {
-    "fingerone": FingerTypesDataFormat("finger.urdf", 1),
-    "trifingerone": FingerTypesDataFormat("trifinger.urdf", 3),
-    "fingeredu": FingerTypesDataFormat("edu/fingeredu.urdf", 1),
-    "trifingeredu": FingerTypesDataFormat("edu/trifingeredu.urdf", 3),
-    "fingerpro": FingerTypesDataFormat("pro/fingerpro.urdf", 1),
-    "trifingerpro": FingerTypesDataFormat("pro/trifingerpro.urdf", 3),
+    "fingerone": FingerTypesDataFormat(
+        urdf_file="finger.urdf",
+        number_of_fingers=1,
+        initial_joint_positions=[0, 0, 0],
+    ),
+    "trifingerone": FingerTypesDataFormat(
+        urdf_file="trifinger.urdf",
+        number_of_fingers=3,
+        initial_joint_positions=[0, -0.9, -1.7] * 3,
+    ),
+    "fingeredu": FingerTypesDataFormat(
+        urdf_file="edu/fingeredu.urdf",
+        number_of_fingers=1,
+        initial_joint_positions=[0, 0.9, -1.7],
+    ),
+    "trifingeredu": FingerTypesDataFormat(
+        urdf_file="edu/trifingeredu.urdf",
+        number_of_fingers=3,
+        initial_joint_positions=[0, 0.9, -1.7] * 3,
+    ),
+    "fingerpro": FingerTypesDataFormat(
+        urdf_file="pro/fingerpro.urdf",
+        number_of_fingers=1,
+        initial_joint_positions=[0, 0.9, -1.7],
+    ),
+    "trifingerpro": FingerTypesDataFormat(
+        urdf_file="pro/trifingerpro.urdf",
+        number_of_fingers=3,
+        initial_joint_positions=[0, 0.9, -1.7] * 3,
+    ),
 }
 
 
@@ -82,7 +112,24 @@ def get_number_of_fingers(name: str) -> int:
         Number of fingers.
 
     Raises:
-        ValueError: If *key* is not a valid finger type.
+        ValueError: If *name* is not a valid finger type.
     """
     check_finger_type(name)
     return finger_types_data[name].number_of_fingers
+
+
+def get_initial_joint_positions(name: str) -> typing.Sequence[float]:
+    """
+    Get initial joint positions of the specified finger type
+
+    Args:
+        name: Name of the finger type.
+
+    Returns:
+        Angular joint positions.
+
+    Raises:
+        ValueError: If *name* is not a valid finger type.
+    """
+    check_finger_type(name)
+    return finger_types_data[name].initial_joint_positions
