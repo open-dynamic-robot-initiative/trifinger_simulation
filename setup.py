@@ -29,7 +29,6 @@ setup(
         package_name + ".tasks.move_cube_on_trajectory",
         package_name + ".tasks.rearrange_dice",
     ],
-    package_dir={"": "python"},
     data_files=[
         (
             "share/ament_index/resource_index/packages",
