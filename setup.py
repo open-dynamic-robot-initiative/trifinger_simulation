@@ -46,7 +46,7 @@ setup(
         "scipy >=1.5.4",
         "pin >=2.4.7",  # pinocchio
         "pybullet >=3.0.8",
-        "gym ==0.21.0",  # newer versions don't have GoalEnv anymore
+        "gym ==0.18.0",
         "opencv-python >=4.2.0.34",
         "pyyaml >=5.3.1",
     ],
