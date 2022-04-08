@@ -671,6 +671,11 @@ class SimFinger:
         self.__load_stage()
         self.__disable_pybullet_velocity_control()
 
+        # set initial position based on robot type
+        self.reset_finger_positions_and_velocities(
+            finger_types_data.get_initial_joint_positions(self.finger_type)
+        )
+
     def __set_pybullet_params(self):
         """
         To change properties of the robot such as its mass, friction, damping,
