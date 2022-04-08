@@ -14,7 +14,10 @@ class TestSample(unittest.TestCase):
         env = cube_env.CubeEnv(cube_env.RandomInitializer(4))
 
         observation = env.reset()
-        self.assertTrue(env.observation_space.contains(observation))
+        self.assertTrue(
+            env.observation_space.contains(observation),
+            msg="observation: {}".format(observation),
+        )
 
         for i in range(3000):
             action = env.action_space.sample()
