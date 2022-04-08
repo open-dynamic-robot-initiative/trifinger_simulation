@@ -42,7 +42,6 @@ def main():
         time_step=time_step,
         enable_visualization=True,
     )
-    finger.reset_finger_positions_and_velocities([0.0, 0.9, -1.7] * 3)
 
     markers = []
     while True:
