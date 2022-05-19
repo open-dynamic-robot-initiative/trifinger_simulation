@@ -3,24 +3,19 @@
 import time
 import numpy as np
 
-from trifinger_simulation import sim_finger
+from trifinger_simulation import SimFinger
 
 
 if __name__ == "__main__":
-    time_step = 0.001
-
-    finger = sim_finger.SimFinger(
+    finger = SimFinger(
         finger_type="fingerone",
-        time_step=time_step,
         enable_visualization=True,
     )
-    # set the finger to a reasonable start position
-    finger.reset_finger_positions_and_velocities([0, -0.7, -1.5])
 
     # Send a constant torque to the joints, switching direction periodically.
     torque = np.array([0.0, 0.3, 0.3])
     while True:
-        time.sleep(time_step)
+        time.sleep(finger.time_step_s)
 
         action = finger.Action(torque=torque)
         t = finger.append_desired_action(action)

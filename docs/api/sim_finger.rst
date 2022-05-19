@@ -5,14 +5,16 @@ The SimFinger Class
 The :class:`~trifinger_simulation.SimFinger` class provides a simulation
 environment for the different finger robots: these include the TriFingerEdu, our
 reproducible open-source robot platform; the TriFingerPro, and the TriFingerOne.
+See :func:`trifinger_simulation.finger_types_data.get_valid_finger_types()` for
+a complete list of supported robots.
 
-.. note::
+The interface of :class:`~trifinger_simulation.SimFinger` mimics that of the
+real robot frontend (see :doc:`../simreal/simwithreal`),
+which makes it easy to transfer code between simulation and real robot.
 
-   for a complete list of supported robots,
-   call :meth:`trifinger_simulation.finger_types_data.get_valid_finger_types()`.
-
-Class :class:`~trifinger_simulation.TriFingerPlatform` is a wrapper around the
-:class:`~trifinger_simulation.SimFinger` class.
+When using the TriFinger platform, see also
+:class:`~trifinger_simulation.TriFingerPlatform`, which is a wrapper around
+:class:`~trifinger_simulation.SimFinger`.
 
 .. _`Desired vs Applied Action`:
 
@@ -37,32 +39,11 @@ API Documentation
 ------------------------------------------------------------------------------
 
 .. autoclass:: trifinger_simulation.Action
+   :members:
+   :member-order: bysource
 
 ------------------------------------------------------------------------------
 
 .. autoclass:: trifinger_simulation.Observation
-
-.. .. _simfinger-usage-example:
-.. 
-.. Usage Example
-.. =============
-.. 
-.. ``demo_plain_torque_control.py`` shows a minimal example of how to control the
-.. robot in simulation.
-.. 
-.. .. literalinclude:: ../examples/demo_plain_torque_control.py
-..    :lines: 2-
-.. 
-.. The ``SimFinger`` class is a wrapper around pyBullet that sets up the
-.. environment and provides an API to control the robot equivalent to the
-.. ``RobotFrontend`` from the ``robot_interfaces`` package.  In fact, it should be
-.. possible to simply replace the ``SimFinger`` instance with with an
-.. ``RobotFrontend`` instance to execute the same code on the real robot (in
-.. practice, there are a few things to consider, see
-.. :ref:`sec-simulation-vs-real-robot`).
-.. 
-.. Note that the next simulation step is computed in the
-.. ``append_desired_action()`` method.  So the state of the simulation only
-.. changes when calling this method.
-
-
+   :members:
+   :member-order: bysource

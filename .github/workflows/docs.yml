@@ -1,0 +1,43 @@
+# build docs using sphinx and deploy to branch gh-pages
+name: Pages
+on:
+  push:
+    branches:
+      - master
+
+# NOTE: for some reason that is not clear to me, `pip install` of required
+# packages (sphinx, etc.) was installing things to a weird location outside of
+# PATH when the repo is checked out directly in the working dir.  The
+# corresponding warning from pip:
+#
+#     WARNING: The scripts sphinx-apidoc, sphinx-autogen, sphinx-build and
+#     sphinx-quickstart are installed in
+#     '/home/runner/.local/lib/trifinger_simulation' which is not on PATH
+#
+# This resulted in the build to fail later one, as sphinx-build was not in the
+# PATH.
+#
+# This is solved by checking out to a subdirectory "trifinger_simulation".
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+    - uses: actions/checkout@v2
+      with:
+        path: trifinger_simulation
+        fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
+    - name: Build and commit documentation
+      uses: sphinx-notes/pages@2.0
+      with:
+        repository_path: trifinger_simulation
+        requirements_path: docs/requirements.txt
+    - name: Push changes
+      uses: ad-m/github-push-action@v0.6.0
+      with:
+        directory: trifinger_simulation
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: gh-pages

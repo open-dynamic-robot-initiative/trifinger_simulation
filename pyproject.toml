@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+
+[tool.black]
+line-length = 79
+
+[tool.pylint.messages_control]
+disable = "C0330, C0326"
+
+[tool.mypy]
+ignore_missing_imports = true
+no_implicit_optional = true

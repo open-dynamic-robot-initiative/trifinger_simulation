@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from numpy.testing.utils import assert_array_compare
+from numpy.testing import assert_array_compare
 import operator
 
 from trifinger_simulation import sample

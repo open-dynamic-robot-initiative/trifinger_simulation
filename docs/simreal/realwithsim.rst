@@ -1,6 +1,6 @@
-********************************************************************************
-Switching between the Real Robot and the Simulated Robot in the Real Robot API
-********************************************************************************
+**********************************************
+Simulation vs Real Robot in the Real Robot API
+**********************************************
 
 It is also possible to use this simulation through our software for interfacing with the
 real robot. So, you could
@@ -10,8 +10,9 @@ You can also access the simulated TriFinger through the real interface, as seen 
 The Real Robot API
 ======================
 
-The `robot_interfaces`_ sotware package provides an interface to the hardware of the real
-TriFinger robots. You can also find the documentation of this API `here <https://open-dynamic-robot-initiative.github.io/code_documentation/robot_interfaces/docs/doxygen/html/index.html>`_.
+The `robot_interfaces`_ sotware package provides an interface to the hardware
+of the real TriFinger robots.  See the documentation there fore more details.
+
 
 .. _`robot_interfaces with Simulation`:
 

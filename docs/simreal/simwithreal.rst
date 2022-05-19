@@ -1,6 +1,6 @@
-**********************************************************************************
-Switching between the Real Robot and the Simulated Robot in trifinger_simulation
-**********************************************************************************
+************************************************
+Simulation vs Real Robot in trifinger_simulation
+************************************************
 
 We have designed the entire `trifinger_simulation` package with the
 aim of making it possible to seamlessly transition to our software for
@@ -53,7 +53,7 @@ for ``SimFinger``. Inside ``RealFinger``, the robot actually gets created like t
     In order to use the ``RealFinger`` class, you would need to install additional packages like
     `robot_interfaces`_ and `robot_fingers`_ as you can see in the example above. These packages are
     not a part of the `trifinger_simulation conda environment`_. Instructions on how to install
-    these packages will follow soon in the :ref:`catbuild` section.
+    these packages will follow soon in the :ref:`colcon` section.
 
 .. note:: 
 

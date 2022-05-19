@@ -1,8 +1,8 @@
 .. _sec-simulation-vs-real-robot:
 
-********************************************************
-Switching between Non-real-time and Real-time Behaviour
-********************************************************
+*********************************************
+Differences between Simulation and Real Robot
+*********************************************
 
 The ``SimFinger`` class provides us with an API to control the TriFinger robots in
 simulation. Similarly, the `robot_interfaces::RobotFrontend`_ class provides an

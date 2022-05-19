@@ -5,3 +5,5 @@ __pycache__
 docs/_build
 
 *.swp
+build/
+.python-version

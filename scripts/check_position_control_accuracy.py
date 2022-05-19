@@ -13,7 +13,7 @@ from trifinger_simulation import sim_finger, sample
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--time-step", "-t", type=float, required=True)
-    parser.add_argument("--plot", action="store_true")
+    parser.add_argument("--plot", type=int)
     args = parser.parse_args()
 
     time_step = args.time_step
@@ -21,20 +21,25 @@ if __name__ == "__main__":
     finger = sim_finger.SimFinger(
         time_step=time_step,
         enable_visualization=True,
-        finger_type="fingerone",
+        finger_type="fingerpro",
+        # spawn robot higher up to avoid collisions with the table
+        robot_position_offset=(0, 0, 0.5),
     )
-    # set the finger to a reasonable start position
-    finger.reset_finger_positions_and_velocities([0, -0.7, -1.5])
 
     errors = []
     for _ in range(100):
         target_position = np.array(
-            sample.random_joint_positions(number_of_fingers=1)
+            sample.random_joint_positions(
+                number_of_fingers=1,
+                lower_bounds=[-0.33, 0.0, -2.7],
+                upper_bounds=[1.0, 1.57, 0.0],
+            )
         )
 
         action = finger.Action(position=target_position)
         positions = []
-        for _ in range(500):
+        steps = 1000
+        for _ in range(steps):
             t = finger.append_desired_action(action)
             observation = finger.get_observation(t)
             positions.append(observation.position)
@@ -42,12 +47,15 @@ if __name__ == "__main__":
         observation = finger.get_observation(t)
         error = np.abs(observation.position - target_position)
         errors.append(error)
-        print("Position error: {}".format(error))
+        # print("Target position: {}".format(target_position))
+        print("Position error:  {}".format(error))
 
-        if args.plot:
-            positions = np.vstack(positions)
-            plt.plot(positions[:, 1], "b")
-            plt.hlines(target_position[1], 0, 500)
+        if args.plot is not None:
+            target_line = target_position[args.plot]
+            position_array = np.vstack(positions)
+            plt.plot(position_array[:, args.plot], "b")
+            plt.hlines(target_line, 0, steps)
+            plt.axis((None, None, target_line - 0.1, target_line + 0.1))
             plt.show()
 
     print("==============================================================")

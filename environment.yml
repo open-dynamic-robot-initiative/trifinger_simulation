@@ -2,18 +2,7 @@ name: trifinger_simulation
 channels:
 - conda-forge
 dependencies:
-- python=3.6.9
-- numpy==1.19.1
-- pinocchio==2.4.7
-- pip==20.1.1
+- python=3.8.5
+- pip==21.0
 - pip:
-  - pybullet==2.8.4
-  - gym==0.17.2
-  - opencv-python==4.2.0.34
-  - catkin-pkg==0.4.22
-  - tensorflow==1.15.0
-  - pandas==0.24.2
-  - joblib==0.16.0
-  - stable-baselines==2.10.0
-  - casadi==3.5.5
-  
+  - -r file:requirements.txt

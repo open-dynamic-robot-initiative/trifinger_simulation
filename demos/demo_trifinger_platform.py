@@ -29,10 +29,26 @@ def main():
         metavar="FILENAME",
         help="If set, save the action log to the specified file.",
     )
+    parser.add_argument(
+        "--object",
+        type=str,
+        choices=["cube", "dice", "none"],
+        default="cube",
+        metavar="OBJECT_TYPE",
+        help="Which type of object to use (if any).",
+    )
     args = parser.parse_args()
 
+    object_type = trifinger_platform.ObjectType.NONE
+    if args.object == "cube":
+        object_type = trifinger_platform.ObjectType.COLORED_CUBE
+    elif args.object == "dice":
+        object_type = trifinger_platform.ObjectType.DICE
+
     platform = trifinger_platform.TriFingerPlatform(
-        visualization=True, enable_cameras=args.enable_cameras
+        visualization=True,
+        enable_cameras=args.enable_cameras,
+        object_type=object_type,
     )
 
     # Move the fingers to random positions so that the cube is kicked around
@@ -57,8 +73,12 @@ def main():
         robot_observation = platform.get_robot_observation(t)
         print("Finger0 Position: %s" % robot_observation.position[:3])
 
-        camera_observation = platform.get_camera_observation(t)
-        print("Cube Position: %s" % camera_observation.object_pose.position)
+        if args.object == "cube":
+            camera_observation = platform.get_camera_observation(t)
+            print(
+                "Cube Position: %s"
+                % camera_observation.filtered_object_pose.position
+            )
 
         if platform.enable_cameras:
             for i, name in enumerate(("camera60", "camera180", "camera300")):

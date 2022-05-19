@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>trifinger_simulation</name>
-  <version>1.0.2</version>
+  <version>1.3.0</version>
   <description>
       TriFinger Robot Simulation
   </description>
@@ -9,16 +9,14 @@
   <maintainer email="felix.widmaier@tue.mpg.de">Felix Widmaier</maintainer>
   <license>BSD 3-Clause</license>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
-
-  <build_depend>mpi_cmake_modules</build_depend>
+  <buildtool_depend>ament_python</buildtool_depend>
 
   <exec_depend>ament_index_python</exec_depend>
   <exec_depend>robot_properties_fingers</exec_depend>
 
-  <test_depend>ament_cmake_nose</test_depend>
+  <test_depend>python3-pytest</test_depend>
 
   <export>
-      <build_type>ament_cmake</build_type>
+      <build_type>ament_python</build_type>
   </export>
 </package>
