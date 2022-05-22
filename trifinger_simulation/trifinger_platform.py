@@ -111,19 +111,24 @@ class TriFingerPlatform:
 
     # for convenience, we also create the respective gym spaces
     spaces.robot_torque.gym = gym.spaces.Box(
-        low=spaces.robot_torque.low, high=spaces.robot_torque.high
+        low=spaces.robot_torque.low, high=spaces.robot_torque.high,
+        dtype=np.float64
     )
     spaces.robot_position.gym = gym.spaces.Box(
-        low=spaces.robot_position.low, high=spaces.robot_position.high
+        low=spaces.robot_position.low, high=spaces.robot_position.high,
+        dtype=np.float64
     )
     spaces.robot_velocity.gym = gym.spaces.Box(
-        low=spaces.robot_velocity.low, high=spaces.robot_velocity.high
+        low=spaces.robot_velocity.low, high=spaces.robot_velocity.high,
+        dtype=np.float64
     )
     spaces.object_position.gym = gym.spaces.Box(
-        low=spaces.object_position.low, high=spaces.object_position.high
+        low=spaces.object_position.low, high=spaces.object_position.high,
+        dtype=np.float64
     )
     spaces.object_orientation.gym = gym.spaces.Box(
-        low=spaces.object_orientation.low, high=spaces.object_orientation.high
+        low=spaces.object_orientation.low, high=spaces.object_orientation.high,
+        dtype=np.float64
     )
 
     def __init__(

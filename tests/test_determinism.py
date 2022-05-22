@@ -4,6 +4,7 @@ import numpy as np
 
 import gym
 
+import trifinger_simulation.gym_wrapper
 from trifinger_simulation.sim_finger import SimFinger
 
 
@@ -58,7 +59,7 @@ class TestSimulationDeterminisim(unittest.TestCase):
         horizon = 100
 
         env = gym.make(
-            "trifinger_simulation.gym_wrapper:reach-v0",
+            "reach-v0",
             control_rate_s=0.02,
             enable_visualization=False,
             finger_type="fingerone",
@@ -74,6 +75,7 @@ class TestSimulationDeterminisim(unittest.TestCase):
             rewards = []
 
             for i in range(num_samples):
+                env.reset()
                 env.finger.reset_finger_positions_and_velocities(
                     start_position
                 )
