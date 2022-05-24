@@ -7,7 +7,7 @@ package_name = "trifinger_simulation"
 def find_package_data(base_dir, data_dir):
     """Get list of all files in base_dir/data_dir, relative to base_dir."""
     paths = []
-    for (path, directories, filenames) in os.walk(
+    for (path, _directories, filenames) in os.walk(
         os.path.join(base_dir, data_dir)
     ):
         for filename in filenames:
@@ -73,9 +73,9 @@ setup(
     ],
     package_data={
         "": (
-            find_package_data("python/trifinger_simulation", "data")
+            find_package_data("trifinger_simulation", "data")
             + find_package_data(
-                "python/trifinger_simulation", "robot_properties_fingers"
+                "trifinger_simulation", "robot_properties_fingers"
             )
         )
     },
