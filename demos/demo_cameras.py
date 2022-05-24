@@ -1,12 +1,35 @@
 #!/usr/bin/env python3
-"""Demo showing how to add cameras in the TriFinger simulation."""
+"""Demo showing how to add cameras in the TriFinger simulation.
+
+Press "q" to exit.
+Images can be saved by specifying an output directory with `--save-dir` and then
+pressing "s" to save the current images.  Images will be named "camera{id}_##.png".
+Existing images that match this pattern will be overwritten!
+"""
 import argparse
 import pathlib
+import typing
 
 import numpy as np
 import cv2
 
 from trifinger_simulation import sim_finger, sample, camera
+
+
+def save_images(
+    images: typing.List[np.ndarray], output_dir: pathlib.Path, counter: int
+):
+    """Save images to the given directory, appending ``counter`` to the filenames.
+
+    Files will be saved to ``output_dir`` with the pattern
+    ``camera{id}_{counter:02d}.png``.
+    Existing files that match this name will be overwritten!
+    """
+    for i, name in enumerate(("camera60", "camera180", "camera300")):
+        filename = "{}_{:02d}.png".format(name, counter)
+        outpath = output_dir / filename
+        print("Save image {}".format(outpath))
+        cv2.imwrite(str(outpath), images[i])
 
 
 def main():
@@ -15,7 +38,7 @@ def main():
         "--robot",
         "-r",
         choices=["trifingerone", "trifingerpro"],
-        default="trifingerone",
+        default="trifingerpro",
         help="Which robot to use.  Default: %(default)s",
     )
     parser.add_argument(
@@ -34,6 +57,11 @@ def main():
             the camera id.  Default: %(default)s
         """,
     )
+    parser.add_argument(
+        "--save-dir",
+        type=pathlib.Path,
+        help="Directory to which images are saved when pressing 's'.",
+    )
     args = parser.parse_args()
 
     time_step = 0.004
@@ -51,6 +79,8 @@ def main():
         )
     else:
         cameras = camera.TriFingerCameras()
+
+    save_counter = 0
 
     # Move the fingers to random positions
     while True:
@@ -74,7 +104,14 @@ def main():
             cv2.imshow("camera180", images[1])
             cv2.imshow("camera300", images[2])
             key = cv2.waitKey(int(time_step * 1000))
-            if key == ord("q"):
+
+            if key == ord("s"):
+                if args.save_dir:
+                    save_images(images, args.save_dir, save_counter)
+                    save_counter += 1
+                else:
+                    print("ERROR: --save-dir not set, cannot save images.")
+            elif key == ord("q"):
                 return
 
 
