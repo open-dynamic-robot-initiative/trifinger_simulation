@@ -64,7 +64,7 @@ class ActionType(enum.Enum):
     TORQUE_AND_POSITION = enum.auto()
 
 
-class CubeTrajectoryEnv(gym.GoalEnv):
+class CubeTrajectoryEnv(gym.Env):
     """Gym environment for moving cubes with simulated TriFingerPro."""
 
     def __init__(
