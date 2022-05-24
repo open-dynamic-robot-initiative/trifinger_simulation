@@ -2,5 +2,6 @@
 __pycache__
 .cache
 *.egg-info
+*.swp
 docs/_build
 build/

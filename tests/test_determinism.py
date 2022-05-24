@@ -4,7 +4,6 @@ import numpy as np
 
 import gym
 
-import trifinger_simulation.gym_wrapper
 from trifinger_simulation.sim_finger import SimFinger
 
 
