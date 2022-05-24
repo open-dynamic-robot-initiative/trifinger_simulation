@@ -1,3 +1,4 @@
+from collections import deque
 import copy
 import enum
 import pickle
@@ -144,6 +145,7 @@ class TriFingerPlatform:
         enable_cameras: bool = False,
         time_step_s: float = 0.001,
         object_type: ObjectType = ObjectType.COLORED_CUBE,
+        camera_obs_delay: int = 1,
     ):
         """Initialize.
 
@@ -164,6 +166,8 @@ class TriFingerPlatform:
             object_type:  Which type of object to load.  This also influences
                 some other aspects: When using the cube, the camera observation
                 will contain an attribute ``object_pose``.
+            camera_obs_delay: Delay in camera update intervals between when the camera
+                observation is determined and when it is provided.
         """
         #: Camera rate in frames per second.  Observations of camera and
         #: object pose will only be updated with this rate.
@@ -177,6 +181,11 @@ class TriFingerPlatform:
 
         # first camera update in the first step
         self._next_camera_update_step = 0
+
+        # Deque storing last object poses recorded camera update step
+        # interval apart. The oldest one will be provided in the observation.
+        self._camera_obs_delay = camera_obs_delay
+        self._camera_obs_history = deque(maxlen=camera_obs_delay + 1)
 
         # Initialize robot, object and cameras
         # ====================================
@@ -258,6 +267,15 @@ class TriFingerPlatform:
     def _compute_camera_update_step_interval(self):
         return (1.0 / self.camera_rate_fps) / self._time_step
 
+    def _get_delayed_camera_obs(self):
+        """Get camera_obs delayed by camera_obs_delay."""
+        # Go back camera_obs_delay entries in deque if possible, else
+        # take oldest pose.
+        index = max(
+            -len(self._camera_obs_history), -self._camera_obs_delay - 1
+        )
+        return self._camera_obs_history[index]
+
     def append_desired_action(self, action):
         """
         Call :meth:`pybullet.SimFinger.append_desired_action` and add the
@@ -274,7 +292,10 @@ class TriFingerPlatform:
             self._next_camera_update_step += (
                 self._compute_camera_update_step_interval()
             )
-            self._camera_observation_t = self._get_current_camera_observation()
+            self._camera_obs_history.append(
+                self._get_current_camera_observation()
+            )
+            self._camera_observation_t = self._get_delayed_camera_obs()
 
         t = self.simfinger.append_desired_action(action)
 
@@ -283,17 +304,17 @@ class TriFingerPlatform:
         if has_camera_update:
             camera_timestamp_s = self.get_timestamp_ms(t) / 1000
             for i in range(len(self._camera_observation_t.cameras)):
-                self._camera_observation_t.cameras[
+                self._camera_obs_history[-1].cameras[
                     i
                 ].timestamp = camera_timestamp_s
 
             if self._has_object_tracking:
-                self._camera_observation_t.object_pose.timestamp = (
-                    camera_timestamp_s
-                )
-                self._camera_observation_t.filtered_object_pose.timestamp = (
-                    camera_timestamp_s
-                )
+                self._camera_obs_history[
+                    -1
+                ].object_pose.timestamp = camera_timestamp_s
+                self._camera_obs_history[
+                    -1
+                ].filtered_object_pose.timestamp = camera_timestamp_s
 
         # write the desired action to the log
         camera_obs = self.get_camera_observation(t)
