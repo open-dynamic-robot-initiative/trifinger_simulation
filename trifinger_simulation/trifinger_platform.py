@@ -186,7 +186,7 @@ class TriFingerPlatform:
         # Deque storing last object poses recorded camera update step
         # interval apart. The oldest one will be provided in the observation.
         self.camera_obs_delay = camera_obs_delay
-        self._camera_obs_history = deque(maxlen=camera_obs_delay + 1)
+        self._camera_obs_history = deque(maxlen=camera_obs_delay + 1)  # type: ignore
 
         # Initialize robot, object and cameras
         # ====================================
