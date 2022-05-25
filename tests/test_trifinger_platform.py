@@ -13,10 +13,16 @@ def test_timestamps():
     # ensure the camera frame rate is set to 10 Hz
     assert platform.camera_rate_fps == 10
 
+    # ensure that delay between when camera observation is taken and
+    # when it is provided is one camera update interval
+    assert platform.camera_obs_delay == 1
+
     # compute camera update step interval based on configured rates
     camera_update_step_interval = (
         1 / platform.camera_rate_fps
     ) / platform._time_step
+    # delay between image capture and camera observation in seconds
+    camera_obs_delay_s = platform.camera_obs_delay / platform.camera_rate_fps
     # robot time step in milliseconds
     time_step_ms = platform._time_step * 1000
 
@@ -59,9 +65,9 @@ def test_timestamps():
     assert nth_stamp_ms > second_stamp_ms
 
     camera_obs = platform.get_camera_observation(t)
-    assert nth_stamp_s == camera_obs.cameras[0].timestamp
-    assert nth_stamp_s == camera_obs.cameras[1].timestamp
-    assert nth_stamp_s == camera_obs.cameras[2].timestamp
+    assert nth_stamp_s == camera_obs.cameras[0].timestamp + camera_obs_delay_s
+    assert nth_stamp_s == camera_obs.cameras[1].timestamp + camera_obs_delay_s
+    assert nth_stamp_s == camera_obs.cameras[2].timestamp + camera_obs_delay_s
 
 
 def test_get_camera_observation_timeindex():

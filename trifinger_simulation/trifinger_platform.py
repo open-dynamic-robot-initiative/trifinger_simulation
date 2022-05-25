@@ -166,8 +166,9 @@ class TriFingerPlatform:
             object_type:  Which type of object to load.  This also influences
                 some other aspects: When using the cube, the camera observation
                 will contain an attribute ``object_pose``.
-            camera_obs_delay: Delay in camera update intervals between when the camera
-                observation is determined and when it is provided.
+            camera_obs_delay: Delay between when the camera observation
+                is determined and when it is provided (in camera update
+                intervals).
         """
         #: Camera rate in frames per second.  Observations of camera and
         #: object pose will only be updated with this rate.
@@ -184,7 +185,7 @@ class TriFingerPlatform:
 
         # Deque storing last object poses recorded camera update step
         # interval apart. The oldest one will be provided in the observation.
-        self._camera_obs_delay = camera_obs_delay
+        self.camera_obs_delay = camera_obs_delay
         self._camera_obs_history = deque(maxlen=camera_obs_delay + 1)
 
         # Initialize robot, object and cameras
@@ -271,9 +272,7 @@ class TriFingerPlatform:
         """Get camera_obs delayed by camera_obs_delay."""
         # Go back camera_obs_delay entries in deque if possible, else
         # take oldest pose.
-        index = max(
-            -len(self._camera_obs_history), -self._camera_obs_delay - 1
-        )
+        index = max(-len(self._camera_obs_history), -self.camera_obs_delay - 1)
         return self._camera_obs_history[index]
 
     def append_desired_action(self, action):
