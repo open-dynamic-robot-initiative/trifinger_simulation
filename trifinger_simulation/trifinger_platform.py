@@ -22,15 +22,13 @@ class ObjectType(enum.Enum):
 class ObjectPose:
     """A pure-python copy of trifinger_object_tracking::ObjectPose."""
 
-    __slots__ = ["position", "orientation", "timestamp", "confidence"]
+    __slots__ = ["position", "orientation", "confidence"]
 
     def __init__(self):
         #: array: Position (x, y, z) of the object.  Units are meters.
         self.position = np.zeros(3)
         #: array: Orientation of the object as (x, y, z, w) quaternion.
         self.orientation = np.zeros(4)
-        #: float: Timestamp when the pose was observed.
-        self.timestamp = 0.0
         #: float: Estimate of the confidence for this pose observation.
         self.confidence = 1.0
 
@@ -286,14 +284,6 @@ class TriFingerPlatform:
                 self._camera_observation_t.cameras[
                     i
                 ].timestamp = camera_timestamp_s
-
-            if self._has_object_tracking:
-                self._camera_observation_t.object_pose.timestamp = (
-                    camera_timestamp_s
-                )
-                self._camera_observation_t.filtered_object_pose.timestamp = (
-                    camera_timestamp_s
-                )
 
         # write the desired action to the log
         camera_obs = self.get_camera_observation(t)
