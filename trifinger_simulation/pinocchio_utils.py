@@ -28,8 +28,13 @@ class Kinematics:
         ]
 
     def forward_kinematics(
-        self, joint_positions, joint_velocities=None
-    ) -> typing.List[np.ndarray]:
+        self,
+        joint_positions: typing.List[np.ndarray],
+        joint_velocities: typing.Optional[np.ndarray] = None,
+    ) -> typing.Union[
+        typing.List[np.ndarray],
+        typing.Tuple[typing.List[np.ndarray], typing.List[np.ndarray]],
+    ]:
         """Compute end-effector positions (and velocities) for the given joint configuration.
 
         Args:
