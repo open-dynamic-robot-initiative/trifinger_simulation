@@ -27,42 +27,54 @@ class Kinematics:
             for link_name in tip_link_names
         ]
 
-    def forward_kinematics(self, joint_positions) -> typing.List[np.ndarray]:
-        """Compute end-effector positions for the given joint configuration.
+    def forward_kinematics(
+        self, joint_positions, joint_velocities=None
+    ) -> typing.List[np.ndarray]:
+        """Compute end-effector positions (and velocities) for the given joint configuration.
 
         Args:
             joint_positions:  Flat list of angular joint positions.
+            joint_positions (optional):  Flat list of angular joint
+                velocities.
 
         Returns:
-            List of end-effector positions. Each position is given as an
+            List of end-effector positions and, if join_velocities are provided,
+            end-effector velocities. Each position and velocity is given as an
             np.array with x,y,z positions.
         """
         pinocchio.framesForwardKinematics(
-            self.robot_model,
-            self.data,
-            joint_positions,
+            self.robot_model, self.data, joint_positions
         )
-
-        return [
+        positions = [
             np.asarray(self.data.oMf[link_id].translation).reshape(-1).tolist()
             for link_id in self.tip_link_ids
         ]
+        if joint_velocities is None:
+            return positions
+        else:
+            pinocchio.forwardKinematics(
+                self.robot_model, self.data, joint_positions, joint_velocities
+            )
+            velocities = []
+            for link_id in self.tip_link_ids:
+                local_to_world_transform = pinocchio.SE3.Identity()
+                local_to_world_transform.rotation = self.data.oMf[
+                    link_id
+                ].rotation
+                v_local = pinocchio.getFrameVelocity(
+                    self.robot_model, self.data, link_id
+                )
+                v_world = local_to_world_transform.act(v_local)
+                velocities.append(v_world.linear)
+            return positions, velocities
 
     def _inverse_kinematics_step(
         self, frame_id: int, xdes: np.ndarray, q0: np.ndarray
     ) -> typing.Tuple[np.ndarray, np.ndarray]:
         """Compute one IK iteration for a single finger."""
         dt = 1.0e-1
-        pinocchio.computeJointJacobians(
-            self.robot_model,
-            self.data,
-            q0,
-        )
-        pinocchio.framesForwardKinematics(
-            self.robot_model,
-            self.data,
-            q0,
-        )
+        pinocchio.computeJointJacobians(self.robot_model, self.data, q0)
+        pinocchio.framesForwardKinematics(self.robot_model, self.data, q0)
         Ji = pinocchio.getFrameJacobian(
             self.robot_model,
             self.data,
