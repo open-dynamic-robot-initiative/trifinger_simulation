@@ -22,15 +22,13 @@ class ObjectType(enum.Enum):
 class ObjectPose:
     """A pure-python copy of trifinger_object_tracking::ObjectPose."""
 
-    __slots__ = ["position", "orientation", "timestamp", "confidence"]
+    __slots__ = ["position", "orientation", "confidence"]
 
     def __init__(self):
         #: array: Position (x, y, z) of the object.  Units are meters.
         self.position = np.zeros(3)
         #: array: Orientation of the object as (x, y, z, w) quaternion.
         self.orientation = np.zeros(4)
-        #: float: Timestamp when the pose was observed.
-        self.timestamp = 0.0
         #: float: Estimate of the confidence for this pose observation.
         self.confidence = 1.0
 
@@ -144,6 +142,7 @@ class TriFingerPlatform:
         enable_cameras: bool = False,
         time_step_s: float = 0.001,
         object_type: ObjectType = ObjectType.COLORED_CUBE,
+        camera_delay_steps: int = 90,  # default based on real robot data
     ):
         """Initialize.
 
@@ -164,6 +163,11 @@ class TriFingerPlatform:
             object_type:  Which type of object to load.  This also influences
                 some other aspects: When using the cube, the camera observation
                 will contain an attribute ``object_pose``.
+            camera_delay_steps:  Number of time steps by which camera
+                observations are held back after they are generated.  This is
+                used to simulate the delay of the camera observation that is
+                happening on the real system due to processing (mostly the
+                object detection).
         """
         #: Camera rate in frames per second.  Observations of camera and
         #: object pose will only be updated with this rate.
@@ -175,8 +179,14 @@ class TriFingerPlatform:
         #: Simulation time step
         self._time_step = time_step_s
 
-        # first camera update in the first step
-        self._next_camera_update_step = 0
+        # Camera delay in robot time steps
+        self._camera_delay_steps = camera_delay_steps
+
+        # Time step at which the next camera update is triggered
+        self._next_camera_trigger_t = 0
+        # Time step at which the last triggered camera update is ready (used to
+        # simulate delay).
+        self._next_camera_observation_ready_t: typing.Optional[int] = None
 
         # Initialize robot, object and cameras
         # ====================================
@@ -249,14 +259,17 @@ class TriFingerPlatform:
         }
 
         # get initial camera observation
-        self._camera_observation_t = self._get_current_camera_observation(0)
+        self._delayed_camera_observation = (
+            self._get_current_camera_observation(0)
+        )
+        self._camera_observation_t = self._delayed_camera_observation
 
     def get_time_step(self):
         """Get simulation time step in seconds."""
         return self._time_step
 
-    def _compute_camera_update_step_interval(self):
-        return (1.0 / self.camera_rate_fps) / self._time_step
+    def _compute_camera_update_step_interval(self) -> int:
+        return round((1.0 / self.camera_rate_fps) / self._time_step)
 
     def append_desired_action(self, action):
         """
@@ -266,34 +279,16 @@ class TriFingerPlatform:
         Arguments/return value are the same as for
         :meth:`pybullet.SimFinger.append_desired_action`.
         """
-        # update camera and object observations only with the rate of the
-        # cameras
-        next_t = self.simfinger._t + 1
-        has_camera_update = next_t >= self._next_camera_update_step
-        if has_camera_update:
-            self._next_camera_update_step += (
-                self._compute_camera_update_step_interval()
-            )
-            self._camera_observation_t = self._get_current_camera_observation()
+        camera_triggered = self._camera_update()
 
         t = self.simfinger.append_desired_action(action)
 
         # The correct timestamp can only be acquired now that t is given.
-        # Update it accordingly in the object and camera observations
-        if has_camera_update:
+        # Update it accordingly in the camera observations
+        if camera_triggered:
             camera_timestamp_s = self.get_timestamp_ms(t) / 1000
-            for i in range(len(self._camera_observation_t.cameras)):
-                self._camera_observation_t.cameras[
-                    i
-                ].timestamp = camera_timestamp_s
-
-            if self._has_object_tracking:
-                self._camera_observation_t.object_pose.timestamp = (
-                    camera_timestamp_s
-                )
-                self._camera_observation_t.filtered_object_pose.timestamp = (
-                    camera_timestamp_s
-                )
+            for camera_ in self._delayed_camera_observation.cameras:
+                camera_.timestamp = camera_timestamp_s
 
         # write the desired action to the log
         camera_obs = self.get_camera_observation(t)
@@ -309,6 +304,37 @@ class TriFingerPlatform:
         self._action_log["actions"].append(copy.deepcopy(log_entry))
 
         return t
+
+    def _camera_update(self) -> bool:
+        # update camera and object observations only with the rate of the
+        # cameras
+        next_t = self.simfinger._t + 1
+
+        # only trigger if no observation is still in work
+        trigger_camera = (self._next_camera_observation_ready_t is None) and (
+            next_t >= self._next_camera_trigger_t
+        )
+
+        if trigger_camera:
+            self._delayed_camera_observation = (
+                self._get_current_camera_observation()
+            )
+            self._next_camera_trigger_t += (
+                self._compute_camera_update_step_interval()
+            )
+            self._next_camera_observation_ready_t = (
+                next_t + self._camera_delay_steps
+            )
+
+        is_camera_observation_ready = (
+            self._next_camera_observation_ready_t is not None
+        ) and (next_t >= self._next_camera_observation_ready_t)
+
+        if is_camera_observation_ready:
+            self._camera_observation_t = self._delayed_camera_observation
+            self._next_camera_observation_ready_t = None
+
+        return trigger_camera
 
     def _get_current_object_pose(self):
         assert self._has_object_tracking

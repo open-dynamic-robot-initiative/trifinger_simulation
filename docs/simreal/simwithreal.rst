@@ -30,7 +30,7 @@ the TriFinger,
 
 As you can see from the example above, you can control the TriFinger in the
 same way irrespective of whether its a simulated or real. You can see an example
-of this usage in our `TriFingerReach environment <https://github.com/open-dynamic-robot-initiative/trifinger_simulation/blob/master/python/trifinger_simulation/gym_wrapper/envs/finger_reach.py>`_.
+of this usage in our `TriFingerReach environment <https://github.com/open-dynamic-robot-initiative/trifinger_simulation/blob/master/trifinger_simulation/gym_wrapper/envs/trifinger_reach.py>`_.
 
 The ``RealFinger`` class exposes analogous methods to interact with the real robot as the ones
 for ``SimFinger``. Inside ``RealFinger``, the robot actually gets created like this:
