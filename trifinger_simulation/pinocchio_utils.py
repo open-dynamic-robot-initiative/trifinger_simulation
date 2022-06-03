@@ -39,13 +39,17 @@ class Kinematics:
 
         Args:
             joint_positions:  Flat list of angular joint positions.
-            joint_positions (optional):  Flat list of angular joint
+            joint_velocities: Optional. Flat list of angular joint
                 velocities.
 
         Returns:
-            List of end-effector positions and, if join_velocities are provided,
-            end-effector velocities. Each position and velocity is given as an
-            np.array with x,y,z positions.
+            If only joint positions are given: List of end-effector
+            positions. Each position is given as an np.array with x,y,z
+            positions.
+            If joint positions and velocities are given: Tuple with
+            (i) list of end-effector positions and (ii) list of
+            end-effector velocities. Each position and velocity is given
+            as an np.array with x,y,z components.
         """
         pinocchio.framesForwardKinematics(
             self.robot_model, self.data, joint_positions
