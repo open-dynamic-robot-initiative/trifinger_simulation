@@ -39,7 +39,14 @@ setup(
     zip_safe=False,  # <- TODO Could this be True?
     maintainer="Felix Widmaier",
     maintainer_email="felix.widmaier@tue.mpg.de",
+    url="https://open-dynamic-robot-initiative.github.io/trifinger_simulation",
     description="TriFinger Robot Simulation",
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "License :: OSI Approved :: BSD License",
+        "Programming Language :: Python :: 3",
+        "Topic :: Scientific/Engineering",
+    ],
     license="BSD 3-Clause",
     install_requires=[
         "numpy >=1.19.1",
