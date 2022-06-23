@@ -1,0 +1,19 @@
+trifinger_simulation Changelog
+==============================
+
+Version 1.4.0
+-------------
+
+- Nicer rendering of the boundary (#68)
+- Change initial pose of camera in PyBullet GUI (#68)
+- Set proper initial position based on finger type (#79)
+- Fix incompatibility with newer Gym versions (#81)
+- Add option to save images to `demo_cameras` (#82)
+- Simulate delay of camera observations (#84)
+- Optionally compute tip velocities in forward kinematics (#85)
+- Cleanup the code and add more unit tests
+
+Version 1.3.0
+-------------
+
+There is no changelog for this or earlier versions.

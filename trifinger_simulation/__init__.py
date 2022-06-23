@@ -1,3 +1,5 @@
+__version__ = "1.4.0"
+
 import pathlib
 
 # import some important classes to the main module
