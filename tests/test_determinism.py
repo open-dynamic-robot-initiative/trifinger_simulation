@@ -4,6 +4,7 @@ import numpy as np
 
 import gym
 
+import trifinger_simulation.gym_wrapper  # noqa
 from trifinger_simulation.sim_finger import SimFinger
 
 
@@ -31,7 +32,7 @@ class TestSimulationDeterminisim(unittest.TestCase):
 
         def run():
             finger.reset_finger_positions_and_velocities(start_position)
-            for i in range(30):
+            for _ in range(30):
                 finger._set_desired_action(action)
                 finger._step_simulation()
             return finger._get_latest_observation()
