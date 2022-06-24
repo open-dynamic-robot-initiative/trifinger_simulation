@@ -125,6 +125,7 @@ class FingerSpaces:
         return spaces.Box(
             low=np.array(observation_lower_bounds),
             high=np.array(observation_higher_bounds),
+            dtype=np.float64,
         )
 
     def get_unscaled_action_space(self):
@@ -134,7 +135,7 @@ class FingerSpaces:
         return spaces.Box(
             low=self.action_bounds["low"],
             high=self.action_bounds["high"],
-            dtype=np.float32,
+            dtype=np.float64,
         )
 
     def get_scaled_observation_space(self):
@@ -146,6 +147,7 @@ class FingerSpaces:
         return spaces.Box(
             low=-np.ones_like(unscaled_observation_space.low),
             high=np.ones_like(unscaled_observation_space.high),
+            dtype=np.float64,
         )
 
     def get_scaled_action_space(self):
@@ -156,4 +158,5 @@ class FingerSpaces:
         return spaces.Box(
             low=-np.ones(3 * self.num_fingers),
             high=np.ones(3 * self.num_fingers),
+            dtype=np.float64,
         )

@@ -5,6 +5,7 @@ master
 ------
 
 - Switch from setup.py to setup.cfg
+- Set dtypes of gym spaces to np.float64
 
 
 Version 1.4.0
