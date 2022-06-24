@@ -13,58 +13,48 @@ Stand-alone installation using pip
 .. note::
 
    We are developing for Python 3.8.  Other versions may work as well but are
-   not officially supported.
+   not officially tested.
 
 
-Get the source from GitHub::
-
-    $ git clone https://github.com/open-dynamic-robot-initiative/trifinger_simulation
-
-
-To avoid version conflicts with other packages on your system, it is
-recommended to install the package in an isolated environment like venv or
-conda.
-
-
-Using venv
-~~~~~~~~~~
-
-You may first need to install ``venv``.  E.g. on Ubuntu: ``sudo apt install
-python3-venv``.  Then create a new environment and install the package and its
-dependencies
+To install the latest release:
 
 .. code-block:: bash
 
-    $ python3 -m venv ~/venv_trifinger_simulation
-    $ . ~/venv_trifinger_simulation/bin/activate
+   $ pip install trifinger-simulation
 
-    $ pip install --upgrade pip  # make sure the latest version of pip is used
+If you run into errors during installation, you may need to update pip first:
 
+.. code-block:: bash
+
+   $ pip install --upgrade pip
+
+
+.. note::
+
+    To avoid version conflicts with other packages on your system, it is
+    recommended to install the package in an isolated environment like venv or
+    conda.  For example when using venv:
+
+    .. code-block:: bash
+
+        $ python3 -m venv ~/venv_trifinger_simulation
+        $ . ~/venv_trifinger_simulation/bin/activate
+
+        $ pip install --upgrade pip  # make sure the latest version of pip is used
+        $ pip install trifinger-simulation
+
+
+Installation from source
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To install the latest version from source, follow the same instructions as above
+but replace ``pip install trifinger-simulation`` with
+
+.. code-block:: bash
+
+    $ git clone https://github.com/open-dynamic-robot-initiative/trifinger_simulation
     $ cd trifinger_simulation
-    $ pip install -r requirements.txt
     $ pip install .
-
-
-Using conda
-~~~~~~~~~~~
-
-If not already done, install ``conda`` (Miniconda is sufficient).  To do so, see the
-`official documentation <https://docs.conda.io/projects/conda/en/latest/user-guide/install/>`_.
-
-We tested with conda version 4.8.3.
-
-1. Create the conda environment::
-
-       $ conda env create -f environment.yml
-
-2. Activate the environment (you may have to do this in a new terminal)::
-
-       $ conda activate trifinger_simulation
-
-3. Install the trifinger_simulation package::
-
-       $ cd trifinger_simulation
-       $ python3 -m pip install .
 
 
 Test Installation
