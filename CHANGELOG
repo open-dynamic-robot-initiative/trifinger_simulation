@@ -1,8 +1,8 @@
 trifinger_simulation Changelog
 ==============================
 
-master
-------
+Version 1.4.1
+-------------
 
 - Switch from setup.py to setup.cfg
 - Set dtypes of gym spaces to np.float64
