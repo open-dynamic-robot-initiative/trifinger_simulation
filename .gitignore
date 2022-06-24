@@ -1,3 +1,4 @@
+*~
 *.pyc
 __pycache__
 .cache
@@ -5,3 +6,4 @@ __pycache__
 *.swp
 docs/_build
 build/
+dist/
