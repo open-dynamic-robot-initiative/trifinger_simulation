@@ -1,6 +1,12 @@
 trifinger_simulation Changelog
 ==============================
 
+master
+------
+
+- Add py.typed marker for mypy
+
+
 Version 1.4.1
 -------------
 
