@@ -31,13 +31,33 @@ jobs:
         path: trifinger_simulation
         fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
     - name: Build and commit documentation
-      uses: sphinx-notes/pages@2.0
+      uses: sphinx-notes/pages@v2
       with:
         repository_path: trifinger_simulation
         requirements_path: docs/requirements.txt
-    - name: Push changes
-      uses: ad-m/github-push-action@v0.6.0
+
+    - name: Upload documentation artifact
+      uses: actions/upload-pages-artifact@v1
       with:
-        directory: trifinger_simulation
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: gh-pages
+        path: trifinger_simulation
+
+  deploy:
+    # Add a dependency to the build job
+    needs: build
+
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    # Specify runner + deployment step
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
