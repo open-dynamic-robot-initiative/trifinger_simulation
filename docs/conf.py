@@ -98,11 +98,11 @@ autodoc_member_order = "groupwise"
 # == intersphinx ==
 intersphinx_mapping = {
     "robot_fingers": (
-        "http://people.tuebingen.mpg.de/mpi-is-software/robotfingers/docs/robot_fingers",
+        "https://open-dynamic-robot-initiative.github.io/robot_fingers",
         None,
     ),
     "robot_interfaces": (
-        "http://people.tuebingen.mpg.de/mpi-is-software/robotfingers/docs/robot_interfaces",
+        "https://open-dynamic-robot-initiative.github.io/robot_interfaces",
         None,
     ),
 }
