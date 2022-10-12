@@ -1,4 +1,5 @@
-name: Tests
+# Install package via pip and run tests
+name: Tests (pip install)
 
 on:
   push:
