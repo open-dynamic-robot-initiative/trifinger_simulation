@@ -21,7 +21,7 @@ jobs:
           pip install .
       - name: Run mypy
         run: |
-          python3 -m mypy .
+          python3 -m mypy --exclude=build .
 
   flake8:
     runs-on: ubuntu-latest
