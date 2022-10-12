@@ -1,6 +1,7 @@
 import copy
 import os
 import numpy as np
+import numpy.typing as npt
 import typing
 
 import pybullet
@@ -20,7 +21,7 @@ from trifinger_simulation import finger_types_data
 # back to np.clip (which is okay because in these versions np.clip was still
 # good).
 try:
-    clip = np.core.umath.clip
+    clip = np.core.umath.clip  # type: ignore
 except AttributeError:
     clip = np.clip
 
@@ -119,7 +120,9 @@ class SimFinger:
         )
 
     def Action(
-        self, torque: np.ndarray = None, position: np.ndarray = None
+        self,
+        torque: typing.Optional[npt.ArrayLike] = None,
+        position: typing.Optional[npt.ArrayLike] = None,
     ) -> trifinger_simulation.Action:
         """
         Fill in the fields of the action structure.
@@ -360,7 +363,7 @@ class SimFinger:
             directed_contact_force = 0.0
             try:
                 for contact_point in finger_contact_states[i]:
-                    directed_contact_force += np.array(contact_point[9])
+                    directed_contact_force += contact_point[9]
             except IndexError:
                 pass
             tip_forces.append(directed_contact_force)
@@ -462,9 +465,9 @@ class SimFinger:
 
     @staticmethod
     def _sanitise_torques(
-        desired_torques: typing.Sequence[float],
+        desired_torques: npt.ArrayLike,
         max_torque: float,
-        safety_kd: float,
+        safety_kd: typing.Union[float, npt.ArrayLike],
         joint_velocities: np.ndarray,
     ) -> np.ndarray:
         """
@@ -476,8 +479,9 @@ class SimFinger:
         Args:
             desired_torques: The torques desired to be applied to the motors.
             max_torque: The maximum absolute joint torque that is allowed.
-            safety_kd: Kd gain for the velocity damping.  Set to zero to
-                disable the damping.
+            safety_kd: Kd gain for the velocity damping (either a single scalar or an
+                array of the same shape as joint_velocities).  Set to zero to disable
+                the damping.
             joint_velocities: Current joint velocities (used for the velocity
                 damping).
 
@@ -503,7 +507,7 @@ class SimFinger:
         return applied_torques
 
     def __safety_check_torques(
-        self, desired_torques: typing.Sequence[float]
+        self, desired_torques: npt.ArrayLike
     ) -> np.ndarray:
         """
         Perform a check on the torques being sent to be applied to
@@ -534,9 +538,9 @@ class SimFinger:
 
     def __compute_pd_control_torques(
         self,
-        joint_positions: typing.Sequence[float],
-        kp: typing.Optional[typing.Sequence[float]] = None,
-        kd: typing.Optional[typing.Sequence[float]] = None,
+        joint_positions: npt.ArrayLike,
+        kp: typing.Optional[npt.ArrayLike] = None,
+        kd: typing.Optional[npt.ArrayLike] = None,
     ) -> typing.List[float]:
         """
         Compute torque command to reach given target position using a PD
@@ -551,6 +555,8 @@ class SimFinger:
             List of torques to be sent to the joints of the finger in order to
             reach the specified joint_positions.
         """
+        joint_positions = np.asarray(joint_positions)
+
         if kp is None:
             kp = self.position_gains
         if kd is None:
@@ -857,7 +863,7 @@ class SimFinger:
                     pybullet_client_id=self._pybullet_client_id,
                 )
         elif self.finger_type == "trifingerpro":
-            table_colour = np.array((53.0, 58.0, 50.0, 255.0)) / 255.0
+            table_colour = (53.0 / 255.0, 58.0 / 255.0, 50.0 / 255.0, 1.0)
             high_border_colour = int_to_rgba(0x8F8D95)
 
             # use a simple cuboid for the table
