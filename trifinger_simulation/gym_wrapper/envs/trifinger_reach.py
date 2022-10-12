@@ -182,7 +182,6 @@ class TriFingerReach(gym.Env):
         else:
             self.next_start_time = None
 
-        self.seed()
         self.reset()
 
     def _compute_reward(self, observation, goal):
