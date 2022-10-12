@@ -2,6 +2,7 @@
 import typing
 
 import numpy as np
+import numpy.typing as npt
 
 
 class Action:
@@ -21,10 +22,10 @@ class Action:
 
     def __init__(
         self,
-        torque: typing.Sequence[float],
-        position: typing.Sequence[float],
-        kp: typing.Optional[np.ndarray] = None,
-        kd: typing.Optional[np.ndarray] = None,
+        torque: npt.ArrayLike,
+        position: npt.ArrayLike,
+        kp: typing.Optional[npt.ArrayLike] = None,
+        kd: typing.Optional[npt.ArrayLike] = None,
     ):
         """
         All parameters are expected to be of same length *N*, where *N* is the
@@ -44,9 +45,9 @@ class Action:
         if kp is None:
             self.position_kp = np.full_like(position, np.nan, dtype=float)
         else:
-            self.position_kp = kp
+            self.position_kp = np.asarray(kp)
 
         if kd is None:
             self.position_kd = np.full_like(position, np.nan, dtype=float)
         else:
-            self.position_kd = kd
+            self.position_kd = np.asarray(kd)

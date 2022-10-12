@@ -61,9 +61,9 @@ def main(log_directory: pathlib.Path):
         print("\n=======================================================\n")
 
         report = {
-            "mean": np.mean(rewards),
-            "median": np.median(rewards),
-            "std": np.std(rewards),
+            "mean": float(np.mean(rewards)),
+            "median": float(np.median(rewards)),
+            "std": float(np.std(rewards)),
         }
         print(
             "reward median: {:.3f},\tmean: {:.3f},\tstd: {:.3f}\n".format(

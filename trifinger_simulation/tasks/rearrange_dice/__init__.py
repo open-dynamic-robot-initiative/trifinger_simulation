@@ -30,6 +30,7 @@ import random
 import typing
 
 import numpy as np
+import numpy.typing as npt
 import cv2
 from scipy.spatial.transform import Rotation
 
@@ -60,8 +61,7 @@ N_CELLS_PER_ROW = int(2 * ARENA_RADIUS / DIE_WIDTH)
 
 # Helper types for type hints
 Cell = typing.Tuple[int, int]
-Position = typing.Sequence[float]
-Goal = typing.Sequence[Position]
+Goal = typing.Sequence[typing.Sequence[float]]
 
 
 # random number generator used in this module
@@ -92,7 +92,7 @@ class NumpyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def _cell_center_position(cell: Cell) -> Position:
+def _cell_center_position(cell: Cell) -> typing.Tuple[float, float, float]:
     """Get 3d position of the cell centre."""
     n_half = N_CELLS_PER_ROW / 2
     px = (cell[0] - n_half) * DIE_WIDTH + DIE_WIDTH / 2
@@ -103,8 +103,8 @@ def _cell_center_position(cell: Cell) -> Position:
 
 
 def _get_cell_corners_2d(
-    pos: Position,
-) -> typing.Tuple[Position, ...]:
+    pos: npt.ArrayLike,
+) -> typing.Tuple[npt.NDArray, ...]:
     """Get 2d positions of the corners of the cell at the given position."""
     d = DIE_WIDTH / 2
     nppos = np.asarray(pos)[:2]
@@ -118,7 +118,7 @@ def _get_cell_corners_2d(
 
 
 def _get_cell_corners_3d(
-    pos: Position, with_tolerance: bool = False
+    pos: npt.ArrayLike, with_tolerance: bool = False
 ) -> np.ndarray:
     """Get 3d positions of the corners of the cell at the given position.
 
@@ -166,12 +166,12 @@ FACE_CORNERS = (
 )
 
 
-def _is_cell_position_inside_arena(pos: Position) -> bool:
+def _is_cell_position_inside_arena(pos: npt.ArrayLike) -> bool:
     """Check if cell is inside the arena circle."""
     corners = _get_cell_corners_2d(pos)
 
     corner_dists_to_center = np.array([np.linalg.norm(c) for c in corners])
-    return np.all(corner_dists_to_center <= ARENA_RADIUS)
+    return bool(np.all(corner_dists_to_center <= ARENA_RADIUS))
 
 
 def _is_cell_inside_arena(cell: Cell) -> bool:
