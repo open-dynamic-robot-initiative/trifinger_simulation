@@ -317,9 +317,11 @@ def evaluate_state(goal_pose, actual_pose, difficulty):
         goal_direction_vector = goal_rot.apply(y_axis)
         actual_direction_vector = actual_rot.apply(y_axis)
 
-        orientation_error = np.arccos(
-            goal_direction_vector.dot(actual_direction_vector)
-        )
+        vector_dot_product = goal_direction_vector.dot(actual_direction_vector)
+        # round a bit to get rid of numerical errors (to avoid we get something like
+        # 1.0000000000000002 instead of 1.0, which would kill arccos).
+        vector_dot_product = round(vector_dot_product, ndigits=10)
+        orientation_error = np.arccos(vector_dot_product)
 
         # scale both position and orientation error to be within [0, 1] for
         # their expected ranges
