@@ -15,10 +15,10 @@ on: pull_request
 
 jobs:
   build_and_test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # checkout to subdirectory, otherwise the tests fail for some reason
           path: trifinger_simulation

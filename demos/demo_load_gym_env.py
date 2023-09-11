@@ -23,7 +23,6 @@ def main():
         )
 
     elif args.env == "reach":
-
         smoothing_params = {
             "num_episodes": 700,
             "start_after": 3.0 / 7.0,

@@ -98,7 +98,6 @@ def main():
             ax = [ax]
 
         for title, ylabel, a, y in plains:
-
             for i in range(start, end):
                 data = episodes[i]
 

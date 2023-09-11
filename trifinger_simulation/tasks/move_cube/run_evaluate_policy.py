@@ -87,7 +87,6 @@ def run_evaluate_policy(sample: TestSample):
 
 
 def main(output_directory: str):
-
     if not os.path.isdir(output_directory):
         print(
             "'{}' does not exist or is not a directory.".format(

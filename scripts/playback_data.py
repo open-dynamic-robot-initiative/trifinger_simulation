@@ -61,7 +61,6 @@ def main_finger(finger_type, data_file):
 
 
 def trifinger_goal_space_transforms(finger_type, data):
-
     rot_z_120 = tf.euler_matrix(0, 0, np.deg2rad(-120))[:3, :3]
 
     if finger_type == "trifingerone":
@@ -89,7 +88,6 @@ def trifinger_goal_space_transforms(finger_type, data):
 
 
 def main_trifinger(finger_type, data_file_0, data_file_120, data_file_240):
-
     finger = SimFinger(enable_visualization=True, finger_type=finger_type)
     goal_marker = visual_objects.Marker(number_of_goals=3)
 

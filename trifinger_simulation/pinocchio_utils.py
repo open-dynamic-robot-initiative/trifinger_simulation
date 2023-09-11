@@ -1,8 +1,25 @@
 """Wrappers around Pinocchio for easy forward and inverse kinematics."""
 import typing
+import warnings
 
 import numpy as np
 import pinocchio
+
+
+warnings.warn(
+    "The pinocchio_utils module has been moved to the robot_properties_fingers package."
+    "  Please update your code accordingly.  This version in trifinger_simulation is"
+    " deprecated and will be removed soon!",
+    FutureWarning,
+    stacklevel=1,
+)
+
+
+# === IMPORTANT: This class is deprecated!  See warning above.
+# The implementation here is kept for now, as robot_properties_fingers is not yet
+# pip-installable but should be removed as soon as possible.
+# Please do not make any changes here anymore but instead add new features/fixes/etc. in
+# robot_properties_fingers.
 
 
 class Kinematics:

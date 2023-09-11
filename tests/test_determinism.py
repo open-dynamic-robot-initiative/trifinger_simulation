@@ -45,7 +45,6 @@ class TestSimulationDeterminisim(unittest.TestCase):
         np.testing.assert_array_equal(first_run.velocity, second_run.velocity)
 
     def test_reach_rollouts(self):
-
         smoothing_params = {
             "num_episodes": 10,
             # ratio of total training time after which smoothing starts
