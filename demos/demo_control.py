@@ -44,7 +44,6 @@ def main():
         position_goals = visual_objects.Marker(number_of_goals=num_fingers)
 
     while True:
-
         if args.control_mode == "position":
             desired_joint_positions = np.array(
                 sample.random_joint_positions(number_of_fingers=num_fingers)

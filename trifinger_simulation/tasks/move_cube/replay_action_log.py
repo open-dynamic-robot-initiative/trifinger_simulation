@@ -28,7 +28,6 @@ from trifinger_simulation.tasks import move_cube
 
 
 def replay_action_log(logfile, difficulty, initial_pose, goal_pose):
-
     with open(logfile, "rb") as fh:
         log = pickle.load(fh)
 

@@ -454,7 +454,6 @@ class SimFinger:
             )
 
     def __set_pybullet_motor_torques(self, motor_torques):
-
         pybullet.setJointMotorControlArray(
             bodyUniqueId=self.finger_id,
             jointIndices=self.pybullet_joint_indices,
@@ -836,7 +835,6 @@ class SimFinger:
             table_colour = (0.18, 0.15, 0.19, 1.0)
             high_border_colour = (0.73, 0.68, 0.72, 1.0)
             if high_border:
-
                 # use a simple cuboid for the table
                 self._table_id = collision_objects.Cuboid(
                     position=(0, 0, -0.005),
