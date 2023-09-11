@@ -1,21 +1,34 @@
 trifinger_simulation Changelog
 ==============================
 
-master
-------
+All notable changes to this project will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
+(at least for versions > 1.4.1).
+
+
+## [Unreleased]
+### Added
 - Add py.typed marker for mypy
+- screenshot_mode.py to run simulation without visualisations (for nicer screenshots).
+
+### Deprecated
+- The `pinocchio_utils` module is deprecated and will be removed in a future release.
+  Use the one from robot_properties_fingers instead.
+
+### Fixed
+- Fixed a rounding error that occasionally resulted in NaN values when evaluating states
+  in the "move_cuboid" task.
 
 
-Version 1.4.1
--------------
+## 1.4.1 - 2022-06-24
 
 - Switch from setup.py to setup.cfg
 - Set dtypes of gym spaces to np.float64
 
 
-Version 1.4.0
--------------
+## 1.4.0 - 2022-06-23
 
 - Nicer rendering of the boundary (#68)
 - Change initial pose of camera in PyBullet GUI (#68)
@@ -26,7 +39,6 @@ Version 1.4.0
 - Optionally compute tip velocities in forward kinematics (#85)
 - Cleanup the code and add more unit tests
 
-Version 1.3.0
--------------
+## 1.3.0 - 2021-08-04
 
 There is no changelog for this or earlier versions.
