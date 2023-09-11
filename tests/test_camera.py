@@ -76,7 +76,7 @@ def test_camera_parameters_load():
     with open(config_file, "r") as f:
         params = sim_camera.CameraParameters.load(f)
 
-    assert type(params) == sim_camera.CameraParameters
+    assert type(params) is sim_camera.CameraParameters
     assert params.name == "camera180"
     assert params.width == 720
     assert params.height == 540
