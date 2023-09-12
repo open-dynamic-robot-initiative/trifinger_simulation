@@ -1,5 +1,5 @@
 # build docs using sphinx and deploy to branch gh-pages
-name: Pages
+name: Documentation
 on:
   push:
     branches:
