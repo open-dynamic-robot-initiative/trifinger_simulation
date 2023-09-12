@@ -26,30 +26,8 @@ on:
 # This is solved by checking out to a subdirectory "trifinger_simulation".
 
 jobs:
-  build:
+  build_and_deploy:
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-    - uses: actions/checkout@v2
-      with:
-        path: trifinger_simulation
-        fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
-    - name: Build and commit documentation
-      uses: sphinx-notes/pages@v2
-      with:
-        repository_path: trifinger_simulation
-        requirements_path: docs/requirements.txt
-
-    - name: Upload documentation artifact
-      uses: actions/upload-pages-artifact@v1
-      with:
-        path: trifinger_simulation
-
-  deploy:
-    # Add a dependency to the build job
-    needs: build
 
     # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
     permissions:
@@ -61,9 +39,19 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    # Specify runner + deployment step
-    runs-on: ubuntu-latest
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v1
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - uses: actions/checkout@v4
+        with:
+          path: trifinger_simulation
+          fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
+
+      - name: Build and deploy documentation
+        uses: sphinx-notes/pages@v3
+        with:
+          checkout: false  # checkout is done manually above (see NOTE for reason)
+          repository_path: trifinger_simulation
+          requirements_path: docs/requirements.txt
