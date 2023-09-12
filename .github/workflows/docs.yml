@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - master
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish to GitHub Pages (disable to only test the build)"
+        type: boolean
+        default: false
 
 # NOTE: for some reason that is not clear to me, `pip install` of required
 # packages (sphinx, etc.) was installing things to a weird location outside of
