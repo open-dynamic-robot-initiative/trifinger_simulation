@@ -1,6 +1,5 @@
 gym==0.18.0
-numpy==1.19.5; python_version<"3.8"
-numpy==1.20.3; python_version>="3.8"
+numpy==1.20.3
 opencv-python==4.2.0.34
 pin==2.6.0
 pybullet==3.0.8
