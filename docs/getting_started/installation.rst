@@ -12,7 +12,7 @@ Stand-alone installation using pip
 
 .. note::
 
-   We are developing for Python 3.8.  Other versions may work as well but are
+   We are developing for Python 3.10.  Other versions may work as well but are
    not officially tested.
 
 
