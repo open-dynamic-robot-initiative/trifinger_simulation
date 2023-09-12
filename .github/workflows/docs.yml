@@ -55,3 +55,4 @@ jobs:
           checkout: false  # checkout is done manually above (see NOTE for reason)
           repository_path: trifinger_simulation
           requirements_path: docs/requirements.txt
+          publish: ${{ github.event_name == 'push' || github.event.inputs.publish == 'true' }}
