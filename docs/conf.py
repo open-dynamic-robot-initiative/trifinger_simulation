@@ -105,6 +105,10 @@ intersphinx_mapping = {
         "https://open-dynamic-robot-initiative.github.io/robot_interfaces",
         None,
     ),
+    "robot_properties_fingers": (
+        "https://open-dynamic-robot-initiative.github.io/robot_properties_fingers",
+        None,
+    ),
 }
 
 
