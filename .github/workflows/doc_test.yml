@@ -34,6 +34,6 @@ jobs:
         uses: sphinx-notes/pages@v3
         with:
           checkout: false  # checkout is done manually above (see NOTE for reason)
-          repository_path: trifinger_simulation
-          requirements_path: docs/requirements.txt
+          documentation_path: trifinger_simulation/docs
+          requirements_path: trifinger_simulation/docs/requirements.txt
           publish: false
