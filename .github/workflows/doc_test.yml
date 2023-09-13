@@ -1,15 +1,7 @@
 # build docs using sphinx and deploy to branch gh-pages
 name: Documentation
 on:
-  push:
-    branches:
-      - master
   workflow_dispatch:
-    inputs:
-      publish:
-        description: "Publish to GitHub Pages (disable to only test the build)"
-        type: boolean
-        default: false
 
 # NOTE: for some reason that is not clear to me, `pip install` of required
 # packages (sphinx, etc.) was installing things to a weird location outside of
@@ -26,19 +18,8 @@ on:
 # This is solved by checking out to a subdirectory "trifinger_simulation".
 
 jobs:
-  build_and_deploy:
+  build_only:
     runs-on: ubuntu-latest
-
-    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
-    permissions:
-      pages: write      # to deploy to Pages
-      id-token: write   # to verify the deployment originates from an appropriate source
-
-    # Deploy to the github-pages environment
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
       - uses: actions/setup-python@v4
         with:
@@ -55,4 +36,4 @@ jobs:
           checkout: false  # checkout is done manually above (see NOTE for reason)
           repository_path: trifinger_simulation
           requirements_path: docs/requirements.txt
-          publish: ${{ github.event_name == 'push' || github.event.inputs.publish == 'true' }}
+          publish: false
