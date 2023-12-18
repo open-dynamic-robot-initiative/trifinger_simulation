@@ -75,6 +75,6 @@ or by running one of the demos::
 Using colcon
 ------------
 
-trifinger_simulation is part of the "ROBOT_FINGERS" project.  For build
-instructions see the :doc:`robot_fingers documentation
-<robot_fingers:doc/installation>`.
+The ``trifinger_simulation`` package is also part of the TriFinger software
+bundle.  See :ref:`trifinger_docs:install_software` in the TriFinger
+documentation.

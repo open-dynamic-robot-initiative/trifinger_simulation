@@ -5,12 +5,13 @@ Welcome to the TriFinger Robot Simulation docs!
 .. image:: images/all_finger_types.jpg
    :alt: Screenshots of different (Tri)Finger robots in simulation
 
-The trifinger_simulation_ package contains a PyBullet simulation environment
-for the different TriFinger robots as well as helper functions for some tasks
-(for sampling goals, computing rewards, etc.).
+The trifinger_simulation_ package contains a PyBullet_ simulation environment
+for the different :doc:`TriFinger robots <trifinger_docs:index>` as well as helper
+functions for some tasks (for sampling goals, computing rewards, etc.).
 
-To learn more about the TriFinger robots, check out the `TriFinger project
-website`_ and the corresponding paper_.
+To learn more about the TriFinger robots, check out our paper_ (and the corresponding
+`webpage <https://sites.google.com/view/trifinger>`_) and the overarching
+:doc:`TriFinger documentation <trifinger_docs:index>`.
 
 
 .. toctree::
@@ -81,8 +82,8 @@ please cite this repository and also the corresponding paper:
     }
 
 .. _trifinger_simulation: https://github.com/open-dynamic-robot-initiative/trifinger_simulation
-.. _`TriFinger project website`: https://sites.google.com/view/trifinger
 .. _paper: https://arxiv.org/abs/2008.03596
+.. _PyBullet: https://pybullet.org
 
 
 ----
