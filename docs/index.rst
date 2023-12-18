@@ -24,10 +24,9 @@ To learn more about the TriFinger robots, check out our paper_ (and the correspo
 
 .. toctree::
    :maxdepth: 1
-   :caption: Ease of Use with a Real Robot
+   :caption: Guides
 
    simreal/simwithreal
-   simreal/realwithsim
    simreal/simvsreal
    simreal/timesteplogic
 
