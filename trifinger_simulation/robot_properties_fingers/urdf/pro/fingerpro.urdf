@@ -204,11 +204,6 @@
       </geometry>
     </collision>
     <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <mass value="0.031"/>
-      <inertia ixx="5.166666666666667e-07" ixy="0" ixz="0" iyy="5.166666666666667e-07" iyz="0" izz="5.166666666666667e-07"/>
-    </inertial>
-    <inertial>
       <origin rpy="0 0 0" xyz="-0.00001194 0.00000000 0.01560060"/>
       <mass value="0.0092"/>
       <inertia ixx="0.00000155" ixy="0.00000000" ixz="0.00000000" iyx="0.00000000" iyy="0.00000155" iyz="0.00000000" izx="0.00000000" izy="0.00000000" izz="0.00000032"/>
