@@ -1,4 +1,5 @@
 """Wrappers around Pinocchio for easy forward and inverse kinematics."""
+
 import typing
 import warnings
 

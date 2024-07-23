@@ -33,6 +33,7 @@ you can use :class:`TriFingerCameras` for the simple camera model or
 :func:`create_trifinger_camera_array_from_config` for the model using the full
 calibration parameters.
 """
+
 import itertools
 import typing
 import pathlib

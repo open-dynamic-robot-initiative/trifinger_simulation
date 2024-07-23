@@ -1,4 +1,5 @@
 """Functions for sampling, validating and evaluating "move cube" goals."""
+
 import json
 import typing
 

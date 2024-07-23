@@ -1,4 +1,5 @@
 """Utility functions for the rearrange_dice task."""
+
 import typing
 import os
 

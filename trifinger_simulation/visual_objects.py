@@ -1,4 +1,5 @@
 """Different types of visualisation markers for the simulation."""
+
 import numpy as np
 import pybullet
 

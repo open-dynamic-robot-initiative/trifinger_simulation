@@ -1,4 +1,5 @@
 """Unit tests for the camera module."""
+
 import os
 import pathlib
 import numpy as np
