@@ -1,12 +1,14 @@
 import copy
 import os
-import numpy as np
-import numpy.typing as npt
+import pathlib
 import typing
 
+import numpy as np
+import numpy.typing as npt
 import pybullet
 import pybullet_data
 
+import robot_properties_fingers
 import trifinger_simulation
 from trifinger_simulation.observation import Observation
 from trifinger_simulation import collision_objects
@@ -738,23 +740,15 @@ class SimFinger:
         return pybullet_client_id
 
     def __set_urdf_path(self):
-        """
-        Sets the paths for the URDFs to use depending upon the finger type
-        """
-        try:
-            from ament_index_python.packages import get_package_share_directory
-
-            self.robot_properties_path = get_package_share_directory(
-                "robot_properties_fingers"
-            )
-        except Exception:
-            self.robot_properties_path = os.path.join(
-                os.path.dirname(__file__), "robot_properties_fingers"
-            )
+        """Sets the paths for the URDFs to use depending upon the finger type."""
+        self.robot_properties_path = pathlib.Path(
+            robot_properties_fingers.__file__
+        ).parent
 
         urdf_file = finger_types_data.get_finger_urdf(self.finger_type)
-        self.finger_urdf_path = os.path.join(
-            self.robot_properties_path, "urdf", urdf_file
+        # TODO can we stick with Path here?
+        self.finger_urdf_path = str(
+            self.robot_properties_path / "urdf" / urdf_file
         )
 
     def __load_robot_urdf(self, robot_position_offset: typing.Sequence[float]):

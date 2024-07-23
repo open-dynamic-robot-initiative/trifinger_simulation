@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed included URDF files of (Tri)FingerPro (see [robot_properties_fingers #15
   ](https://github.com/open-dynamic-robot-initiative/robot_properties_fingers/pull/15)).
 
+### Removed
+- trifinger_simulation does no longer maintain a copy of the robot model files for the
+  pure-Python installation.  Instead it depends on robot_properties_fingers now for both
+  installation types (colcon and pure Python).
+
 
 ## 1.4.1 - 2022-06-24
 
