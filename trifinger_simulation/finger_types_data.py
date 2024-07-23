@@ -1,4 +1,5 @@
 """Get model information for the different Finger types."""
+
 import typing
 
 

@@ -1,4 +1,5 @@
 """Limits (torques, joint positions, etc.) of the TriFingerPro platform."""
+
 from types import SimpleNamespace
 import numpy as np
 

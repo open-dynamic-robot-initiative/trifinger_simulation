@@ -24,6 +24,7 @@ The cost of each step is computed using the camera images.  Based on the
 colour, it is determined how many "die pixels" are outside of the target
 regions (see :func:`evaluate_state`).
 """
+
 import itertools
 import json
 import random

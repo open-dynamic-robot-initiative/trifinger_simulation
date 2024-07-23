@@ -1,4 +1,5 @@
 """Gym environment for the Real Robot Challenge Phase 1 (Simulation)."""
+
 import enum
 
 import gym
