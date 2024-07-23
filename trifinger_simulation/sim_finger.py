@@ -9,10 +9,11 @@ import pybullet
 import pybullet_data
 
 import robot_properties_fingers
+from robot_properties_fingers import pinocchio_utils
+
 import trifinger_simulation
 from trifinger_simulation.observation import Observation
 from trifinger_simulation import collision_objects
-from trifinger_simulation import pinocchio_utils
 from trifinger_simulation import finger_types_data
 
 
