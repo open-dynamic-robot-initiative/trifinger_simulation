@@ -10,15 +10,12 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - name: Install mypy
-        run: |
-          python3 -m pip install mypy types-PyYAML types-setuptools
       - name: Add matcher
         run: |
           echo "::add-matcher::.github/workflows/mypy-problem-matcher.json"
       - name: Install package
         run: |
-          pip install .
+          pip install ".[mypy]"
       - name: Run mypy
         run: |
           python3 -m mypy --exclude=build .
