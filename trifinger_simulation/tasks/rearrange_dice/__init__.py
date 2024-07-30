@@ -380,7 +380,7 @@ def generate_goal_mask(
                     [projected_corners[i] for i in face_corner_idx],
                     dtype=np.int32,
                 )
-                mask = cv2.fillConvexPoly(mask, points, 255)
+                mask = cv2.fillConvexPoly(mask, points, 255)  # type: ignore[call-overload]
 
         masks.append(mask)
 
