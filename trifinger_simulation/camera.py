@@ -138,6 +138,15 @@ class BaseCamera:
     def get_image(
         self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
     ) -> np.ndarray:
+        """Render an image."""
+        raise NotImplementedError()
+
+    def get_width(self) -> int:
+        """Get width of the images rendered by this camera instance."""
+        raise NotImplementedError()
+
+    def get_height(self) -> int:
+        """Get height of the images rendered by this camera instance."""
         raise NotImplementedError()
 
 
@@ -196,6 +205,12 @@ class Camera(BaseCamera):
             farVal=far_plane_distance,
             physicsClientId=self._pybullet_client_id,
         )
+
+    def get_width(self) -> int:
+        return self._width
+
+    def get_height(self) -> int:
+        return self._height
 
     def get_image(
         self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
@@ -285,6 +300,9 @@ class CalibratedCamera(BaseCamera):
             pybullet_client_id:  Id of the pybullet client (needed when
                 multiple clients are running in parallel).
         """
+        # store the original camera matrix for use in C++ bindings (trifinger_cameras)
+        self._original_camera_matrix = camera_matrix
+
         self._pybullet_client_id = pybullet_client_id
 
         #: Width of the output images.
@@ -358,6 +376,12 @@ class CalibratedCamera(BaseCamera):
             ]
         )
         self._proj_matrix = proj_mat.flatten(order="F")
+
+    def get_width(self) -> int:
+        return self._output_width
+
+    def get_height(self) -> int:
+        return self._output_height
 
     def distort_image(self, image):
         """Distort an image based on the cameras distortion coefficients.
