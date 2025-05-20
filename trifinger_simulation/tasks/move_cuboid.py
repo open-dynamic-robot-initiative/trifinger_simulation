@@ -23,7 +23,7 @@ _ARENA_RADIUS = 0.195
 _cube_3d_radius = np.linalg.norm(_CUBOID_HALF_SIZE)
 _max_cube_com_distance_to_center = _ARENA_RADIUS - _cube_3d_radius
 
-_min_height = min(_CUBOID_HALF_SIZE)
+_min_height = np.min(_CUBOID_HALF_SIZE)
 _max_height = 0.1
 
 
