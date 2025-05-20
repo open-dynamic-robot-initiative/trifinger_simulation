@@ -32,8 +32,7 @@ If you run into errors during installation, you may need to update pip first:
 .. note::
 
     To avoid version conflicts with other packages on your system, it is
-    recommended to install the package in an isolated environment like venv or
-    conda.  For example when using venv:
+    recommended to install the package in an isolated environment, e.g. using venv:
 
     .. code-block:: bash
 

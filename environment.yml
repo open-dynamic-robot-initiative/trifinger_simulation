@@ -1,8 +1,0 @@
-name: trifinger_simulation
-channels:
-- conda-forge
-dependencies:
-- python=3.8.5
-- pip==21.0
-- pip:
-  - -r file:requirements.txt
