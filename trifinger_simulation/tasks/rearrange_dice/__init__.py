@@ -142,7 +142,7 @@ def _get_cell_corners_3d(
 
     # order of the corners is the same as in the cube model of the
     # trifinger_object_tracking package
-    # people.tue.mpg.de/mpi-is-software/robotfingers/docs/trifinger_object_tracking/doc/cube_model.html
+    # https://open-dynamic-robot-initiative.github.io/trifinger_object_tracking/doc/a2_cube_model.html
     return np.array(
         (
             nppos + (d, -d, d),
