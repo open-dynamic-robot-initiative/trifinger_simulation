@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [2.0.0] - 2024-07-30
+### Changed
+- BREAKING: Migrated from gym to gymnasium.
+
 ### Added
 - Add py.typed marker for mypy
 - screenshot_mode.py to run simulation without visualisations (for nicer screenshots).
