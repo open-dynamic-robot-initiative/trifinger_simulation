@@ -33,11 +33,7 @@ class TestSample(typing.NamedTuple):
 def main(input_directory: str):
     try:
         if not os.path.isdir(input_directory):
-            print(
-                "'{}' does not exist or is not a directory.".format(
-                    input_directory
-                )
-            )
+            print("'{}' does not exist or is not a directory.".format(input_directory))
             sys.exit(1)
 
         levels = (1, 2, 3, 4)
@@ -51,9 +47,7 @@ def main(input_directory: str):
         level_rewards: dict = {level: [] for level in levels}
         for sample in test_data:
             print(
-                "Replay level {} sample {}".format(
-                    sample.difficulty, sample.iteration
-                )
+                "Replay level {} sample {}".format(sample.difficulty, sample.iteration)
             )
             reward = replay_action_log.replay_action_log(
                 sample.logfile,

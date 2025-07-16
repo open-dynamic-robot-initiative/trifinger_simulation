@@ -106,8 +106,7 @@ def feasible_random_joint_positions_for_reaching(
         # this sampling strategy is deprecated (for now)
         if finger.number_of_fingers == 1:
             raise RuntimeError(
-                "Sampling strategy 'triangle' cannot"
-                " be used with a single finger."
+                "Sampling strategy 'triangle' cannot" " be used with a single finger."
             )
         random_position = random_position_in_arena()
         tip_positions = get_tip_positions_around_position(
@@ -146,18 +145,13 @@ def feasible_random_joint_positions_for_reaching(
                     return joint_pos
 
         joint_positions = np.concatenate(
-            [
-                sample_point_in_angle_limits()
-                for i in range(finger.number_of_fingers)
-            ]
+            [sample_point_in_angle_limits() for i in range(finger.number_of_fingers)]
         )
 
         return joint_positions
 
     else:
-        raise ValueError(
-            "Invalid sampling strategy '{}'".format(sampling_strategy)
-        )
+        raise ValueError("Invalid sampling strategy '{}'".format(sampling_strategy))
 
 
 def get_tip_positions_around_position(number_of_fingers, position):

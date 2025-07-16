@@ -50,9 +50,7 @@ def main():
     # some basic checks of the input
     if not args.singularity_image.exists():
         print(
-            "The singularity image {} does not exist.".format(
-                args.singularity_image
-            ),
+            "The singularity image {} does not exist.".format(args.singularity_image),
             file=sys.stderr,
         )
         return 1

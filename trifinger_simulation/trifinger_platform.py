@@ -200,9 +200,7 @@ class TriFingerPlatform:
         if initial_robot_position is None:
             initial_robot_position = self.spaces.robot_position.default
 
-        self.simfinger.reset_finger_positions_and_velocities(
-            initial_robot_position
-        )
+        self.simfinger.reset_finger_positions_and_velocities(initial_robot_position)
 
         if initial_object_pose is None:
             initial_object_pose = move_cube.Pose(
@@ -259,9 +257,7 @@ class TriFingerPlatform:
         }
 
         # get initial camera observation
-        self._delayed_camera_observation = (
-            self._get_current_camera_observation(0)
-        )
+        self._delayed_camera_observation = self._get_current_camera_observation(0)
         self._camera_observation_t = self._delayed_camera_observation
 
     def get_time_step(self):
@@ -316,15 +312,9 @@ class TriFingerPlatform:
         )
 
         if trigger_camera:
-            self._delayed_camera_observation = (
-                self._get_current_camera_observation()
-            )
-            self._next_camera_trigger_t += (
-                self._compute_camera_update_step_interval()
-            )
-            self._next_camera_observation_ready_t = (
-                next_t + self._camera_delay_steps
-            )
+            self._delayed_camera_observation = self._get_current_camera_observation()
+            self._next_camera_trigger_t += self._compute_camera_update_step_interval()
+            self._next_camera_observation_ready_t = next_t + self._camera_delay_steps
 
         is_camera_observation_ready = (
             self._next_camera_observation_ready_t is not None

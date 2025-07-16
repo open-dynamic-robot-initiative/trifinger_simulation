@@ -235,9 +235,7 @@ class ColoredCubeV2(BaseCollisionObject):
         """
         self._pybullet_client_id = pybullet_client_id
 
-        cube_urdf_file = (
-            trifinger_simulation.get_data_dir() / "cube_v2/cube_v2.urdf"
-        )
+        cube_urdf_file = trifinger_simulation.get_data_dir() / "cube_v2/cube_v2.urdf"
         self._object_id = pybullet.loadURDF(
             fileName=str(cube_urdf_file),
             basePosition=position,

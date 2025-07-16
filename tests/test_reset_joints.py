@@ -25,9 +25,7 @@ class TestResetJoints(unittest.TestCase):
         )
 
         for _ in range(100):
-            state_positions = sample.random_joint_positions(
-                finger.number_of_fingers
-            )
+            state_positions = sample.random_joint_positions(finger.number_of_fingers)
             state_velocities = [pos * 10 for pos in state_positions]
 
             reset_state = finger.reset_finger_positions_and_velocities(

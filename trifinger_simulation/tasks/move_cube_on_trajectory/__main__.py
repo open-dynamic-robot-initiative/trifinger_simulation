@@ -72,9 +72,7 @@ def cmd_evaluate_and_replay(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        "move_cube_on_trajectory", description=__doc__
-    )
+    parser = argparse.ArgumentParser("move_cube_on_trajectory", description=__doc__)
     subparsers = parser.add_subparsers(title="command", dest="command")
     subparsers.required = True
 

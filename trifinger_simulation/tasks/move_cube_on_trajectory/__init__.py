@@ -166,9 +166,7 @@ def json_goal_from_config(filename: str) -> str:
     return goal_json
 
 
-def evaluate_state(
-    trajectory: Trajectory, time_index: int, actual_position: Position
-):
+def evaluate_state(trajectory: Trajectory, time_index: int, actual_position: Position):
     """Compute cost of a given cube pose at a given time step.  Less is better.
 
     The cost is computed using :func:`move_cube.evaluate_state` (difficulty=3)

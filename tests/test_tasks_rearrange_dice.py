@@ -129,9 +129,7 @@ def test_json_goal_from_config_good(test_data_dir):
         [-0.066, 0.044, 0.011],
     ]
 
-    actual_goal_json = task.json_goal_from_config(
-        test_data_dir / "good_goal.json"
-    )
+    actual_goal_json = task.json_goal_from_config(test_data_dir / "good_goal.json")
     actual_goal = json.loads(actual_goal_json)
 
     assert expected_goal == actual_goal

@@ -89,9 +89,7 @@ class CameraParameters(typing.NamedTuple):
         dist_coeffs = calib_data_to_matrix(data["distortion_coefficients"])[0]
         tf_world_to_camera = calib_data_to_matrix(data["tf_world_to_camera"])
 
-        return cls(
-            name, width, height, camera_matrix, dist_coeffs, tf_world_to_camera
-        )
+        return cls(name, width, height, camera_matrix, dist_coeffs, tf_world_to_camera)
 
     def dump(self, stream: typing.TextIO):
         """Dump camera parameters in YAML format to the given output stream.
@@ -135,9 +133,7 @@ class CameraParameters(typing.NamedTuple):
 
 
 class BaseCamera:
-    def get_image(
-        self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
-    ) -> np.ndarray:
+    def get_image(self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL) -> np.ndarray:
         """Render an image."""
         raise NotImplementedError()
 
@@ -212,9 +208,7 @@ class Camera(BaseCamera):
     def get_height(self) -> int:
         return self._height
 
-    def get_image(
-        self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
-    ) -> np.ndarray:
+    def get_image(self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL) -> np.ndarray:
         """Get a rendered image from the camera.
 
         Args:
@@ -241,9 +235,7 @@ class Camera(BaseCamera):
         # To make sure our code still works, catch that and convert the image
         # accordingly
         if isinstance(img, tuple):
-            img = np.array(img, dtype=np.uint8).reshape(
-                self._height, self._width, 4
-            )
+            img = np.array(img, dtype=np.uint8).reshape(self._height, self._width, 4)
 
         # remove the alpha channel
         return img[:, :, :3]
@@ -420,9 +412,7 @@ class CalibratedCamera(BaseCamera):
 
         image_points = np.array(
             tuple(
-                itertools.product(
-                    range(self._render_height), range(self._render_width)
-                )
+                itertools.product(range(self._render_height), range(self._render_width))
             )
         )
 
@@ -461,15 +451,11 @@ class CalibratedCamera(BaseCamera):
         image_points = image_points[in_image_idx]
 
         # finally construct the distorted image
-        distorted_image[tuple(distorted_points.T)] = image[
-            tuple(image_points.T)
-        ]
+        distorted_image[tuple(distorted_points.T)] = image[tuple(image_points.T)]
 
         return distorted_image
 
-    def get_image(
-        self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
-    ) -> np.ndarray:
+    def get_image(self, renderer=pybullet.ER_BULLET_HARDWARE_OPENGL) -> np.ndarray:
         """Get a rendered and distorted image from the camera.
 
         Args:
@@ -628,9 +614,7 @@ def create_trifinger_camera_array_from_config(
     Returns:
         CameraArray with three cameras.
     """
-    camera_parameters = load_camera_parameters(
-        config_dir, calib_filename_pattern
-    )
+    camera_parameters = load_camera_parameters(config_dir, calib_filename_pattern)
 
     return create_trifinger_camera_array(camera_parameters, pybullet_client_id)
 

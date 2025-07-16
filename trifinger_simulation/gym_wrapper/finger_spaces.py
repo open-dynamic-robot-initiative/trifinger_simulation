@@ -61,9 +61,7 @@ class FingerSpaces:
         }
 
         self.lower_bounds["action_joint_positions"] = self.action_bounds["low"]
-        self.upper_bounds["action_joint_positions"] = self.action_bounds[
-            "high"
-        ]
+        self.upper_bounds["action_joint_positions"] = self.action_bounds["high"]
 
         self.lower_bounds["end_effector_position"] = [
             -0.5,
@@ -90,12 +88,8 @@ class FingerSpaces:
         self.lower_bounds["joint_velocities"] = [-20] * 3 * self.num_fingers
         self.upper_bounds["joint_velocities"] = [20] * 3 * self.num_fingers
 
-        self.lower_bounds["end_effector_to_goal"] = (
-            [-0.5] * 3 * self.num_fingers
-        )
-        self.upper_bounds["end_effector_to_goal"] = (
-            [0.5] * 3 * self.num_fingers
-        )
+        self.lower_bounds["end_effector_to_goal"] = [-0.5] * 3 * self.num_fingers
+        self.upper_bounds["end_effector_to_goal"] = [0.5] * 3 * self.num_fingers
 
         if self.separate_goals:
             self.lower_bounds["goal_position"] = [-0.5] * 3 * self.num_fingers
@@ -113,14 +107,10 @@ class FingerSpaces:
         to the observation bounds
         """
         observation_lower_bounds = [
-            value
-            for key in self.observations_keys
-            for value in self.lower_bounds[key]
+            value for key in self.observations_keys for value in self.lower_bounds[key]
         ]
         observation_higher_bounds = [
-            value
-            for key in self.observations_keys
-            for value in self.upper_bounds[key]
+            value for key in self.observations_keys for value in self.upper_bounds[key]
         ]
         return spaces.Box(
             low=np.array(observation_lower_bounds),

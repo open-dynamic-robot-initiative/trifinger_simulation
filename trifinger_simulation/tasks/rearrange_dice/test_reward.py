@@ -57,10 +57,7 @@ def main():
     goal_file = args.goal_file or image_dir / "goal.txt"
 
     # load images
-    images = [
-        cv2.imread(os.fspath(image_dir / f"camera{id}.png"))
-        for id in camera_ids
-    ]
+    images = [cv2.imread(os.fspath(image_dir / f"camera{id}.png")) for id in camera_ids]
 
     # load camera parameters
     camera_info = trifinger_simulation.camera.load_camera_parameters(

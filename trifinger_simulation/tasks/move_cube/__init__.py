@@ -244,13 +244,9 @@ def validate_goal(goal):
             goal.orientation,
         )
     if goal.position[2] < _min_height:
-        raise InvalidGoalError(
-            "Position is too low.", goal.position, goal.orientation
-        )
+        raise InvalidGoalError("Position is too low.", goal.position, goal.orientation)
     if goal.position[2] > _max_height:
-        raise InvalidGoalError(
-            "Position is too high.", goal.position, goal.orientation
-        )
+        raise InvalidGoalError("Position is too high.", goal.position, goal.orientation)
 
     # even if the CoM is above _min_height, a corner could be intersecting with
     # the bottom depending on the orientation
@@ -287,9 +283,7 @@ def validate_goal_file(filename):
 
     if "goal" in data:
         assert "position" in data["goal"], "goal does not contain 'position'"
-        assert (
-            "orientation" in data["goal"]
-        ), "goal does not contain 'orientation'"
+        assert "orientation" in data["goal"], "goal does not contain 'orientation'"
 
         goal = Pose.from_dict(data["goal"])
         validate_goal(goal)
@@ -407,9 +401,7 @@ def evaluate_state(
         range_xy_dist = _ARENA_RADIUS * 2
         range_z_dist = _max_height
 
-        xy_dist = np.linalg.norm(
-            goal_pose.position[:2] - actual_pose.position[:2]
-        )
+        xy_dist = np.linalg.norm(goal_pose.position[:2] - actual_pose.position[:2])
         z_dist = abs(goal_pose.position[2] - actual_pose.position[2])
 
         # weight xy- and z-parts by their expected range
