@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in the "move_cuboid" task.
 - Fixed included URDF files of (Tri)FingerPro (see [robot_properties_fingers #15
   ](https://github.com/open-dynamic-robot-initiative/robot_properties_fingers/pull/15)).
+- Fixed a crash caused by rendered camera images having the wrong format if PyBullet
+  does not use NumPy.
 
 ### Removed
 - trifinger_simulation does no longer maintain a copy of the robot model files for the

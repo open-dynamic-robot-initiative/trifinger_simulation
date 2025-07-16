@@ -236,6 +236,15 @@ class Camera(BaseCamera):
             renderer=renderer,
             physicsClientId=self._pybullet_client_id,
         )
+        # Depending on whatever, pybullet may not use NumPy in some installations, see
+        # https://github.com/bulletphysics/bullet3/issues/4523.
+        # To make sure our code still works, catch that and convert the image
+        # accordingly
+        if isinstance(img, tuple):
+            img = np.array(img, dtype=np.uint8).reshape(
+                self._height, self._width, 4
+            )
+
         # remove the alpha channel
         return img[:, :, :3]
 
@@ -482,6 +491,15 @@ class CalibratedCamera(BaseCamera):
             renderer=renderer,
             physicsClientId=self._pybullet_client_id,
         )
+        # Depending on whatever, pybullet may not use NumPy in some installations, see
+        # https://github.com/bulletphysics/bullet3/issues/4523.
+        # To make sure our code still works, catch that and convert the image
+        # accordingly
+        if isinstance(img, tuple):
+            img = np.array(img, dtype=np.uint8).reshape(
+                self._render_height, self._render_width, 4
+            )
+
         # remove the alpha channel
         img = img[:, :, :3]
 
