@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-# -------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # The documentation in this code is heavily derived from the official
 # documentation of PyBullet at
 # https://docs.google.com/document/d/10sXEhzFRSnvFcl3XxNGhnD4N2SedqwdAvK3dsihxVUA/edit#
 # among other scattered sources.
-# -------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 import os
 from ament_index_python.packages import get_package_share_directory
 
