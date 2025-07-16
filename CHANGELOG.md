@@ -12,7 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0] - 2024-07-30
 ### Changed
-- BREAKING: Migrated from gym to gymnasium.
+- Migrated from gym to gymnasium.
+- Default resolution of rendered camera images is changed from 270 to 540 pixels to
+  match the behaviour of the real robot.
 
 ### Added
 - Add py.typed marker for mypy

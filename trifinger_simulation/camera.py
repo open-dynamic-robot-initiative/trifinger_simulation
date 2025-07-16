@@ -157,7 +157,7 @@ class Camera(BaseCamera):
         self,
         camera_position,
         camera_orientation,
-        image_size=(270, 270),
+        image_size=(540, 540),
         field_of_view=52,
         near_plane_distance=0.001,
         far_plane_distance=100.0,
