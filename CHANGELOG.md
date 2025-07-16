@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [2.0.0] - 2024-07-30
+### Changed
+- BREAKING: Migrated from gym to gymnasium.
+
 ### Added
 - Add py.typed marker for mypy
 - screenshot_mode.py to run simulation without visualisations (for nicer screenshots).
@@ -31,6 +34,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - trifinger_simulation does no longer maintain a copy of the robot model files for the
   pure-Python installation.  Instead it depends on robot_properties_fingers now for both
   installation types (colcon and pure Python).
+- The example Gym environments have been removed.  They still depended on the old gym,
+  which is not working anymore with recent Python versions.  Since they anyway where
+  mostly meant as examples and are not directly used in our code base, they were simply
+  removed.  If you actually depend on them, you can easily retrieve them from an earlier
+  version of the code and maintain them in a separate package.
 
 
 ## [1.4.1] - 2022-06-24

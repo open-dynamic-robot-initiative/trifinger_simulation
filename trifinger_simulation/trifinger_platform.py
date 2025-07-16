@@ -2,7 +2,7 @@ import copy
 import enum
 import pickle
 import numpy as np
-import gym
+import gymnasium as gym
 from types import SimpleNamespace
 import typing
 
