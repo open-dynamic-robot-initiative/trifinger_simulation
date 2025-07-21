@@ -24,9 +24,7 @@ def test_get_cube_corner_positions():
     )
     origin = move_cuboid.Pose()
     origin_corners = move_cuboid.get_cube_corner_positions(origin)
-    np.testing.assert_array_almost_equal(
-        expected_origin_corners, origin_corners
-    )
+    np.testing.assert_array_almost_equal(expected_origin_corners, origin_corners)
 
     # only translation
     expected_translated_corners = np.array(
@@ -44,9 +42,7 @@ def test_get_cube_corner_positions():
     translated = move_cuboid.get_cube_corner_positions(
         move_cuboid.Pose([1, 2, 3], [0, 0, 0, 1])
     )
-    np.testing.assert_array_almost_equal(
-        expected_translated_corners, translated
-    )
+    np.testing.assert_array_almost_equal(expected_translated_corners, translated)
 
     # only rotation
     rot_z90 = Rotation.from_euler("z", 90, degrees=True).as_quat()
@@ -80,9 +76,7 @@ def test_get_cube_corner_positions():
             [-chw[1] + 1, +chw[0] + 2, +chw[2] + 3],
         ]
     )
-    both = move_cuboid.get_cube_corner_positions(
-        move_cuboid.Pose([1, 2, 3], rot_z90)
-    )
+    both = move_cuboid.get_cube_corner_positions(move_cuboid.Pose([1, 2, 3], rot_z90))
     np.testing.assert_array_almost_equal(expected_both_corners, both)
 
 
@@ -171,12 +165,8 @@ def test_evaluate_state_difficulty_1():
     difficulty = 1
     pose_origin = move_cuboid.Pose()
     pose_trans = move_cuboid.Pose(position=[1, 2, 3])
-    pose_rot = move_cuboid.Pose(
-        orientation=Rotation.from_euler("z", 0.42).as_quat()
-    )
-    pose_both = move_cuboid.Pose(
-        [1, 2, 3], Rotation.from_euler("z", 0.42).as_quat()
-    )
+    pose_rot = move_cuboid.Pose(orientation=Rotation.from_euler("z", 0.42).as_quat())
+    pose_both = move_cuboid.Pose([1, 2, 3], Rotation.from_euler("z", 0.42).as_quat())
 
     # needs to be zero for exact match
     cost = move_cuboid.evaluate_state(pose_origin, pose_origin, difficulty)
@@ -192,12 +182,8 @@ def test_evaluate_state_difficulty_2():
     difficulty = 2
     pose_origin = move_cuboid.Pose()
     pose_trans = move_cuboid.Pose(position=[1, 2, 3])
-    pose_rot = move_cuboid.Pose(
-        orientation=Rotation.from_euler("z", 0.42).as_quat()
-    )
-    pose_both = move_cuboid.Pose(
-        [1, 2, 3], Rotation.from_euler("z", 0.42).as_quat()
-    )
+    pose_rot = move_cuboid.Pose(orientation=Rotation.from_euler("z", 0.42).as_quat())
+    pose_both = move_cuboid.Pose([1, 2, 3], Rotation.from_euler("z", 0.42).as_quat())
 
     # needs to be zero for exact match
     cost = move_cuboid.evaluate_state(pose_origin, pose_origin, difficulty)
@@ -213,12 +199,8 @@ def test_evaluate_state_difficulty_3():
     difficulty = 3
     pose_origin = move_cuboid.Pose()
     pose_trans = move_cuboid.Pose(position=[1, 2, 3])
-    pose_rot = move_cuboid.Pose(
-        orientation=Rotation.from_euler("z", 0.42).as_quat()
-    )
-    pose_both = move_cuboid.Pose(
-        [1, 2, 3], Rotation.from_euler("z", 0.42).as_quat()
-    )
+    pose_rot = move_cuboid.Pose(orientation=Rotation.from_euler("z", 0.42).as_quat())
+    pose_both = move_cuboid.Pose([1, 2, 3], Rotation.from_euler("z", 0.42).as_quat())
 
     # needs to be zero for exact match
     cost = move_cuboid.evaluate_state(pose_origin, pose_origin, difficulty)
@@ -234,12 +216,8 @@ def test_evaluate_state_difficulty_4():
     difficulty = 4
     pose_origin = move_cuboid.Pose()
     pose_trans = move_cuboid.Pose(position=[1, 2, 3])
-    pose_rot = move_cuboid.Pose(
-        orientation=Rotation.from_euler("z", 0.42).as_quat()
-    )
-    pose_both = move_cuboid.Pose(
-        [1, 2, 3], Rotation.from_euler("z", 0.42).as_quat()
-    )
+    pose_rot = move_cuboid.Pose(orientation=Rotation.from_euler("z", 0.42).as_quat())
+    pose_both = move_cuboid.Pose([1, 2, 3], Rotation.from_euler("z", 0.42).as_quat())
 
     # needs to be zero for exact match
     cost = move_cuboid.evaluate_state(pose_origin, pose_origin, difficulty)
@@ -268,17 +246,13 @@ def test_evaluate_state_difficulty_4_rotation_around_y():
     cost = move_cuboid.evaluate_state(pose_origin, pose_origin, difficulty)
     assert cost == 0
 
-    cost_only_y = move_cuboid.evaluate_state(
-        pose_origin, pose_rot_only_y, difficulty
-    )
+    cost_only_y = move_cuboid.evaluate_state(pose_origin, pose_rot_only_y, difficulty)
     assert cost_only_y == 0
 
     cost_without_y = move_cuboid.evaluate_state(
         pose_origin, pose_rot_without_y, difficulty
     )
-    cost_with_y = move_cuboid.evaluate_state(
-        pose_origin, pose_rot_with_y, difficulty
-    )
+    cost_with_y = move_cuboid.evaluate_state(pose_origin, pose_rot_with_y, difficulty)
 
     assert cost_without_y == pytest.approx(cost_with_y)
 
@@ -304,9 +278,7 @@ def test_validate_goal():
         pytest.fail("Valid goal was considered invalid because %s" % e)
 
     try:
-        move_cuboid.validate_goal(
-            move_cuboid.Pose([-0.12, 0.0, 0.06], full_rotation)
-        )
+        move_cuboid.validate_goal(move_cuboid.Pose([-0.12, 0.0, 0.06], full_rotation))
     except Exception as e:
         pytest.fail("Valid goal was considered invalid because %s" % e)
 
@@ -332,9 +304,7 @@ def test_validate_goal():
     with pytest.raises(move_cuboid.InvalidGoalError):
         move_cuboid.validate_goal(move_cuboid.Pose([0, 0, 0], [0, 0, 0, 1]))
     with pytest.raises(move_cuboid.InvalidGoalError):
-        move_cuboid.validate_goal(
-            move_cuboid.Pose([0, 0, -0.01], [0, 0, 0, 1])
-        )
+        move_cuboid.validate_goal(move_cuboid.Pose([0, 0, -0.01], [0, 0, 0, 1]))
 
     # valid CoM position but rotation makes it reach out of valid range
     with pytest.raises(move_cuboid.InvalidGoalError):

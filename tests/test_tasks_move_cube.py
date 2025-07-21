@@ -24,9 +24,7 @@ def test_get_cube_corner_positions():
     )
     origin = move_cube.Pose()
     origin_corners = move_cube.get_cube_corner_positions(origin)
-    np.testing.assert_array_almost_equal(
-        expected_origin_corners, origin_corners
-    )
+    np.testing.assert_array_almost_equal(expected_origin_corners, origin_corners)
 
     # only translation
     expected_translated_corners = np.array(
@@ -44,9 +42,7 @@ def test_get_cube_corner_positions():
     translated = move_cube.get_cube_corner_positions(
         move_cube.Pose([1, 2, 3], [0, 0, 0, 1])
     )
-    np.testing.assert_array_almost_equal(
-        expected_translated_corners, translated
-    )
+    np.testing.assert_array_almost_equal(expected_translated_corners, translated)
 
     # only rotation
     rot_z90 = Rotation.from_euler("z", 90, degrees=True).as_quat()
@@ -62,9 +58,7 @@ def test_get_cube_corner_positions():
             [-chw, +chw, +chw],
         ]
     )
-    rotated = move_cube.get_cube_corner_positions(
-        move_cube.Pose([0, 0, 0], rot_z90)
-    )
+    rotated = move_cube.get_cube_corner_positions(move_cube.Pose([0, 0, 0], rot_z90))
     np.testing.assert_array_almost_equal(expected_rotated_corners, rotated)
 
     # both rotation and translation
@@ -80,9 +74,7 @@ def test_get_cube_corner_positions():
             [-chw + 1, +chw + 2, +chw + 3],
         ]
     )
-    both = move_cube.get_cube_corner_positions(
-        move_cube.Pose([1, 2, 3], rot_z90)
-    )
+    both = move_cube.get_cube_corner_positions(move_cube.Pose([1, 2, 3], rot_z90))
     np.testing.assert_array_almost_equal(expected_both_corners, both)
 
 
@@ -171,12 +163,8 @@ def test_evaluate_state_difficulty_1():
     difficulty = 1
     pose_origin = move_cube.Pose()
     pose_trans = move_cube.Pose(position=[1, 2, 3])
-    pose_rot = move_cube.Pose(
-        orientation=Rotation.from_euler("z", 0.42).as_quat()
-    )
-    pose_both = move_cube.Pose(
-        [1, 2, 3], Rotation.from_euler("z", 0.42).as_quat()
-    )
+    pose_rot = move_cube.Pose(orientation=Rotation.from_euler("z", 0.42).as_quat())
+    pose_both = move_cube.Pose([1, 2, 3], Rotation.from_euler("z", 0.42).as_quat())
 
     # needs to be zero for exact match
     cost = move_cube.evaluate_state(pose_origin, pose_origin, difficulty)
@@ -192,12 +180,8 @@ def test_evaluate_state_difficulty_2():
     difficulty = 2
     pose_origin = move_cube.Pose()
     pose_trans = move_cube.Pose(position=[1, 2, 3])
-    pose_rot = move_cube.Pose(
-        orientation=Rotation.from_euler("z", 0.42).as_quat()
-    )
-    pose_both = move_cube.Pose(
-        [1, 2, 3], Rotation.from_euler("z", 0.42).as_quat()
-    )
+    pose_rot = move_cube.Pose(orientation=Rotation.from_euler("z", 0.42).as_quat())
+    pose_both = move_cube.Pose([1, 2, 3], Rotation.from_euler("z", 0.42).as_quat())
 
     # needs to be zero for exact match
     cost = move_cube.evaluate_state(pose_origin, pose_origin, difficulty)
@@ -213,12 +197,8 @@ def test_evaluate_state_difficulty_3():
     difficulty = 3
     pose_origin = move_cube.Pose()
     pose_trans = move_cube.Pose(position=[1, 2, 3])
-    pose_rot = move_cube.Pose(
-        orientation=Rotation.from_euler("z", 0.42).as_quat()
-    )
-    pose_both = move_cube.Pose(
-        [1, 2, 3], Rotation.from_euler("z", 0.42).as_quat()
-    )
+    pose_rot = move_cube.Pose(orientation=Rotation.from_euler("z", 0.42).as_quat())
+    pose_both = move_cube.Pose([1, 2, 3], Rotation.from_euler("z", 0.42).as_quat())
 
     # needs to be zero for exact match
     cost = move_cube.evaluate_state(pose_origin, pose_origin, difficulty)
@@ -234,12 +214,8 @@ def test_evaluate_state_difficulty_4():
     difficulty = 4
     pose_origin = move_cube.Pose()
     pose_trans = move_cube.Pose(position=[1, 2, 3])
-    pose_rot = move_cube.Pose(
-        orientation=Rotation.from_euler("z", 0.42).as_quat()
-    )
-    pose_both = move_cube.Pose(
-        [1, 2, 3], Rotation.from_euler("z", 0.42).as_quat()
-    )
+    pose_rot = move_cube.Pose(orientation=Rotation.from_euler("z", 0.42).as_quat())
+    pose_both = move_cube.Pose([1, 2, 3], Rotation.from_euler("z", 0.42).as_quat())
 
     # needs to be zero for exact match
     cost = move_cube.evaluate_state(pose_origin, pose_origin, difficulty)
@@ -256,9 +232,7 @@ def test_evaluate_state_dict():
     difficulty = 4
     pose_origin = move_cube.Pose()
     dict_origin = {"position": [0, 0, 0], "orientation": [0, 0, 0, 1]}
-    pose_pose = move_cube.Pose(
-        [1, 2, 3], Rotation.from_euler("z", 0.42).as_quat()
-    )
+    pose_pose = move_cube.Pose([1, 2, 3], Rotation.from_euler("z", 0.42).as_quat())
     dict_pose = {
         "position": [1, 2, 3],
         "orientation": Rotation.from_euler("z", 0.42).as_quat(),
@@ -277,23 +251,17 @@ def test_validate_goal():
 
     # test some valid goals
     try:
-        move_cube.validate_goal(
-            move_cube.Pose([0, 0, half_width], [0, 0, 0, 1])
-        )
+        move_cube.validate_goal(move_cube.Pose([0, 0, half_width], [0, 0, 0, 1]))
     except Exception as e:
         pytest.fail("Valid goal was considered invalid because %s" % e)
 
     try:
-        move_cube.validate_goal(
-            move_cube.Pose([0.05, -0.1, half_width], yaw_rotation)
-        )
+        move_cube.validate_goal(move_cube.Pose([0.05, -0.1, half_width], yaw_rotation))
     except Exception as e:
         pytest.fail("Valid goal was considered invalid because %s" % e)
 
     try:
-        move_cube.validate_goal(
-            move_cube.Pose([-0.12, 0.0, 0.06], full_rotation)
-        )
+        move_cube.validate_goal(move_cube.Pose([-0.12, 0.0, 0.06], full_rotation))
     except Exception as e:
         pytest.fail("Valid goal was considered invalid because %s" % e)
 
@@ -307,13 +275,9 @@ def test_validate_goal():
 
     # invalid positions
     with pytest.raises(move_cube.InvalidGoalError):
-        move_cube.validate_goal(
-            move_cube.Pose([0.3, 0, half_width], [0, 0, 0, 1])
-        )
+        move_cube.validate_goal(move_cube.Pose([0.3, 0, half_width], [0, 0, 0, 1]))
     with pytest.raises(move_cube.InvalidGoalError):
-        move_cube.validate_goal(
-            move_cube.Pose([0, -0.3, half_width], [0, 0, 0, 1])
-        )
+        move_cube.validate_goal(move_cube.Pose([0, -0.3, half_width], [0, 0, 0, 1]))
     with pytest.raises(move_cube.InvalidGoalError):
         move_cube.validate_goal(move_cube.Pose([0, 0, 0.3], [0, 0, 0, 1]))
     with pytest.raises(move_cube.InvalidGoalError):
@@ -323,9 +287,7 @@ def test_validate_goal():
 
     # valid CoM position but rotation makes it reach out of valid range
     with pytest.raises(move_cube.InvalidGoalError):
-        move_cube.validate_goal(
-            move_cube.Pose([0, 0, half_width], full_rotation)
-        )
+        move_cube.validate_goal(move_cube.Pose([0, 0, half_width], full_rotation))
 
 
 def test_validate_goal_dict():
@@ -345,9 +307,7 @@ def test_validate_goal_dict():
 
     # invalid values
     with pytest.raises(ValueError):
-        move_cube.validate_goal(
-            {"position": [0, 0], "orientation": [0, 0, 0, 1]}
-        )
+        move_cube.validate_goal({"position": [0, 0], "orientation": [0, 0, 0, 1]})
 
     # invalid positions
     with pytest.raises(move_cube.InvalidGoalError):

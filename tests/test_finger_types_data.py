@@ -27,9 +27,7 @@ def test_check_finger_type():
 
 def test_get_finger_urdf():
     for name in ftd.finger_types_data.keys():
-        assert (
-            ftd.get_finger_urdf(name) == ftd.finger_types_data[name].urdf_file
-        )
+        assert ftd.get_finger_urdf(name) == ftd.finger_types_data[name].urdf_file
 
     with pytest.raises(ValueError):
         ftd.check_finger_type("invalid")

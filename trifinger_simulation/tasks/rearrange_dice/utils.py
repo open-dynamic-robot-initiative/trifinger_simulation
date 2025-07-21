@@ -71,8 +71,7 @@ def parse_pattern(goal_pattern: typing.Sequence[str]) -> Goal:
 
     if len(goal) != NUM_DICE:
         raise RuntimeError(
-            "Invalid number of goals.  Expected %d, got %d"
-            % (NUM_DICE, len(goal))
+            "Invalid number of goals.  Expected %d, got %d" % (NUM_DICE, len(goal))
         )
 
     return goal

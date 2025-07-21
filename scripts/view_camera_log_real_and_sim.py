@@ -20,12 +20,8 @@ from trifinger_simulation import sim_finger, camera
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "log_dir", type=pathlib.Path, help="Path to the log files."
-    )
-    parser.add_argument(
-        "--rate", type=int, default=1, help="Time in ms per step."
-    )
+    parser.add_argument("log_dir", type=pathlib.Path, help="Path to the log files.")
+    parser.add_argument("--rate", type=int, default=1, help="Time in ms per step.")
     args = parser.parse_args()
 
     robot_log_file = str(args.log_dir / "robot_data.dat")
@@ -40,8 +36,7 @@ def main():
     cameras = camera.create_trifinger_camera_array_from_config(args.log_dir)
 
     cube_urdf_file = (
-        pathlib.Path(trifinger_simulation.__file__).parent
-        / "data/cube_v2/cube_v2.urdf"
+        pathlib.Path(trifinger_simulation.__file__).parent / "data/cube_v2/cube_v2.urdf"
     )
     cube = pybullet.loadURDF(
         fileName=str(cube_urdf_file),
@@ -50,31 +45,19 @@ def main():
 
     pybullet.configureDebugVisualizer(lightPosition=(0, 0, 1.0))
     pybullet.configureDebugVisualizer(pybullet.COV_ENABLE_SHADOWS, 1)
-    pybullet.configureDebugVisualizer(
-        pybullet.COV_ENABLE_RGB_BUFFER_PREVIEW, 0
-    )
-    pybullet.configureDebugVisualizer(
-        pybullet.COV_ENABLE_DEPTH_BUFFER_PREVIEW, 0
-    )
+    pybullet.configureDebugVisualizer(pybullet.COV_ENABLE_RGB_BUFFER_PREVIEW, 0)
+    pybullet.configureDebugVisualizer(pybullet.COV_ENABLE_DEPTH_BUFFER_PREVIEW, 0)
     # yes, it is really a segmentation maRk...
-    pybullet.configureDebugVisualizer(
-        pybullet.COV_ENABLE_SEGMENTATION_MARK_PREVIEW, 0
-    )
+    pybullet.configureDebugVisualizer(pybullet.COV_ENABLE_SEGMENTATION_MARK_PREVIEW, 0)
 
-    for t in range(
-        log.get_first_timeindex(), log.get_last_timeindex() + 1, 100
-    ):
+    for t in range(log.get_first_timeindex(), log.get_last_timeindex() + 1, 100):
         robot_observation = log.get_robot_observation(t)
-        simulation.reset_finger_positions_and_velocities(
-            robot_observation.position
-        )
+        simulation.reset_finger_positions_and_velocities(robot_observation.position)
 
         # get rendered images from simulation
         sim_images = cameras.get_images()
         # images are rgb --> convert to bgr for opencv
-        sim_images = [
-            cv2.cvtColor(img, cv2.COLOR_RGB2BGR) for img in sim_images
-        ]
+        sim_images = [cv2.cvtColor(img, cv2.COLOR_RGB2BGR) for img in sim_images]
         sim_images = np.hstack(sim_images)
 
         # get real images from cameras
@@ -88,8 +71,7 @@ def main():
             )
 
             real_images = [
-                utils.convert_image(cam.image)
-                for cam in camera_observation.cameras
+                utils.convert_image(cam.image) for cam in camera_observation.cameras
             ]
             real_images = np.hstack(real_images)
         except Exception as e:

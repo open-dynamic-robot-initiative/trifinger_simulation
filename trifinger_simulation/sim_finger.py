@@ -113,9 +113,7 @@ class SimFinger:
 
         self.__create_link_lists()
         self.__set_urdf_path()
-        self._pybullet_client_id = self.__connect_to_pybullet(
-            enable_visualization
-        )
+        self._pybullet_client_id = self.__connect_to_pybullet(enable_visualization)
         self.__setup_pybullet_simulation(robot_position_offset)
 
         self.kinematics = pinocchio_utils.Kinematics(
@@ -188,9 +186,7 @@ class SimFinger:
 
         return observation
 
-    def append_desired_action(
-        self, action: trifinger_simulation.Action
-    ) -> int:
+    def append_desired_action(self, action: trifinger_simulation.Action) -> int:
         """
         Pass an action on which safety checks will be performed and then the
         action will be applied to the motors.
@@ -336,12 +332,8 @@ class SimFinger:
             physicsClientId=self._pybullet_client_id,
         )
 
-        observation.position = np.array(
-            [joint[0] for joint in current_joint_states]
-        )
-        observation.velocity = np.array(
-            [joint[1] for joint in current_joint_states]
-        )
+        observation.position = np.array([joint[0] for joint in current_joint_states])
+        observation.velocity = np.array([joint[1] for joint in current_joint_states])
         # pybullet.getJointStates only contains actual joint torques in
         # POSITION_CONTROL and VELOCITY_CONTROL mode.  In TORQUE_CONTROL mode
         # only zeros are reported, the actual torque is exactly the same as the
@@ -508,9 +500,7 @@ class SimFinger:
 
         return applied_torques
 
-    def __safety_check_torques(
-        self, desired_torques: npt.ArrayLike
-    ) -> np.ndarray:
+    def __safety_check_torques(self, desired_torques: npt.ArrayLike) -> np.ndarray:
         """
         Perform a check on the torques being sent to be applied to
         the motors so that they do not exceed the safety torque limit
@@ -527,9 +517,7 @@ class SimFinger:
             self.pybullet_joint_indices,
             physicsClientId=self._pybullet_client_id,
         )
-        current_velocity = np.array(
-            [joint[1] for joint in current_joint_states]
-        )
+        current_velocity = np.array([joint[1] for joint in current_joint_states])
 
         return self._sanitise_torques(
             desired_torques,
@@ -569,12 +557,8 @@ class SimFinger:
             self.pybullet_joint_indices,
             physicsClientId=self._pybullet_client_id,
         )
-        current_position = np.array(
-            [joint[0] for joint in current_joint_states]
-        )
-        current_velocity = np.array(
-            [joint[1] for joint in current_joint_states]
-        )
+        current_position = np.array([joint[0] for joint in current_joint_states])
+        current_velocity = np.array([joint[1] for joint in current_joint_states])
 
         position_error = joint_positions - current_position
 
@@ -654,9 +638,7 @@ class SimFinger:
             -9.81,
             physicsClientId=self._pybullet_client_id,
         )
-        pybullet.setTimeStep(
-            self.time_step_s, physicsClientId=self._pybullet_client_id
-        )
+        pybullet.setTimeStep(self.time_step_s, physicsClientId=self._pybullet_client_id)
 
         # change initial camera pose to something that fits better for the
         # (Tri)Finger robots (mostly moves it closer to the robot as the
@@ -748,9 +730,7 @@ class SimFinger:
 
         urdf_file = finger_types_data.get_finger_urdf(self.finger_type)
         # TODO can we stick with Path here?
-        self.finger_urdf_path = str(
-            self.robot_properties_path / "urdf" / urdf_file
-        )
+        self.finger_urdf_path = str(self.robot_properties_path / "urdf" / urdf_file)
 
     def __load_robot_urdf(self, robot_position_offset: typing.Sequence[float]):
         """
@@ -769,8 +749,7 @@ class SimFinger:
             baseOrientation=finger_base_orientation,
             useFixedBase=1,
             flags=(
-                pybullet.URDF_USE_INERTIA_FROM_FILE
-                | pybullet.URDF_USE_SELF_COLLISION
+                pybullet.URDF_USE_INERTIA_FROM_FILE | pybullet.URDF_USE_SELF_COLLISION
             ),
             physicsClientId=self._pybullet_client_id,
         )
@@ -904,16 +883,8 @@ class SimFinger:
     def __set_default_pd_gains(self):
         """Set the default PD gains depending on the finger type."""
         if self.finger_type in ["fingerpro", "trifingerpro"]:
-            self.position_gains = np.array(
-                [15.0, 15.0, 9.0] * self.number_of_fingers
-            )
-            self.velocity_gains = np.array(
-                [0.5, 1.0, 0.5] * self.number_of_fingers
-            )
+            self.position_gains = np.array([15.0, 15.0, 9.0] * self.number_of_fingers)
+            self.velocity_gains = np.array([0.5, 1.0, 0.5] * self.number_of_fingers)
         else:
-            self.position_gains = np.array(
-                [10.0, 10.0, 10.0] * self.number_of_fingers
-            )
-            self.velocity_gains = np.array(
-                [0.1, 0.3, 0.001] * self.number_of_fingers
-            )
+            self.position_gains = np.array([10.0, 10.0, 10.0] * self.number_of_fingers)
+            self.velocity_gains = np.array([0.1, 0.3, 0.001] * self.number_of_fingers)

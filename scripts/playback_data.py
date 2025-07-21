@@ -22,9 +22,7 @@ def main_finger(finger_type, data_file):
 
     def reset_finger(joint_position):
         for i, joint_id in enumerate(finger.pybullet_joint_indices):
-            pybullet.resetJointState(
-                finger.finger_id, joint_id, joint_position[i]
-            )
+            pybullet.resetJointState(finger.finger_id, joint_id, joint_position[i])
 
     with open(data_file, "rb") as file_handle:
         episodes = pickle.load(file_handle)
@@ -93,9 +91,7 @@ def main_trifinger(finger_type, data_file_0, data_file_120, data_file_240):
 
     def reset_finger(joint_position):
         for i, joint_id in enumerate(finger.pybullet_joint_indices):
-            pybullet.resetJointState(
-                finger.finger_id, joint_id, joint_position[i]
-            )
+            pybullet.resetJointState(finger.finger_id, joint_id, joint_position[i])
 
     data = []
     for filename in (data_file_0, data_file_120, data_file_240):

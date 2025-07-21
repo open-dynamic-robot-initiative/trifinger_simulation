@@ -27,9 +27,7 @@ class TestLoadingURDFs(unittest.TestCase):
 
             except pybullet.error as e:
                 self.fail(
-                    "Failed to create SimFinger(finger_type={}): {}".format(
-                        key, e
-                    )
+                    "Failed to create SimFinger(finger_type={}): {}".format(key, e)
                 )
 
     def test_loading_urdfs_locally(self):

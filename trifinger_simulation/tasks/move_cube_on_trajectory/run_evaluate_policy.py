@@ -37,10 +37,7 @@ def generate_test_set(num_trajectories: int) -> typing.List[str]:
     Returns:
         List of random trajectories encoded as JSON strings.
     """
-    return [
-        mct.trajectory_to_json(mct.sample_goal())
-        for i in range(num_trajectories)
-    ]
+    return [mct.trajectory_to_json(mct.sample_goal()) for i in range(num_trajectories)]
 
 
 def run_evaluate_policy(script_path: str, sample: str, action_log_file: str):
@@ -76,11 +73,7 @@ def add_arguments(parser):
 
 def main(output_directory: pathlib.Path, eval_executable: str):
     if not output_directory.is_dir():
-        print(
-            "'{}' does not exist or is not a directory.".format(
-                output_directory
-            )
-        )
+        print("'{}' does not exist or is not a directory.".format(output_directory))
         sys.exit(1)
 
     # Number of goals that are sampled for the evaluation

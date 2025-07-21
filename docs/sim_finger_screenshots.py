@@ -76,9 +76,7 @@ if __name__ == "__main__":
     cube = collision_objects.ColoredCubeV2(
         position=config["cube_pos"],
         # rotate the cube a bit, so it looks nicer
-        orientation=Rotation.from_euler(
-            "xz", (90, -40), degrees=True
-        ).as_quat(),
+        orientation=Rotation.from_euler("xz", (90, -40), degrees=True).as_quat(),
     )
 
     # set the finger position

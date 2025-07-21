@@ -16,9 +16,7 @@ def test_timestamps_no_camera_delay():
     assert platform.camera_rate_fps == 10
 
     # compute camera update step interval based on configured rates
-    camera_update_step_interval = (
-        1 / platform.camera_rate_fps
-    ) / platform._time_step
+    camera_update_step_interval = (1 / platform.camera_rate_fps) / platform._time_step
     # robot time step in milliseconds
     time_step_ms = platform._time_step * 1000
 
@@ -282,12 +280,8 @@ def test_object_pose_observation():
     obs = platform.get_camera_observation(t)
 
     np.testing.assert_array_equal(obs.object_pose.position, pose.position)
-    np.testing.assert_array_equal(
-        obs.filtered_object_pose.position, pose.position
-    )
-    np.testing.assert_array_almost_equal(
-        obs.object_pose.orientation, pose.orientation
-    )
+    np.testing.assert_array_equal(obs.filtered_object_pose.position, pose.position)
+    np.testing.assert_array_almost_equal(obs.object_pose.orientation, pose.orientation)
     np.testing.assert_array_almost_equal(
         obs.filtered_object_pose.orientation, pose.orientation
     )

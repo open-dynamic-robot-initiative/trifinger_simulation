@@ -30,17 +30,13 @@ class TestSample(unittest.TestCase):
 
         # one finger
         for i in range(100):
-            result = sample.random_joint_positions(
-                1, lower_bounds, upper_bounds
-            )
+            result = sample.random_joint_positions(1, lower_bounds, upper_bounds)
             assert_array_less_equal(lower_bounds, result)
             assert_array_less_equal(result, upper_bounds)
 
         # three finger
         for i in range(100):
-            result = sample.random_joint_positions(
-                3, lower_bounds, upper_bounds
-            )
+            result = sample.random_joint_positions(3, lower_bounds, upper_bounds)
             assert_array_less_equal(lower_bounds * 3, result)
             assert_array_less_equal(result, upper_bounds * 3)
 

@@ -187,9 +187,7 @@ def test_json_goal_from_config_good(test_data_dir):
         [300, [0.04, 0.01, 0.07]],
     ]
 
-    actual_traj_json = mct.json_goal_from_config(
-        test_data_dir / "good_goal.json"
-    )
+    actual_traj_json = mct.json_goal_from_config(test_data_dir / "good_goal.json")
     actual_traj = json.loads(actual_traj_json)
 
     assert expected_traj == actual_traj

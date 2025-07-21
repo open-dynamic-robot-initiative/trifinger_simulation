@@ -88,19 +88,13 @@ def run_evaluate_policy(sample: TestSample):
 
 def main(output_directory: str):
     if not os.path.isdir(output_directory):
-        print(
-            "'{}' does not exist or is not a directory.".format(
-                output_directory
-            )
-        )
+        print("'{}' does not exist or is not a directory.".format(output_directory))
         sys.exit(1)
 
     levels = (1, 2, 3, 4)
     runs_per_level = 10
 
-    logfile_tmpl = os.path.join(
-        output_directory, "action_log_l{level}_i{iteration}.p"
-    )
+    logfile_tmpl = os.path.join(output_directory, "action_log_l{level}_i{iteration}.p")
 
     # generate n samples for each level
     test_data = generate_test_set(levels, runs_per_level, logfile_tmpl)

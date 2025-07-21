@@ -105,9 +105,7 @@ def main():
                 trajectory = np.vstack(data["tip_positions"])
                 dist = trajectory - tip_goal
 
-                ax[a].plot(
-                    dist[:, x], dist[:, y], color=(0.3, 0.3, 0.3), linewidth=2
-                )
+                ax[a].plot(dist[:, x], dist[:, y], color=(0.3, 0.3, 0.3), linewidth=2)
                 ax[a].plot(dist[0, x], dist[0, y], "bo", zorder=40)
                 ax[a].plot(dist[-1, x], dist[-1, y], "g^", zorder=40)
 

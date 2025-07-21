@@ -76,8 +76,7 @@ def main():
         if args.object == "cube":
             camera_observation = platform.get_camera_observation(t)
             print(
-                "Cube Position: %s"
-                % camera_observation.filtered_object_pose.position
+                "Cube Position: %s" % camera_observation.filtered_object_pose.position
             )
 
         if platform.enable_cameras:

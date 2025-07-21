@@ -33,11 +33,7 @@ def add_arguments(parser):
 def main(log_directory: pathlib.Path):
     try:
         if not log_directory.is_dir():
-            print(
-                "'{}' does not exist or is not a directory.".format(
-                    log_directory
-                )
-            )
+            print("'{}' does not exist or is not a directory.".format(log_directory))
             sys.exit(1)
 
         logfile_tmpl = str(log_directory / "action_log_{:02d}.p")
@@ -52,9 +48,7 @@ def main(log_directory: pathlib.Path):
         for i, sample_json in enumerate(test_data):
             print("\n___Replay trajectory {}___".format(i))
             sample = json.loads(sample_json)
-            reward = replay_action_log.replay_action_log(
-                logfile_tmpl.format(i), sample
-            )
+            reward = replay_action_log.replay_action_log(logfile_tmpl.format(i), sample)
             rewards.append(reward)
 
         # report

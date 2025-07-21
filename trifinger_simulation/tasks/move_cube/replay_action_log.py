@@ -39,16 +39,13 @@ def replay_action_log(logfile, difficulty, initial_pose, goal_pose):
         np.testing.assert_array_almost_equal(
             initial_object_pose.position,
             log["initial_object_pose"].position,
-            err_msg=(
-                "Given initial object position does not match with log file."
-            ),
+            err_msg=("Given initial object position does not match with log file."),
         )
         np.testing.assert_array_almost_equal(
             initial_object_pose.orientation,
             log["initial_object_pose"].orientation,
             err_msg=(
-                "Given initial object orientation does not match with log"
-                " file."
+                "Given initial object orientation does not match with log" " file."
             ),
         )
     except AssertionError as e:
@@ -211,6 +208,4 @@ if __name__ == "__main__":
     add_arguments(parser)
     args = parser.parse_args()
 
-    replay_action_log(
-        args.logfile, args.difficulty, args.initial_pose, args.goal_pose
-    )
+    replay_action_log(args.logfile, args.difficulty, args.initial_pose, args.goal_pose)

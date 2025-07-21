@@ -29,9 +29,7 @@ def replay_action_log(logfile: str, trajectory: mct.Trajectory) -> float:
         log = pickle.load(fh)
 
     # initialize cube at the centre
-    initial_object_pose = mct.move_cube.Pose(
-        position=mct.INITIAL_CUBE_POSITION
-    )
+    initial_object_pose = mct.move_cube.Pose(position=mct.INITIAL_CUBE_POSITION)
 
     platform = trifinger_platform.TriFingerPlatform(
         visualization=False, initial_object_pose=initial_object_pose
@@ -66,9 +64,7 @@ def replay_action_log(logfile: str, trajectory: mct.Trajectory) -> float:
         robot_obs = platform.get_robot_observation(t)
         camera_obs = platform.get_camera_observation(t)
         # ensure we got a camera observation with object pose (mostly for mypy)
-        assert isinstance(
-            camera_obs, trifinger_platform.TriCameraObjectObservation
-        )
+        assert isinstance(camera_obs, trifinger_platform.TriCameraObjectObservation)
 
         cube_pose = camera_obs.filtered_object_pose
         reward = -mct.evaluate_state(trajectory, t, cube_pose.position)
@@ -119,9 +115,7 @@ def replay_action_log(logfile: str, trajectory: mct.Trajectory) -> float:
         )
 
     camera_obs = platform.get_camera_observation(t)
-    assert isinstance(
-        camera_obs, trifinger_platform.TriCameraObjectObservation
-    )
+    assert isinstance(camera_obs, trifinger_platform.TriCameraObjectObservation)
     cube_pose = camera_obs.object_pose
     final_pose = log["final_object_pose"]["pose"]
 

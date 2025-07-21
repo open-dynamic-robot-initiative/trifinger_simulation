@@ -19,9 +19,7 @@ def test_calib_data_to_matrix_1x1():
     }
     expected = np.array([[42]])
 
-    np.testing.assert_array_equal(
-        sim_camera.calib_data_to_matrix(data), expected
-    )
+    np.testing.assert_array_equal(sim_camera.calib_data_to_matrix(data), expected)
 
 
 def test_calib_data_to_matrix_3x3():
@@ -32,9 +30,7 @@ def test_calib_data_to_matrix_3x3():
     }
     expected = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
-    np.testing.assert_array_equal(
-        sim_camera.calib_data_to_matrix(data), expected
-    )
+    np.testing.assert_array_equal(sim_camera.calib_data_to_matrix(data), expected)
 
 
 def test_calib_data_to_matrix_2x4():
@@ -45,9 +41,7 @@ def test_calib_data_to_matrix_2x4():
     }
     expected = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])
 
-    np.testing.assert_array_equal(
-        sim_camera.calib_data_to_matrix(data), expected
-    )
+    np.testing.assert_array_equal(sim_camera.calib_data_to_matrix(data), expected)
 
 
 def test_camera_parameters_load():
@@ -61,9 +55,7 @@ def test_camera_parameters_load():
         ]
     )
 
-    expected_dist_coeffs = np.array(
-        [-0.2373, 0.1466, -0.0033, 0.0002, -0.1356]
-    )
+    expected_dist_coeffs = np.array([-0.2373, 0.1466, -0.0033, 0.0002, -0.1356])
 
     expected_tf_mat = np.array(
         [
@@ -81,15 +73,11 @@ def test_camera_parameters_load():
     assert params.name == "camera180"
     assert params.width == 720
     assert params.height == 540
-    np.testing.assert_array_almost_equal(
-        params.camera_matrix, expected_camera_matrix
-    )
+    np.testing.assert_array_almost_equal(params.camera_matrix, expected_camera_matrix)
     np.testing.assert_array_almost_equal(
         params.distortion_coefficients, expected_dist_coeffs
     )
-    np.testing.assert_array_almost_equal(
-        params.tf_world_to_camera, expected_tf_mat
-    )
+    np.testing.assert_array_almost_equal(params.tf_world_to_camera, expected_tf_mat)
 
 
 def test_camera_parameters_dump(tmpdir):
@@ -110,9 +98,7 @@ def test_camera_parameters_dump(tmpdir):
     assert params.name == params2.name
     assert params.width == params2.width
     assert params.height == params2.height
-    np.testing.assert_array_almost_equal(
-        params.camera_matrix, params2.camera_matrix
-    )
+    np.testing.assert_array_almost_equal(params.camera_matrix, params2.camera_matrix)
     np.testing.assert_array_almost_equal(
         params.distortion_coefficients, params2.distortion_coefficients
     )

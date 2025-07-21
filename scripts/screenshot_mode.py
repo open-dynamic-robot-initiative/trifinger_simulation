@@ -20,9 +20,7 @@ def main():
     parser.add_argument(
         "finger_type",
         choices=valid_finger_types,
-        help="Specify a valid finger type.  One of {}".format(
-            valid_finger_types
-        ),
+        help="Specify a valid finger type.  One of {}".format(valid_finger_types),
     )
     parser.add_argument(
         "--position", "-p", type=float, nargs="+", help="Joint positions."
