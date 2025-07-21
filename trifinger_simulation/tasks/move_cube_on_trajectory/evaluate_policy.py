@@ -23,7 +23,7 @@ evaluate the actual performance of the policy.
 import argparse
 import json
 
-import gym
+import gymnasium as gym
 
 from trifinger_simulation.gym_wrapper.envs import cube_trajectory_env
 
@@ -75,11 +75,12 @@ def main():
     # environment, this is the case when looping until is_done == True.  Make
     # sure to adjust this in case your custom environment behaves differently!
     is_done = False
-    observation = env.reset()
+    observation, info = env.reset()
     accumulated_reward = 0
     while not is_done:
         action = policy.predict(observation)
-        observation, reward, is_done, info = env.step(action)
+        observation, reward, terminated, truncated, info = env.step(action)
+        is_done = terminated or truncated
         accumulated_reward += reward
 
     print("Accumulated reward: {}".format(accumulated_reward))

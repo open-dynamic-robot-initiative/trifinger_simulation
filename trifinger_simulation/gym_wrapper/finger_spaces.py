@@ -1,7 +1,7 @@
 import math
 import numpy as np
 
-from gym import spaces
+from gymnasium import spaces
 
 
 class FingerSpaces:
