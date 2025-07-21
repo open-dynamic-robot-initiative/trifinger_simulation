@@ -100,9 +100,7 @@ def main():
             images = cameras.get_images()
             # images are rgb --> convert to bgr for opencv
             images = [cv2.cvtColor(img, cv2.COLOR_RGB2BGR) for img in images]
-            cv2.imshow("camera60", images[0])
-            cv2.imshow("camera180", images[1])
-            cv2.imshow("camera300", images[2])
+            cv2.imshow("camera60 | camera180 | camera300", np.hstack(images))
             key = cv2.waitKey(int(time_step * 1000))
 
             if key == ord("s"):
